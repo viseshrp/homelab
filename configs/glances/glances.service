@@ -1,0 +1,11 @@
+[Unit]
+Description=Glances
+After=network.target
+
+[Service]
+ExecStart=/opt/glances/venv/bin/glances -s --disable-webui --disable-history
+Restart=on-abort
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
