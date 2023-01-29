@@ -1,0 +1,44 @@
+# Loads default set of integrations. Do not remove.
+default_config:
+
+# Text to speech
+tts:
+  - platform: google_translate
+
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
+homeassistant:
+    customize: !include customize.yaml
+
+frontend:
+  themes: !include_dir_merge_named themes
+
+ffmpeg:
+
+wake_on_lan:
+
+sun:
+
+http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 172.30.33.0/24
+
+binary_sensor:
+  - platform: ping
+    host: 192.168.68.83
+    name: pixel_visesh
+    count: 8
+    scan_interval: 15
+  - platform: ping
+    host: 192.168.68.62
+    name: iphone_supraja
+    count: 8
+    scan_interval: 15
+  - platform: ping
+    host: 192.168.68.91
+    name: rpiproxy
+    count: 8
+    scan_interval: 15
