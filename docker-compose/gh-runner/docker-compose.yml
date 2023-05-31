@@ -6,9 +6,9 @@ services:
       REPO_URL: https://github.com/viseshrp/website
       RUNNER_NAME: website-runner
       RUNNER_TOKEN: <token>
-#      ACCESS_TOKEN: token
+      #      ACCESS_TOKEN: token
       RUNNER_WORKDIR: /tmp/runner/work
-#      RUNNER_GROUP: rpi-runners
+      #      RUNNER_GROUP: rpi-runners
       RUNNER_SCOPE: 'repo'
       LABELS: linux,x64,rpi,arm64
     security_opt:
@@ -21,3 +21,4 @@ services:
       # note: a quirk of docker-in-docker is that this path
       # needs to be the same path on host and inside the container,
       # docker mgmt cmds run outside of docker but expect the paths from within
+    restart: always
