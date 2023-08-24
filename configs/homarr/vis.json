@@ -1,0 +1,1003 @@
+{
+  "schemaVersion": 1,
+  "configProperties": {
+    "name": "vis"
+  },
+  "categories": [],
+  "wrappers": [
+    {
+      "id": "default",
+      "position": 0
+    }
+  ],
+  "apps": [
+    {
+      "id": "fa2a6cda-0818-4b7d-b7d8-0bfb5e7cec32",
+      "name": "homebridge",
+      "url": "http://192.168.68.88:8581/",
+      "appearance": {
+        "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/homebridge.png",
+        "appNameStatus": "normal",
+        "positionAppName": "column",
+        "lineClampAppName": 1
+      },
+      "network": {
+        "enabledStatusChecker": true,
+        "statusCodes": [
+          "200",
+          "301",
+          "302",
+          "304",
+          "307",
+          "308"
+        ]
+      },
+      "behaviour": {
+        "isOpeningNewTab": true,
+        "externalUrl": "http://192.168.68.88:8581/"
+      },
+      "area": {
+        "type": "sidebar",
+        "properties": {
+          "location": "left"
+        }
+      },
+      "shape": {
+        "md": {
+          "location": {
+            "x": 0,
+            "y": 1
+          },
+          "size": {
+            "width": 1,
+            "height": 1
+          }
+        },
+        "lg": {
+          "location": {
+            "x": 0,
+            "y": 6
+          },
+          "size": {
+            "width": 1,
+            "height": 1
+          }
+        }
+      },
+      "integration": {
+        "type": null,
+        "properties": []
+      }
+    },
+    {
+      "id": "b6ea6d6f-ac4a-4c28-ad83-73263ff81596",
+      "name": "cal",
+      "url": "http://192.168.68.116:3000",
+      "appearance": {
+        "iconUrl": "https://raw.githubusercontent.com/calcom/cal.com/main/apps/web/public/android-chrome-192x192.png",
+        "appNameStatus": "normal",
+        "positionAppName": "column",
+        "lineClampAppName": 1
+      },
+      "network": {
+        "enabledStatusChecker": true,
+        "statusCodes": [
+          "200",
+          "301",
+          "302",
+          "304",
+          "307",
+          "308"
+        ]
+      },
+      "behaviour": {
+        "isOpeningNewTab": true,
+        "externalUrl": "https://cal.viseshprasad.com/"
+      },
+      "area": {
+        "type": "sidebar",
+        "properties": {
+          "location": "left"
+        }
+      },
+      "shape": {
+        "md": {
+          "location": {
+            "x": 1,
+            "y": 2
+          },
+          "size": {
+            "width": 1,
+            "height": 1
+          }
+        },
+        "lg": {
+          "location": {
+            "x": 0,
+            "y": 1
+          },
+          "size": {
+            "width": 1,
+            "height": 1
+          }
+        }
+      },
+      "integration": {
+        "type": null,
+        "properties": []
+      }
+    },
+    {
+      "id": "7ee6502a-1dc2-4ce7-95d0-fb2031d866db",
+      "name": "hass",
+      "url": "http://192.168.68.88:8123/",
+      "appearance": {
+        "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/home-assistant.png",
+        "appNameStatus": "normal",
+        "positionAppName": "column",
+        "lineClampAppName": 1
+      },
+      "network": {
+        "enabledStatusChecker": true,
+        "statusCodes": [
+          "200",
+          "301",
+          "302",
+          "304",
+          "307",
+          "308"
+        ]
+      },
+      "behaviour": {
+        "isOpeningNewTab": true,
+        "externalUrl": "https://hass.viseshprasad.com"
+      },
+      "area": {
+        "type": "sidebar",
+        "properties": {
+          "location": "left"
+        }
+      },
+      "shape": {
+        "md": {
+          "location": {
+            "x": 1,
+            "y": 1
+          },
+          "size": {
+            "width": 1,
+            "height": 1
+          }
+        },
+        "lg": {
+          "location": {
+            "x": 1,
+            "y": 0
+          },
+          "size": {
+            "width": 1,
+            "height": 1
+          }
+        }
+      },
+      "integration": {
+        "type": null,
+        "properties": []
+      }
+    },
+    {
+      "id": "673cde5c-b294-4ec6-a9ce-abd8390be108",
+      "name": "links",
+      "url": "http://192.168.68.116:9090",
+      "appearance": {
+        "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/linkding.png",
+        "appNameStatus": "normal",
+        "positionAppName": "column",
+        "lineClampAppName": 1
+      },
+      "network": {
+        "enabledStatusChecker": true,
+        "statusCodes": [
+          "200",
+          "301",
+          "302",
+          "304",
+          "307",
+          "308"
+        ]
+      },
+      "behaviour": {
+        "isOpeningNewTab": true,
+        "externalUrl": "https://links.viseshprasad.com/"
+      },
+      "area": {
+        "type": "sidebar",
+        "properties": {
+          "location": "left"
+        }
+      },
+      "shape": {
+        "md": {
+          "location": {
+            "x": 0,
+            "y": 3
+          },
+          "size": {
+            "width": 1,
+            "height": 1
+          }
+        },
+        "lg": {
+          "location": {
+            "x": 0,
+            "y": 2
+          },
+          "size": {
+            "width": 1,
+            "height": 1
+          }
+        }
+      },
+      "integration": {
+        "type": null,
+        "properties": []
+      }
+    },
+    {
+      "id": "38454a39-d45a-449e-8013-d0672f583524",
+      "name": "pihole",
+      "url": "http://192.168.68.77/admin/index.php",
+      "appearance": {
+        "iconUrl": "https://cdn.jsdelivr.net/gh/loganmarchione/homelab-svg-assets/assets/pihole.svg",
+        "appNameStatus": "normal",
+        "positionAppName": "column",
+        "lineClampAppName": 1
+      },
+      "network": {
+        "enabledStatusChecker": true,
+        "statusCodes": [
+          "200",
+          "301",
+          "302",
+          "304",
+          "307",
+          "308"
+        ]
+      },
+      "behaviour": {
+        "isOpeningNewTab": true,
+        "externalUrl": "http://192.168.68.77/admin/index.php"
+      },
+      "area": {
+        "type": "sidebar",
+        "properties": {
+          "location": "left"
+        }
+      },
+      "shape": {
+        "md": {
+          "location": {
+            "x": 1,
+            "y": 0
+          },
+          "size": {
+            "width": 1,
+            "height": 1
+          }
+        },
+        "lg": {
+          "location": {
+            "x": 0,
+            "y": 3
+          },
+          "size": {
+            "width": 1,
+            "height": 1
+          }
+        }
+      },
+      "integration": {
+        "type": null,
+        "properties": []
+      }
+    },
+    {
+      "id": "94e4e4ed-763d-482b-83a1-5e933dcd916d",
+      "name": "pass",
+      "url": "http://192.168.68.100:8080",
+      "appearance": {
+        "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/vaultwarden.png",
+        "appNameStatus": "normal",
+        "positionAppName": "column",
+        "lineClampAppName": 1
+      },
+      "network": {
+        "enabledStatusChecker": true,
+        "statusCodes": [
+          "200",
+          "301",
+          "302",
+          "304",
+          "307",
+          "308"
+        ]
+      },
+      "behaviour": {
+        "isOpeningNewTab": true,
+        "externalUrl": "https://pass.viseshprasad.com/"
+      },
+      "area": {
+        "type": "sidebar",
+        "properties": {
+          "location": "right"
+        }
+      },
+      "shape": {
+        "md": {
+          "location": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 1,
+            "height": 1
+          }
+        },
+        "lg": {
+          "location": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 1,
+            "height": 1
+          }
+        }
+      },
+      "integration": {
+        "type": null,
+        "properties": []
+      }
+    },
+    {
+      "id": "dfc48f19-077c-49b0-972e-278b1774506f",
+      "name": "firezone",
+      "url": "http://192.168.68.78:13000",
+      "appearance": {
+        "iconUrl": "https://firezone.viseshprasad.com/images/logo-0ae7086d7916e21f78795bfa2ee7af8d.svg?vsn=d",
+        "appNameStatus": "normal",
+        "positionAppName": "column",
+        "lineClampAppName": 1
+      },
+      "network": {
+        "enabledStatusChecker": true,
+        "statusCodes": [
+          "200",
+          "301",
+          "302",
+          "304",
+          "307",
+          "308"
+        ]
+      },
+      "behaviour": {
+        "isOpeningNewTab": true,
+        "externalUrl": "https://firezone.viseshprasad.com/"
+      },
+      "area": {
+        "type": "sidebar",
+        "properties": {
+          "location": "left"
+        }
+      },
+      "shape": {
+        "md": {
+          "location": {
+            "x": 0,
+            "y": 2
+          },
+          "size": {
+            "width": 1,
+            "height": 1
+          }
+        },
+        "lg": {
+          "location": {
+            "x": 1,
+            "y": 1
+          },
+          "size": {
+            "width": 1,
+            "height": 1
+          }
+        }
+      },
+      "integration": {
+        "type": null,
+        "properties": []
+      }
+    },
+    {
+      "id": "16f18bac-ba9c-473a-b7b2-97a1cb1366e4",
+      "name": "archives",
+      "url": "http://192.168.68.116:8000",
+      "appearance": {
+        "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/archivebox.png",
+        "appNameStatus": "normal",
+        "positionAppName": "column",
+        "lineClampAppName": 1
+      },
+      "network": {
+        "enabledStatusChecker": true,
+        "statusCodes": [
+          "200",
+          "301",
+          "302",
+          "304",
+          "307",
+          "308"
+        ]
+      },
+      "behaviour": {
+        "isOpeningNewTab": true,
+        "externalUrl": "https://archives.viseshprasad.com"
+      },
+      "area": {
+        "type": "sidebar",
+        "properties": {
+          "location": "left"
+        }
+      },
+      "shape": {
+        "md": {
+          "location": {
+            "x": 1,
+            "y": 2
+          },
+          "size": {
+            "width": 1,
+            "height": 1
+          }
+        },
+        "lg": {
+          "location": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 1,
+            "height": 1
+          }
+        }
+      },
+      "integration": {
+        "type": null,
+        "properties": []
+      }
+    },
+    {
+      "id": "b25794c0-585e-4631-94db-7e33cf6eb62d",
+      "name": "plex",
+      "url": "http://192.168.68.93:32400/web/index.html",
+      "appearance": {
+        "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/plex.png",
+        "appNameStatus": "normal",
+        "positionAppName": "column",
+        "lineClampAppName": 1
+      },
+      "network": {
+        "enabledStatusChecker": true,
+        "statusCodes": [
+          "200",
+          "301",
+          "302",
+          "304",
+          "307",
+          "308"
+        ]
+      },
+      "behaviour": {
+        "isOpeningNewTab": true,
+        "externalUrl": "https://plex.viseshprasad.com/web/index.html"
+      },
+      "area": {
+        "type": "sidebar",
+        "properties": {
+          "location": "right"
+        }
+      },
+      "shape": {
+        "md": {
+          "location": {
+            "x": 1,
+            "y": 0
+          },
+          "size": {
+            "width": 1,
+            "height": 1
+          }
+        },
+        "lg": {
+          "location": {
+            "x": 0,
+            "y": 1
+          },
+          "size": {
+            "width": 1,
+            "height": 1
+          }
+        }
+      },
+      "integration": {
+        "type": null,
+        "properties": []
+      }
+    },
+    {
+      "id": "b0975f31-f131-40b8-9656-700bb1026be4",
+      "name": "status",
+      "url": "http://192.168.68.119:3001",
+      "appearance": {
+        "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/svg/uptime-kuma.svg",
+        "appNameStatus": "normal",
+        "positionAppName": "column",
+        "lineClampAppName": 1
+      },
+      "network": {
+        "enabledStatusChecker": true,
+        "statusCodes": [
+          "200",
+          "301",
+          "302",
+          "304",
+          "307",
+          "308"
+        ]
+      },
+      "behaviour": {
+        "isOpeningNewTab": true,
+        "externalUrl": "https://status.viseshprasad.com/"
+      },
+      "area": {
+        "type": "sidebar",
+        "properties": {
+          "location": "right"
+        }
+      },
+      "shape": {
+        "md": {
+          "location": {
+            "x": 1,
+            "y": 1
+          },
+          "size": {
+            "width": 1,
+            "height": 1
+          }
+        },
+        "lg": {
+          "location": {
+            "x": 1,
+            "y": 0
+          },
+          "size": {
+            "width": 1,
+            "height": 1
+          }
+        }
+      },
+      "integration": {
+        "type": null,
+        "properties": []
+      }
+    },
+    {
+      "id": "8377b885-3c10-402a-8a85-1e13c3eabdbc",
+      "name": "npm",
+      "url": "http://192.168.68.91:81/nginx/proxy",
+      "appearance": {
+        "iconUrl": "https://cdn.jsdelivr.net/gh/loganmarchione/homelab-svg-assets/assets/nginxproxymanager.svg",
+        "appNameStatus": "normal",
+        "positionAppName": "column",
+        "lineClampAppName": 1
+      },
+      "network": {
+        "enabledStatusChecker": true,
+        "statusCodes": [
+          "200",
+          "301",
+          "302",
+          "304",
+          "307",
+          "308"
+        ]
+      },
+      "behaviour": {
+        "isOpeningNewTab": true,
+        "externalUrl": "http://192.168.68.91:81/nginx/proxy"
+      },
+      "area": {
+        "type": "sidebar",
+        "properties": {
+          "location": "left"
+        }
+      },
+      "shape": {
+        "md": {
+          "location": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 1,
+            "height": 1
+          }
+        },
+        "lg": {
+          "location": {
+            "x": 0,
+            "y": 4
+          },
+          "size": {
+            "width": 1,
+            "height": 1
+          }
+        }
+      },
+      "integration": {
+        "type": null,
+        "properties": []
+      }
+    },
+    {
+      "id": "dcd9e230-7a42-4376-abce-6730c481e9d1",
+      "name": "blog",
+      "url": "http://192.168.68.116:80",
+      "appearance": {
+        "iconUrl": "https://raw.githubusercontent.com/viseshrp/website/main/prof.jpeg",
+        "appNameStatus": "normal",
+        "positionAppName": "column",
+        "lineClampAppName": 1
+      },
+      "network": {
+        "enabledStatusChecker": true,
+        "statusCodes": [
+          "200",
+          "301",
+          "302",
+          "304",
+          "307",
+          "308"
+        ]
+      },
+      "behaviour": {
+        "isOpeningNewTab": true,
+        "externalUrl": "https://viseshprasad.com"
+      },
+      "area": {
+        "type": "sidebar",
+        "properties": {
+          "location": "right"
+        }
+      },
+      "shape": {
+        "md": {
+          "location": {
+            "x": 0,
+            "y": 1
+          },
+          "size": {
+            "width": 1,
+            "height": 1
+          }
+        },
+        "lg": {
+          "location": {
+            "x": 0,
+            "y": 3
+          },
+          "size": {
+            "width": 1,
+            "height": 1
+          }
+        }
+      },
+      "integration": {
+        "type": null,
+        "properties": []
+      }
+    }
+  ],
+  "widgets": [
+    {
+      "id": "f252768d-9e69-491b-b6b4-8cad04fa30e8",
+      "type": "date",
+      "properties": {
+        "display24HourFormat": true,
+        "dateFormat": "dddd, MMMM D",
+        "enableTimezone": true,
+        "timezoneLocation": {
+          "name": "Durham",
+          "latitude": 35.99403,
+          "longitude": -78.89862
+        },
+        "titleState": "both"
+      },
+      "area": {
+        "type": "wrapper",
+        "properties": {
+          "id": "default"
+        }
+      },
+      "shape": {
+        "sm": {
+          "location": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 1,
+            "height": 1
+          }
+        },
+        "md": {
+          "location": {
+            "x": 0,
+            "y": 1
+          },
+          "size": {
+            "width": 2,
+            "height": 1
+          }
+        },
+        "lg": {
+          "location": {
+            "x": 0,
+            "y": 2
+          },
+          "size": {
+            "width": 3,
+            "height": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "1c868b5f-ae1f-4ea7-a062-defef7c97089",
+      "type": "calendar",
+      "properties": {
+        "hideWeekDays": true,
+        "useSonarrv4": false,
+        "sundayStart": false,
+        "radarrReleaseType": "inCinemas",
+        "fontSize": "xs"
+      },
+      "area": {
+        "type": "wrapper",
+        "properties": {
+          "id": "default"
+        }
+      },
+      "shape": {
+        "sm": {
+          "location": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 2,
+            "height": 2
+          }
+        },
+        "md": {
+          "location": {
+            "x": 2,
+            "y": 0
+          },
+          "size": {
+            "width": 2,
+            "height": 2
+          }
+        },
+        "lg": {
+          "location": {
+            "x": 3,
+            "y": 0
+          },
+          "size": {
+            "width": 3,
+            "height": 2
+          }
+        }
+      }
+    },
+    {
+      "id": "b1f30200-58a8-465c-a176-dc1b59e1d593",
+      "type": "bookmark",
+      "properties": {
+        "name": "",
+        "items": [
+          {
+            "id": "26572da4-a62b-4b9e-9201-27e46a8d12fc",
+            "name": "Cloudflare",
+            "href": "https://dash.cloudflare.com/d33ac95bf4355e9cbcc0ca970a0f2495",
+            "iconUrl": "/imgs/logo/logo.png",
+            "openNewTab": true,
+            "hideHostname": false,
+            "hideIcon": true
+          }
+        ],
+        "layout": "vertical"
+      },
+      "area": {
+        "type": "wrapper",
+        "properties": {
+          "id": "default"
+        }
+      },
+      "shape": {
+        "sm": {
+          "location": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 1,
+            "height": 1
+          }
+        },
+        "md": {
+          "location": {
+            "x": 4,
+            "y": 0
+          },
+          "size": {
+            "width": 2,
+            "height": 2
+          }
+        },
+        "lg": {
+          "location": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 1,
+            "height": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "e3004052-6b83-480e-b458-56e8ccdca5f0",
+      "type": "weather",
+      "properties": {
+        "displayInFahrenheit": true,
+        "location": {
+          "name": "Durham",
+          "latitude": 35.99403,
+          "longitude": -78.89862
+        },
+        "displayCityName": true
+      },
+      "area": {
+        "type": "wrapper",
+        "properties": {
+          "id": "default"
+        }
+      },
+      "shape": {
+        "md": {
+          "location": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 2,
+            "height": 1
+          }
+        },
+        "sm": {
+          "location": {
+            "x": 2,
+            "y": 0
+          },
+          "size": {
+            "width": 1,
+            "height": 1
+          }
+        },
+        "lg": {
+          "location": {
+            "x": 0,
+            "y": 1
+          },
+          "size": {
+            "width": 3,
+            "height": 1
+          }
+        }
+      }
+    },
+    {
+      "id": "86b1921f-efa7-410f-92dd-79553bf3264d",
+      "type": "notebook",
+      "properties": {
+        "showToolbar": true,
+        "content": "<h2><strong>Todo</strong></h2><ul><li><p>rpi calendar</p></li><li><p>whatsonpypi</p></li><li><p>workedon</p></li><li><p>fabric + rclone</p></li></ul>"
+      },
+      "area": {
+        "type": "wrapper",
+        "properties": {
+          "id": "default"
+        }
+      },
+      "shape": {
+        "sm": {
+          "location": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 3,
+            "height": 2
+          }
+        },
+        "md": {
+          "location": {
+            "x": 0,
+            "y": 2
+          },
+          "size": {
+            "width": 3,
+            "height": 2
+          }
+        },
+        "lg": {
+          "location": {
+            "x": 0,
+            "y": 3
+          },
+          "size": {
+            "width": 6,
+            "height": 3
+          }
+        }
+      }
+    }
+  ],
+  "settings": {
+    "common": {
+      "searchEngine": {
+        "type": "google",
+        "properties": {}
+      }
+    },
+    "customization": {
+      "layout": {
+        "enabledLeftSidebar": true,
+        "enabledRightSidebar": true,
+        "enabledDocker": true,
+        "enabledPing": true,
+        "enabledSearchbar": true
+      },
+      "pageTitle": "Falling Rock",
+      "logoImageUrl": "/imgs/logo/logo.png",
+      "faviconUrl": "/imgs/favicon/favicon-squared.png",
+      "backgroundImageUrl": "",
+      "customCss": "",
+      "colors": {
+        "primary": "cyan",
+        "secondary": "yellow",
+        "shade": 7
+      },
+      "appOpacity": 100,
+      "gridstack": {
+        "columnCountSmall": 3,
+        "columnCountMedium": 6,
+        "columnCountLarge": 12
+      },
+      "metaTitle": "Falling Rock"
+    }
+  }
+}
