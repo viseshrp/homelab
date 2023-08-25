@@ -12,7 +12,7 @@ version: '2.4'
 
 services:
     archivebox:
-        image: ${DOCKER_IMAGE:-archivebox/archivebox:dev}
+        image: ${DOCKER_IMAGE:-archivebox/archivebox:master}
         command: server --quick-init 0.0.0.0:8000
         ports:
             - 8000:8000
@@ -25,15 +25,12 @@ services:
             - MEDIA_MAX_SIZE=750m             # increase this filesize limit to allow archiving larger audio/video files
             # - TIMEOUT=60                      # increase this number to 120+ seconds if you see many slow downloads timing out
             - CHECK_SSL_VALIDITY=True         # set to False to disable strict SSL checking (allows saving URLs w/ broken certs)
-            - SAVE_ARCHIVE_DOT_ORG=True       # set to False to disable submitting all URLs to Archive.org when archiving
+            - SAVE_ARCHIVE_DOT_ORG=False       # set to False to disable submitting all URLs to Archive.org when archiving
             - PUBLIC_INDEX=False               # set to False to prevent anonymous users from viewing snapshot list
             - PUBLIC_SNAPSHOTS=False           # set to False to prevent anonymous users from viewing snapshot content
             - PUBLIC_ADD_VIEW=False           # set to True to allow anonymous users to submit new URLs to archive
             # - PUID=1000                       # set to your host user's UID & GID if you encounter permissions issues
             # - PGID=1000
-            # - SEARCH_BACKEND_ENGINE=sonic     # uncomment these and sonic container below for better full-text search
-            # - SEARCH_BACKEND_HOST_NAME=sonic
-            # - SEARCH_BACKEND_PASSWORD=SomeSecretPassword
             # ...
             # add further configuration options from archivebox/config.py as needed (to apply them only to this container)
             # or set using `docker compose run archivebox config --set SOME_KEY=someval` (to persist config across all containers)
