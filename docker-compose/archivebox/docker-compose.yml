@@ -12,20 +12,19 @@ version: '2.4'
 
 services:
     archivebox:
-        image: ${DOCKER_IMAGE:-archivebox/archivebox:master}
+        image: ${DOCKER_IMAGE:-archivebox/archivebox:dev}
         command: server --quick-init 0.0.0.0:8000
         ports:
-            - 8000:8000
+            - 8002:8000
         volumes:
             - ./data:/data
         dns:                                           # uncomment this and pihole container below for ad-blocking during archiving
             - 192.168.68.77
         environment:
-            - ALLOWED_HOSTS=*                   # restrict this to only accept incoming traffic via specific domain name
-            - MEDIA_MAX_SIZE=750m             # increase this filesize limit to allow archiving larger audio/video files
-            # - TIMEOUT=60                      # increase this number to 120+ seconds if you see many slow downloads timing out
+#            - ALLOWED_HOSTS=localhost,192.168.68.119,archives.site.com                   # restrict this to only accept incoming traffic via specific domain name
+            - MEDIA_MAX_SIZE=1500m             # increase this filesize limit to allow archiving larger audio/video files
+            - TIMEOUT=120                      # increase this number to 120+ seconds if you see many slow downloads timing out
             - CHECK_SSL_VALIDITY=True         # set to False to disable strict SSL checking (allows saving URLs w/ broken certs)
-            - SAVE_ARCHIVE_DOT_ORG=False       # set to False to disable submitting all URLs to Archive.org when archiving
             - PUBLIC_INDEX=False               # set to False to prevent anonymous users from viewing snapshot list
             - PUBLIC_SNAPSHOTS=False           # set to False to prevent anonymous users from viewing snapshot content
             - PUBLIC_ADD_VIEW=False           # set to True to allow anonymous users to submit new URLs to archive
@@ -43,7 +42,7 @@ services:
         environment:
             - INIT_COLLECTION=archivebox
         ports:
-            - 8080:8080
+            - 8082:8080
         volumes:
             - ./data:/archivebox
             - ./data/wayback:/webarchive

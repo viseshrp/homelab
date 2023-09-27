@@ -15,5 +15,5 @@ services:
       - '7575:7575'
     environment:
       - TZ=America/New_York
-      - BASE_URL=home.viseshprasad.com
-      - PASSWORD=
+      - BASE_URL=home.site.com
+      - PASSWORD=pass
