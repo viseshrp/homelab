@@ -1,0 +1,15 @@
+version: "3"
+services:
+  dozzle:
+    image: amir20/dozzle:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 8080:8080
+    environment:
+      CONTAINERS: 1
+      DOZZLE_USERNAME: viseshrp
+      DOZZLE_PASSWORD: password
+      DOZZLE_REMOTE_HOST: tcp://192.168.68.116:2375|rpiblog,tcp://192.168.68.77:2375|rpihole,tcp://192.168.68.93:2375|rpinfs,tcp://192.168.68.100:2375|rpipass,tcp://192.168.68.91:2375|rpiproxy,tcp://192.168.68.78:2375|rpivpn
+      DOZZLE_NO_ANALYTICS: true
+    restart: always
