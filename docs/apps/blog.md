@@ -1,44 +1,21 @@
-# Hugo blog and Nginx
+# Hugo blog
 
-Serves the static personal site; Hugo produces the files and Nginx serves the `public/` directory.
+Hugo builds the personal site into static files. Nginx serves those files behind the root-domain and `www` routes in Nginx Proxy Manager.
 
-[Homelab index](../../README.md) · [Architecture](../architecture.md) · [Inspection record](../inventory.md)
+## My setup
 
-## Observed setup
+The site lives at `/opt/blog` on `rpiblog`. Its Compose service builds an image from `nginx:latest`, copies in `default.conf`, and publishes port 80.
 
-Direct HTTP on port 80 returned 200. The root-domain and `www` proxy names point here. Compose, Dockerfile, and the publish workflow were inspected under `/opt/blog`.
+The `public/` directory is mounted at `/usr/share/nginx/html`. It contains the generated site that Nginx serves.
 
-Host: `rpiblog`. Definition: `/opt/blog/docker-compose.yml`.
+## Publishing
 
-| Service | Image/build recorded | Network / host ports | Restart |
-| --- | --- | --- | --- |
-| `webserver` | `Local build` | Compose network; `80:80` | `always` |
+A manually triggered GitHub Actions workflow runs on the [self-hosted runner](github-runner.md). It checks out the site with its theme submodules, sets up extended Hugo, and builds with:
 
-| Service | Declared storage mapping |
-| --- | --- |
-| `webserver` | `./public:/usr/share/nginx/html` |
+```sh
+hugo --minify --enableGitInfo
+```
 
-Relative bind sources resolve beside the Compose file. Named volumes are Docker-managed. Paths outside `/opt` are declarations read from Compose; their contents and mount status were not inspected.
+The workflow deploys the checkout to `/opt/blog` using `rsync -rav`. Nginx serves the updated `public/` directory through its bind mount.
 
-## Recreate the setup
-
-1. Keep the site checkout, Hugo theme/submodules, Dockerfile, and Nginx configuration in the blog project.
-2. Build the static site with `hugo --minify --enableGitInfo`. The inspected workflow sets up extended Hugo and checks out submodules.
-3. The manually triggered GitHub Actions workflow runs on a self-hosted runner and uses `rsync -rav . /opt/blog` to deploy the checkout.
-4. Build the Nginx image and mount `./public` at `/usr/share/nginx/html`; route the root domain and `www` to host port 80.
-
-These are owner-run setup instructions; no deployment command was executed during documentation. Pin compatible versions and supply private values before starting a new instance.
-
-## Data and recovery
-
-Preserve the site source, theme revision, Nginx configuration, and workflow. Generated `public/` can be rebuilt when the source and toolchain are available.
-
-## Verification and troubleshooting
-
-If the site serves old pages, distinguish the workflow build from the files mounted by Nginx. The inspected rsync command does not use `--delete`, so a deployment can leave files that disappeared from the source.
-
-## Deployment notes
-
-The Dockerfile starts from `nginx:latest` and copies `default.conf`. Only the Dockerfile and workflow were inspected, not the contents of that Nginx config.
-
-Related: [GitHub Actions runner](github-runner.md), [Nginx Proxy Manager](nginx-proxy-manager.md).
+[Back to homelab](../../README.md)

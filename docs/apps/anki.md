@@ -1,42 +1,17 @@
 # Anki sync server
 
-Hosts a private Anki synchronization endpoint behind its own HTTPS name.
+The Anki server synchronizes flashcard collections and media between clients using a private sync endpoint.
 
-[Homelab index](../../README.md) · [Architecture](../architecture.md) · [Inspection record](../inventory.md)
+## My setup
 
-## Observed setup
+The service lives at `/opt/anki` on `rpiblog`. It uses `ghcr.io/luckyturtledev/anki`, with container name `anki-sync-server` and port 8080.
 
-Port 8080 accepted TCP and returned HTTP 404 at `/`. NPM routes `anki.example.com` to this port. An authenticated synchronization was not attempted.
+Nginx Proxy Manager forwards the `anki` hostname to `rpiblog:8080` over HTTP and provides HTTPS for clients.
 
-Host: `rpiblog`. Definition: `/opt/anki/docker-compose.yml`.
+## Configuration and data
 
-| Service | Image/build recorded | Network / host ports | Restart |
-| --- | --- | --- | --- |
-| `anki` | `ghcr.io/luckyturtledev/anki` | Compose network; `8080:8080` | `unless-stopped` |
+`SYNC_USER1` supplies the private sync account. `SYNC_HOST`, `SYNC_PORT`, and the base URL configure the endpoint.
 
-| Service | Declared storage mapping |
-| --- | --- |
-| `anki` | `./data:/data` |
+The host's `/opt/anki/data` directory is mounted at `/data`. It holds the server's persistent sync data. The container runs as `0:0` with an `unless-stopped` restart policy.
 
-Relative bind sources resolve beside the Compose file. Named volumes are Docker-managed. Paths outside `/opt` are declarations read from Compose; their contents and mount status were not inspected.
-
-## Recreate the setup
-
-1. Use the observed `ghcr.io/luckyturtledev/anki` image and persist `/opt/anki/data` at container `/data`.
-2. Provide `SYNC_USER1` privately and configure `SYNC_HOST`, `SYNC_PORT`, and the public base URL for your chosen deployment.
-3. Publish host port 8080 and configure the Anki HTTPS proxy route.
-4. Set the custom sync endpoint in each compatible client and test with a disposable collection before using personal decks.
-
-These are owner-run setup instructions; no deployment command was executed during documentation. Pin compatible versions and supply private values before starting a new instance.
-
-## Data and recovery
-
-Preserve the complete data directory with writes quiesced and keep credentials separately. Verify collection and media synchronization after a restore.
-
-## Verification and troubleshooting
-
-An HTTP 404 at the root establishes an HTTP responder, not a broken sync API. Test the client’s actual sync route and credentials. No collection contents were opened.
-
-## Deployment notes
-
-The observed container is configured with user `0:0`. Image and mount details come from `/opt/anki/docker-compose.yml`.
+[Back to homelab](../../README.md)

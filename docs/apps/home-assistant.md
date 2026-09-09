@@ -1,35 +1,17 @@
 # Home Assistant
 
-Home automation endpoint, with repository configuration for integrations and reverse-proxy awareness.
+Home Assistant is the home-automation interface for integrations, automations, scripts, and scenes.
 
-[Homelab index](../../README.md) · [Architecture](../architecture.md) · [Inspection record](../inventory.md)
+## My setup
 
-## Observed setup
+The web interface is on `rpihass:8123`, with a shortcut on the Homarr board.
 
-Port 8123 returned HTTP 200, while SSH port 22 refused the connection. No remote filesystem on this host was inspected.
+The local configuration includes default integrations, Google Translate text-to-speech, FFmpeg, Wake-on-LAN, sun information, and ping-based presence sensors.
 
-Host association: `rpihass`.
+## Configuration files
 
+`configs/homeassistant/configuration.yaml` loads separate files for automations, scripts, scenes, and customization, plus a directory of themes.
 
-## Recreate the setup
+It also configures forwarded-header handling and trusted proxy sources. Device names, presence-sensor addresses, and private network values are omitted here.
 
-1. Use an installation method appropriate to the target host. The current host installation method was not verified.
-2. The saved configuration enables default integrations, Google Translate TTS, FFmpeg, Wake-on-LAN, sun data, and includes for automations, scripts, scenes, themes, and customization.
-3. If placing it behind a proxy, configure forwarded-header handling and trust only the intended proxy sources. The repository has trusted-proxy configuration, but it was not verified against the live instance.
-4. Recreate device-presence sensors with your own private device inventory. Provide the referenced automation, script, scene, theme, and customization files.
-
-These are owner-run setup instructions; no deployment command was executed during documentation. Pin compatible versions and supply private values before starting a new instance.
-
-## Data and recovery
-
-Use an owner-run Home Assistant backup that includes its actual configuration and state. The small checked-in YAML files are not a complete recovery archive.
-
-## Verification and troubleshooting
-
-HTTP reachability and SSH access are independent. The dashboard has a Home Assistant hostname shortcut, but that hostname is absent from the nine inspected NPM proxy rows. Its routing path remains unverified.
-
-## Deployment notes
-
-The saved configuration includes private device-presence details, which are omitted here. Home Assistant OS/Supervised installation mode, add-ons, and automations were not confirmed.
-
-Related: [Homebridge](homebridge.md).
+[Back to homelab](../../README.md)

@@ -1,42 +1,21 @@
 # Glances
 
-Host metrics tooling represented by a Compose build and a separate systemd service template.
+Glances displays host resource usage in a browser or terminal client.
 
-[Homelab index](../../README.md) · [Architecture](../architecture.md) · [Inspection record](../inventory.md)
+## Compose setup
 
-## Observed setup
+The local Docker setup builds from `nicolargo/glances` and supplies a custom `glances.conf`. It uses host networking, the host PID namespace, privileged mode, and a read-only Docker socket mount.
 
-Repository files were inspected. No active Glances installation was verified under the accessible hosts’ `/opt` trees.
+The web interface uses port 61208.
 
-Source file: `docker-compose/glances/docker-compose.yml`.
+## Terminal server
 
-| Service | Image/build recorded | Network / host ports | Restart |
-| --- | --- | --- | --- |
-| `glances` | `Local build` | host; `61208:61208` | `always` |
+A separate service configuration starts Glances from `/opt/glances/venv`:
 
-| Service | Declared storage mapping |
-| --- | --- |
-| `glances` | `/var/run/docker.sock:/var/run/docker.sock:ro` |
+```sh
+/opt/glances/venv/bin/glances -s --disable-webui --disable-history
+```
 
-Relative bind sources resolve beside the Compose file. Named volumes are Docker-managed. Paths outside `/opt` are declarations read from Compose; their contents and mount status were not inspected.
+The terminal kiosk script connects Glances clients to server port 61209. The browser kiosk opens the web interface instead.
 
-## Recreate the setup
-
-1. The Compose option uses host networking, host PID visibility, privileged mode, and a read-only Docker socket mount.
-2. Its custom Dockerfile expects `glances.conf`. Supply the intended configuration in the build directory.
-3. The separate service file runs `/opt/glances/venv/bin/glances -s --disable-webui --disable-history`; this server mode differs from the web-oriented Compose template.
-4. Choose the interface you intend to operate before using the kiosk scripts: web pages and Glances client/server connections are different protocols.
-
-These are owner-run setup instructions; no deployment command was executed during documentation. Pin compatible versions and supply private values before starting a new instance.
-
-## Data and recovery
-
-Preserve the selected configuration, dependency versions, and service definition. No history store or active metrics database was inspected.
-
-## Verification and troubleshooting
-
-Check whether a client expects the web port 61208 or server port 61209. A host-network Compose mapping does not provide an independent port-translation layer.
-
-## Deployment notes
-
-The systemd unit is a repository file only. No `/etc/systemd` directory or running system service was inspected.
+[Back to homelab](../../README.md)

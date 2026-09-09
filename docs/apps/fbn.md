@@ -1,57 +1,24 @@
 # FBN
 
-Custom Facebook-group notification tool with browser-based acquisition, persistent session state, and a delivery queue.
+FBN watches recent posts in a Facebook group and sends notifications through Apprise. It uses Chromium with a dedicated browser profile and stores scan and delivery state in SQLite.
 
-[Homelab index](../../README.md) · [Architecture](../architecture.md) · [Inspection record](../inventory.md)
+## My setup
 
-## Observed setup
+The Compose project lives at `/opt/fbn-compose` on `rpiblog`. Its local image uses Ubuntu 24.04 and Playwright 1.61.0 with Chromium. The application runs as a non-root user with 1 GiB of shared memory for the browser.
 
-Compose, Dockerfile, and setup README were read under `/opt/fbn-compose`. An older `/opt/fbn/venv` also exists. No browser session, group content, live scan, or notification was accessed.
+Two services share the application-data volume:
 
-Host: `rpiblog`. Definition: `/opt/fbn-compose/compose.yaml`.
-
-| Service | Image/build recorded | Network / host ports | Restart |
-| --- | --- | --- | --- |
-| `fbn` | `fbn:local` | Compose network; no host mapping declared | `no` |
-| `bootstrap` | `fbn:local` | Compose network; no host mapping declared | `no` |
-
-| Service | Persistent application-data mapping |
+| Service | Job |
 | --- | --- |
-| `fbn` | `fbn-data:/home/fbn/.local/share/fbn` |
-| `bootstrap` | `fbn-data:/home/fbn/.local/share/fbn` |
+| `bootstrap` | Initializes the browser profile from a private authentication export |
+| `fbn` | Starts monitoring after bootstrap completes successfully |
 
-Relative bind sources resolve beside the Compose file. Named volumes are Docker-managed. Paths outside `/opt` are declarations read from Compose; their contents and mount status were not inspected.
+The monitor uses `restart: no`, allowing account-action failures to stop it until the session is recovered.
 
-## Recreate the setup
+## Configuration and state
 
-1. Build the local image from the FBN checkout. Its Dockerfile uses Ubuntu 24.04, Playwright 1.61.0 with Chromium, and a non-root runtime user.
-2. Provide the private group configuration, notification URL, authentication-file reference, and dedicated persistent data volume. Keep authentication exports outside source control.
-3. The one-shot `bootstrap` service must exit successfully before the `fbn` monitor starts. Both share persistent application data; the setup README describes a private authentication mount for bootstrap.
-4. Keep the same browser/profile combination for later checks. The monitor has a 1 GiB shared-memory allocation and an explicit `restart: no` policy so account-action failures need owner recovery.
+Private settings select the group, Apprise destination, authentication file, timezone, and interval bounds. `FBN_DATA_VOLUME` selects the external data volume, mounted at `/home/fbn/.local/share/fbn`.
 
-These are owner-run setup instructions; no deployment command was executed during documentation. Pin compatible versions and supply private values before starting a new instance.
+The first successful scan establishes a baseline by default. New posts enter a persistent delivery queue. Pending notifications survive a restart; a retry can produce a duplicate if a send succeeded before its completion was recorded.
 
-## Data and recovery
-
-Preserve the SQLite state and dedicated browser profile securely with the application stopped. The profile is authentication material. Preserve pending-delivery state to avoid silently losing work during recovery.
-
-## Verification and troubleshooting
-
-A running container or successful import does not prove that Facebook acquisition works. The Dockerfile’s health check imports the package only. Distinguish browser readiness, authenticated group access, scan success, and delivery success.
-
-## Deployment notes
-
-The inspected README describes baseline-first behavior and persistent pending notifications with at-least-once delivery. It also describes a user-systemd alternative; no timer outside `/opt` was inspected, so no schedule is claimed here.
-
-## Private deployment inputs
-
-| Input | Purpose |
-| --- | --- |
-| `FBN_GROUP` | Group identifier selected by the owner |
-| `FBN_APPRISE_URL` | Private notification destination |
-| `FBN_AUTH_FILE` | External authentication export used by bootstrap |
-| `FBN_DATA_VOLUME` | External persistent volume selected by the setup README |
-| `FBN_TIMEZONE`, `FBN_EVERY`, `FBN_TO` | Timestamp interpretation and monitoring interval bounds |
-| `FBN_UID`, `FBN_GID` | Non-root container ownership |
-
-The inspected README requires creating the external volume before Compose starts it. Bootstrap’s private authentication-file bind is intentionally omitted from the table above. The monitor uses the initialized profile; authentication material is not a public setup artifact.
+[Back to homelab](../../README.md)

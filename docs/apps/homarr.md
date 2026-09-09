@@ -1,49 +1,23 @@
 # Homarr
 
-The homelab homepage, titled “Falling Rock,” groups app shortcuts and shows calendar, media, DNS, weather, and notes widgets.
+Homarr is the homelab homepage. My board, “Falling Rock,” puts app shortcuts, media widgets, DNS counters, a calendar, weather, and notes on one page.
 
-[Homelab index](../../README.md) · [Architecture](../architecture.md) · [Inspection record](../inventory.md)
+## My setup
 
-## Observed setup
+Homarr runs on `rpiblog` from `/opt/homarr`, using `ghcr.io/ajnart/homarr`. Nginx Proxy Manager forwards the `home` hostname to port 7575.
 
-The existing homepage rendered in the in-app browser. Direct port 7575 returned HTTP 307. Both sidebars were inspected.
+| Host directory | Container directory | Contents |
+| --- | --- | --- |
+| `homarr/configs` | `/app/data/configs` | Board configuration |
+| `homarr/icons` | `/app/public/icons` | Custom icons |
+| `homarr/data` | `/data` | Application data |
 
-Host: `rpiblog`. Definition: `/opt/homarr/docker-compose.yml`.
+The container also mounts the Docker socket.
 
-Source file: `docker-compose/homarr/docker-compose.yml`.
+## Board layout
 
-| Service | Image/build recorded | Network / host ports | Restart |
-| --- | --- | --- | --- |
-| `homarr` | `ghcr.io/ajnart/homarr:latest` | Compose network; `7575:7575` | `always` |
+The left sidebar contains Plex, Firezone, NPM, Planka, the blog, Linkding, File Browser, and qBittorrent. The right sidebar contains ArchiveBox, Pi-hole, Uptime Kuma, Homebridge, Dozzle, Home Assistant, Vaultwarden, and Paperless.
 
-| Service | Declared storage mapping |
-| --- | --- |
-| `homarr` | `./homarr/configs:/app/data/configs` |
-| `homarr` | `./homarr/icons:/app/public/icons` |
-| `homarr` | `/var/run/docker.sock:/var/run/docker.sock` |
-| `homarr` | `./homarr/data:/data` |
+Some shortcuts use HTTPS hostnames; others open a host's LAN port directly. The board also includes Plex sessions, a torrent widget, and Pi-hole counters. Widget credentials are stored privately with the board configuration.
 
-Relative bind sources resolve beside the Compose file. Named volumes are Docker-managed. Paths outside `/opt` are declarations read from Compose; their contents and mount status were not inspected.
-
-## Recreate the setup
-
-1. Create `/opt/homarr/homarr/{configs,icons,data}` for the observed bind layout. The inspected image is `ghcr.io/ajnart/homarr` family.
-2. Configure a private dashboard password and your own base URL. Publish port 7575 behind the `home.example.com` proxy route.
-3. Add the app URLs from this inventory. The dashboard links directly to several LAN ports; those links require LAN or suitable VPN access.
-4. Configure integrations separately from shortcuts. A working link does not establish that its API credentials or widget are configured.
-
-These are owner-run setup instructions; no deployment command was executed during documentation. Pin compatible versions and supply private values before starting a new instance.
-
-## Data and recovery
-
-Preserve configuration, icons, and the additional `homarr/data` directory present on the host. Board exports can contain API credentials and private links; do not publish a raw export.
-
-## Verification and troubleshooting
-
-The torrent widget reported no supported client. Pi-hole counters displayed zeros. These UI observations do not prove qBittorrent or DNS is down: their service ports responded. Fix integration settings independently of app reachability.
-
-## Deployment notes
-
-The live sidebar points ArchiveBox and Paperless at a host that timed out. The host mounts `./homarr/data:/data` and the Docker socket.
-
-Related: [Nginx Proxy Manager](nginx-proxy-manager.md), [qBittorrent](qbittorrent.md), [Pi-hole](pihole.md).
+[Back to homelab](../../README.md)

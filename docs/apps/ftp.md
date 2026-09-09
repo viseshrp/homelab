@@ -1,42 +1,20 @@
 # FTP server
 
-File-transfer definition exposing a media-download directory through FTP.
+The FTP project provides access to a media-download directory through an FTP account.
 
-[Homelab index](../../README.md) · [Architecture](../architecture.md) · [Inspection record](../inventory.md)
+## My setup
 
-## Observed setup
+The Compose project lives at `/opt/ftp` on `rpinfs` and uses `garethflowers/ftp-server`.
 
-SSH and `/opt/ftp` inspection succeeded. FTP control port 21 refused the connection. NFS exports and storage mounts were outside scope.
+The host directory `/mnt/media/Media/downloads` is mounted as the FTP user's home directory. The account name and password are private environment settings.
 
-Host: `rpinfs`. Definition: `/opt/ftp/docker-compose.yml`.
+## Ports
 
-| Service | Image/build recorded | Network / host ports | Restart |
-| --- | --- | --- | --- |
-| `ftp-server` | `garethflowers/ftp-server` | Compose network; `20-21:20-21/tcp, 40000-40009:40000-40009/tcp` | `always` |
-
-| Service | Declared storage mapping |
+| TCP ports | Purpose |
 | --- | --- |
-| `ftp-server` | `/mnt/media/Media/downloads:/home/ftp-user` |
+| 20–21 | FTP control and data connections |
+| 40000–40009 | Passive data connections |
 
-Relative bind sources resolve beside the Compose file. Named volumes are Docker-managed. Paths outside `/opt` are declarations read from Compose; their contents and mount status were not inspected.
+The container has an automatic restart policy. The FTP project and its account configuration are stored separately from the files on the media mount.
 
-## Recreate the setup
-
-1. Use the observed `garethflowers/ftp-server` image and supply a private FTP username/password.
-2. Map the intended download tree into the FTP user’s home directory. The host source is outside `/opt` and was not opened.
-3. The Compose file publishes TCP 20–21 and passive ports 40000–40009. Account for both control and data paths when configuring a private deployment.
-4. Confirm transport security and access policy before use. No TLS configuration or functioning FTP session was established by this inspection.
-
-These are owner-run setup instructions; no deployment command was executed during documentation. Pin compatible versions and supply private values before starting a new instance.
-
-## Data and recovery
-
-Protect the account configuration and back up the source download data independently. The Compose directory contains a mount declaration, not the mounted media.
-
-## Verification and troubleshooting
-
-A refused control port prevents an FTP session regardless of passive-port configuration. Establish a running listener first. The host name `rpinfs` does not prove NFS is configured.
-
-## Deployment notes
-
-The documented container destination uses `/home/ftp-user` as a placeholder for the private account name.
+[Back to homelab](../../README.md)

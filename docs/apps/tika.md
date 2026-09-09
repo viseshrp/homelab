@@ -1,35 +1,15 @@
 # Apache Tika
 
-Document-content extraction dependency in the Paperless stack.
+Tika extracts text and metadata from document formats for Paperless-ngx.
 
-[Homelab index](../../README.md) · [Architecture](../architecture.md) · [Inspection record](../inventory.md)
+## My setup
 
-## Observed setup
+The `tika` service belongs to `/opt/paperless` on `rpimon`. It uses `ghcr.io/paperless-ngx/tika` with an `unless-stopped` restart policy.
 
-Paperless Compose defines `ghcr.io/paperless-ngx/tika:latest` and enables its Tika integration. No conversion or extraction request was sent.
+Paperless has the Tika integration enabled and connects to it over the internal Compose network.
 
-Host association: `rpimon`.
+## Document flow
 
+Paperless sends documents to Tika for extraction and keeps the resulting application data in its own storage. Tika has no persistent volume or published host port in this stack.
 
-## Recreate the setup
-
-1. Keep the Tika service on the Paperless Compose network.
-2. Configure Paperless’s Tika endpoint to use the internal service, as in the inspected definition.
-3. The Tika service has no declared persistent volume or published host port in this stack.
-4. Validate extraction with a disposable supported document after Paperless itself is responding.
-
-These are owner-run setup instructions; no deployment command was executed during documentation. Pin compatible versions and supply private values before starting a new instance.
-
-## Data and recovery
-
-Preserve the Compose definition and selected image version. Persisted documents and application metadata belong to Paperless, not this conversion container.
-
-## Verification and troubleshooting
-
-If a document cannot be extracted, distinguish file-format support from service reachability and endpoint configuration. A container restart is not evidence that extraction works.
-
-## Deployment notes
-
-The parent Paperless listener refused connections during this audit. Tika runtime health was not independently established.
-
-Related: [Paperless-ngx](paperless.md).
+[Back to homelab](../../README.md)

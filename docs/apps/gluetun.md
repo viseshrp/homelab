@@ -1,44 +1,22 @@
 # Gluetun
 
-VPN network container for qBittorrent’s outbound traffic.
+Gluetun provides the VPN network connection for qBittorrent.
 
-[Homelab index](../../README.md) · [Architecture](../architecture.md) · [Inspection record](../inventory.md)
+## My setup
 
-## Observed setup
+Gluetun is part of `/opt/qbit` on `optiplex`, using `qmcgaw/gluetun`. Its provider settings select AirVPN and WireGuard.
 
-Compose selects AirVPN over WireGuard and attaches qBittorrent to this service’s network namespace. No handshake, egress address, or leak test was performed.
+The container has the `NET_ADMIN` capability and access to `/dev/net/tun`. WireGuard keys and assigned addresses are private environment settings. `/opt/qbit/gluetun-data` is mounted at `/gluetun`.
 
-Host: `optiplex`. Definition: `/opt/qbit/docker-compose.yml`.
+## Shared networking
 
-| Service | Image/build recorded | Network / host ports | Restart |
-| --- | --- | --- | --- |
-| `gluetun` | `qmcgaw/gluetun` | Compose network; `6881:6881, 6881:6881/udp, 8085:8085` | `unless-stopped` |
+qBittorrent uses `network_mode: service:gluetun`, so Gluetun owns the network namespace and publishes its ports:
 
-| Service | Declared storage mapping |
+| Host port | Purpose |
 | --- | --- |
-| `gluetun` | `./gluetun-data:/gluetun` |
+| 8085/TCP | qBittorrent web interface |
+| 6881/TCP and UDP | Torrent traffic |
 
-Relative bind sources resolve beside the Compose file. Named volumes are Docker-managed. Paths outside `/opt` are declarations read from Compose; their contents and mount status were not inspected.
+This connection is for the download client's outbound traffic. The Firezone and WG-Easy projects provide separate remote-access VPN configurations.
 
-## Recreate the setup
-
-1. Create `/opt/qbit/gluetun-data` and mount it at `/gluetun`.
-2. Provide WireGuard private key, preshared key, and assigned addresses through private configuration. They are intentionally absent from this documentation.
-3. Grant the configured `NET_ADMIN` capability and TUN device. Gluetun publishes 8085/TCP and 6881/TCP+UDP for the shared namespace.
-4. Validate DNS, tunnel establishment, and behavior during tunnel loss from the consuming workload before relying on VPN-only egress.
-
-These are owner-run setup instructions; no deployment command was executed during documentation. Pin compatible versions and supply private values before starting a new instance.
-
-## Data and recovery
-
-Protect VPN credentials and the Gluetun state directory. Restore provider configuration separately from qBittorrent’s client state.
-
-## Verification and troubleshooting
-
-Check provider configuration, device access, and network namespace coupling. A Docker host port does not imply the VPN provider forwards that port. No runtime firewall behavior was inspected.
-
-## Deployment notes
-
-This outbound application VPN is separate from the LAN-access VPN definitions on `vpn-edge`. The diagram shows the configured dependency, not a verified encrypted session.
-
-Related: [qBittorrent](qbittorrent.md).
+[Back to homelab](../../README.md)
