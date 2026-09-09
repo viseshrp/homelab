@@ -14,4 +14,10 @@ The local configuration includes default integrations, Google Translate text-to-
 
 It also configures forwarded-header handling and trusted proxy sources. Presence-sensor addresses and proxy networks use `!secret` references. Fill `secrets.yaml` from the example and retain the existing included files.
 
-[Setup](../configuration.md) · [Back to homelab](../../README.md)
+## Verify and recover
+
+Validate configuration against the installed Home Assistant version before a restart. Afterward, check the UI, one automation, one integration, and the ping-based presence sensors; a responsive port does not prove those subsystems loaded.
+
+The checked-in YAML is only the sanitized configuration fragment. Preserve the host-managed Home Assistant state, secrets, included automation/script/scene files, and any supervisor-managed data through the platform's supported backup path.
+
+[Configuration](../configuration.md#home-assistant-and-kiosk) · [Operations](../operations.md) · [Application index](README.md)

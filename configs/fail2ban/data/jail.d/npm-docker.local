@@ -25,8 +25,8 @@ ignoreip = 127.0.0.0/8 ::1 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 fc00::/7 fe80
            2a06:98c0::/29
            2c0f:f248::/32
 filter = npm-docker
-action = cloudflare-apiv4
-         ufw-ip-ban
+action = /data/action.d/persistent.py[actname=cloudflare-persistent, command="python3 /data/scripts/cloudflare_firewall.py", skip_restored=true, startup=check]
+         /data/action.d/persistent.py[actname=source-persistent, command="python3 /data/scripts/source_firewall.py", skip_restored=true, startup=restore]
 logpath = /var/log/npm/default-host_access.log
           /var/log/npm/proxy-host-*_access.log
           /var/log/npm/fallback_http_access.log

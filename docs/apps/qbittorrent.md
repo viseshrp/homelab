@@ -20,4 +20,10 @@ The configuration directory stores client settings and torrent state. The two do
 
 Both qBittorrent and [Gluetun](gluetun.md) use `unless-stopped` restart policies.
 
-[Compose](../../docker-compose/qbit/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)
+## Verify and recover
+
+Verify Gluetun establishes the intended tunnel before testing qBittorrent's port 8085 UI. Then confirm existing torrent state, both download paths, and the expected egress path. A reachable UI does not prove traffic is inside the VPN.
+
+Back up `qbit-data/config` and `gluetun-data` separately from both media trees. Restore the same network-mode relationship and mount paths; starting qBittorrent outside Gluetun changes the security boundary.
+
+[Compose](../../docker-compose/qbit/docker-compose.yml) · [Operations](../operations.md) · [Application index](README.md)

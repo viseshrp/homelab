@@ -17,4 +17,10 @@ Planka listens on container port 1337, published as host port 3001. Nginx Proxy 
 
 The database connection URL and application secret are private settings. PostgreSQL stays on the Compose network without a published host port. Both containers use `unless-stopped`.
 
-[Compose](../../docker-compose/planka/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)
+## Verify and recover
+
+Check `rpiblog:3001` and the `boards` route, then open known boards, cards, and attachments. That confirms the application volume and PostgreSQL data agree.
+
+Back up PostgreSQL consistently and preserve the `data` attachment volume, `SECRET_KEY`, base URL, and installed image digest. Planka major-version migrations are stateful; do not treat an image rollback as a database rollback.
+
+[Compose](../../docker-compose/planka/docker-compose.yml) · [Operations](../operations.md) · [Application index](README.md)

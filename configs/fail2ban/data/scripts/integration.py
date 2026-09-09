@@ -19,4 +19,3 @@ def protected(value, config):
     ip = address(value)
     return (not ip.is_global or any(ip in ipaddress.ip_network(n)
             for n in config['protected_networks']))
-

@@ -14,4 +14,10 @@ Nginx Proxy Manager forwards the `anki` hostname to `rpiblog:8080` over HTTP and
 
 The host's `/opt/anki/data` directory is mounted at `/data`. It holds the server's persistent sync data. The container runs as `0:0` with an `unless-stopped` restart policy.
 
-[Compose](../../docker-compose/anki/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)
+## Verify and recover
+
+Check both `rpiblog:8080` and the public sync endpoint, then complete a sync from a real Anki client. An HTTP response alone does not prove that authentication, collection sync, and media sync work.
+
+Back up `data/` with a consistent view of the files and retain the installed account/base-URL settings. After a restore, use a disposable client profile first so an incorrect server copy cannot overwrite a good client collection.
+
+[Compose](../../docker-compose/anki/docker-compose.yml) · [Operations](../operations.md) · [Application index](README.md)

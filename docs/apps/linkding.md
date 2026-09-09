@@ -14,4 +14,10 @@ The default data directory is `/opt/linkding/data`, mounted at `/etc/linkding/da
 
 The container has an automatic restart policy.
 
-[Compose](../../docker-compose/linkding/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)
+## Verify and recover
+
+Check `rpiblog:9090` and the `links` route, then sign in and search for known bookmarks. This verifies the route, authentication, and existing database together.
+
+Back up the configured data directory consistently with the private application settings. Restore it at the same container path and verify bookmark counts, tags, archived snapshots when used, and search.
+
+[Compose](../../docker-compose/linkding/docker-compose.yml) · [Operations](../operations.md) · [Application index](README.md)

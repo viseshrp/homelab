@@ -14,4 +14,10 @@ Nginx Proxy Manager forwards the `status` HTTPS hostname to `rpimon:3001`. Homar
 
 The container restarts automatically. Notification destinations remain private.
 
-[Compose](../../docker-compose/uptime-kuma/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)
+## Verify and recover
+
+Check `rpimon:3001` and the `status` route, then confirm at least one monitor executes and records a fresh result. Test a notification path separately when changing notification configuration.
+
+Back up `uptime-kuma-data/` consistently because it contains the SQLite database, monitors, history, and notification settings. After a restore, verify timestamps and live monitor execution rather than relying on historical green rows.
+
+[Compose](../../docker-compose/uptime-kuma/docker-compose.yml) · [Operations](../operations.md) · [Application index](README.md)

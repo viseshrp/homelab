@@ -14,4 +14,10 @@ The service uses the `simple` authentication provider and disables analytics. `/
 
 The container restarts automatically. Authentication details and remote-source addresses stay in private configuration.
 
-[Compose](../../docker-compose/dozzle/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)
+## Verify and recover
+
+Confirm that authentication works and that expected local and remote Docker sources appear. Opening the UI without a source list does not prove that socket permissions, remote endpoints, or filters are correct.
+
+Preserve `data/` and the private users/source configuration. The Docker socket and remote API endpoints grant broad container access, so keep the LAN interface and credentials restricted.
+
+[Compose](../../docker-compose/dozzle/docker-compose.yml) · [Operations](../operations.md) · [Application index](README.md)

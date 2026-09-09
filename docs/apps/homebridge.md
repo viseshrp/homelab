@@ -18,4 +18,10 @@ The `/homebridge` directory holds plugin configuration and pairing state. Keepin
 
 HomeKit pairing details and plugin credentials remain private.
 
-[Compose](../../docker-compose/homebridge/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)
+## Verify and recover
+
+Check the port 8581 interface, loaded plugins, bridge status, and one representative accessory from HomeKit. A reachable administration page does not prove that pairing data or plugin connections work.
+
+The configured `HOMEBRIDGE_DATA_DIR` is the recovery unit. Preserve its ownership, pairing state, plugin configuration, and credentials; do not initialize a new empty directory over a retained bridge.
+
+[Compose](../../docker-compose/homebridge/docker-compose.yml) · [Operations](../operations.md) · [Application index](README.md)

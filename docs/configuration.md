@@ -1,64 +1,136 @@
 # Configuration
 
-Each directory under `docker-compose/` contains a Compose template and `.env.example`. [deployments.json](../deployments.json) maps those templates to the host and `/opt` directory. Local hostnames and `example.com` stand in for private addresses and domains.
+The checked-in files are sanitized templates. They describe service shape, required inputs, and intended placement without storing credentials or claiming to be exact copies of running projects.
 
-## Prepare a project
+## Configuration layers
 
-1. Run `python3 scripts/prepare.py npm local/nginx` from the repository root. This assembles NPM's Compose file, Nginx configuration, and trusted-proxy ranges in a new directory. It refuses to overwrite an existing directory.
-2. Copy `local/nginx/.env.example` to `local/nginx/.env` and edit the values. Each project's additional inputs are listed below.
-3. Run `docker compose --project-directory local/nginx config --quiet` to check the assembled configuration.
+| Layer | Purpose | Authority |
+| --- | --- | --- |
+| `docker-compose/<project>/docker-compose.yml` | Reusable services, mounts, ports, and defaults | Template for that project |
+| `docker-compose/<project>/.env.example` | Required and optional substitution names | Input reference only |
+| `deployments.json` | Intended host, installed directory, and copied assets | Repository deployment map |
+| `configs/` | Sanitized files assembled beside selected projects | Checked-in configuration |
+| Installed project directory | Private `.env`, application files, and runtime-compatible settings | Preserve during an update |
+| Named volumes and bind mounts | Durable application data | Preserve and back up separately |
 
-Preparation only copies local files. Deployment is a separate operator action. Preserve the existing project directory/name, volumes, bind mounts, and private settings when updating an installation. Compose derives named-volume names from the project name; changing `/opt/planka` to `/opt/boards`, for example, can select different storage.
+A rendered Compose file can contain interpolated secrets. Inspect it locally, but do not commit or publish its output.
 
-Image defaults follow the inspected Compose files, including their floating tags. Set the image variables to the installed tag or digest before an intentional upgrade. Rendering a Compose file does not verify an image's application settings or perform a database migration.
+## Prepare an isolated project
+
+`scripts/prepare.py` copies one template, its example inputs, and the assets named by `deployments.json` into a new directory. It will not overwrite an existing path.
+
+```sh
+homelab_stage=$(mktemp -d)
+python3 scripts/prepare.py npm "$homelab_stage/nginx"
+cp "$homelab_stage/nginx/.env.example" "$homelab_stage/nginx/.env"
+```
+
+Fill required private values, then render the staged project:
+
+```sh
+docker compose \
+  --project-directory "$homelab_stage/nginx" \
+  --env-file "$homelab_stage/nginx/.env" \
+  config --quiet
+```
+
+Preparation does not contact a host, deploy a file, create a volume, pull an image, or start a container.
+
+## Update an existing installation
+
+Treat the installed project as stateful.
+
+1. Record its Compose project name, effective image references, mounts, volumes, and private input files.
+2. Back up the recovery units listed in [the operations guide](operations.md#backup-and-recovery).
+3. Prepare the repository template in a new staging directory.
+4. Compare and merge the intended change into the installed project. Keep private and installation-specific settings.
+5. Render, preview, apply, and verify one project using [the update runbook](operations.md#update-one-project).
+
+Compose derives default named-volume names from the project name. Changing the directory or `--project-name` can select a different, empty volume even when the Compose YAML is unchanged.
 
 ## Project inputs
 
-| Project | Private settings and supporting files |
-| --- | --- |
-| Anki | `SYNC_USER1` holds the sync credentials; `BASE_URL` is the client-facing endpoint. State stays in `./data`. |
-| ArchiveBox | Set `DNS_SERVER`; `./data` is shared with pywb. ArchiveBox uses port 8002 and pywb 8082. |
-| Blog | Supply the generated site in `./public`. `Dockerfile` and `default.conf` build its Nginx image. `publish.yml.example` belongs in the separate Hugo source repository; it copies only generated output to `/opt/blog/public`. |
-| Dozzle | Set `DOZZLE_REMOTE_HOST` to the private Docker endpoints and create `./data/users.yml` with Dozzle's `generate` command. `users.yml.example` is an empty schema, not a working login. Retain the current users file when updating. |
-| FBN | Set `FBN_SOURCE_DIR` to the separate FBN source checkout, `FBN_AUTH_FILE` to a private authentication export, and fill the group and Apprise destination. The selected external `FBN_DATA_VOLUME` must already exist. Bootstrap completes before the monitor starts. |
-| File Browser | Set the two media directories. Each instance has its own settings file and database directory. The template defaults `FB_NOAUTH=false`; the inspected configuration used `noauth`. Preserve existing accounts and choose authentication deliberately. |
-| Firezone | Legacy self-hosted Firezone configuration. Preserve the installed image and its complete private `.env`, including database credentials, salts, and admin settings. The example is a starting list, not a replacement for the existing environment. Its IPv6 example uses a private ULA subnet. |
-| FTP | Set the username/password and media directory. Ports 20–21 and 40000–40009 are published. |
-| GitHub runner | Set the source repository, runner registration token, labels, and work directory. Its Docker socket and blog mounts grant deployment access. |
-| Homarr | The assembled board uses example domains and host aliases, with ArchiveBox/Paperless pointing to `rpimon`. Configure integration credentials through Homarr. Personal notes, location, and integration tokens are excluded from the sample. |
-| Homebridge | Set `HOMEBRIDGE_DATA_DIR` to the existing data directory. This is the retained repository template; the host's SSH service was unavailable. |
-| Linkding | `.env` is passed to the container. Preserve application settings alongside the provided port/data-directory options. |
-| Nginx Proxy Manager | Keep the existing `data` and `letsencrypt` directories. [routes.json](../configs/nginx/routes.json) lists the nine proxy hosts using example domains; it is a reference, not an import file. |
-| Paperless | Copy `docker-compose.env.example` to `docker-compose.env`; preserve the existing secret, database connection, OCR, mail, and consumer settings. Named `data`, `media`, and `redisdata` volumes persist the stack; `consume` and `export` are bind mounts. |
-| Pi-hole | Preserve its private settings and `etc-pihole`/`etc-dnsmasq.d` directories. The template retains the inspected environment names; check their compatibility with the selected image before upgrading Pi-hole. |
-| Planka | The image is pinned to 2.2.1 and the inspected digest. Preserve `SECRET_KEY`, `BASE_URL`, `/app/data`, and PostgreSQL's `db-data`. The isolated database retains the inspected `trust` authentication configuration. An older Planka database requires its own migration procedure. |
-| Plex | Set media-root paths if they differ. Host networking, the existing configuration directory, and the inspected UID/GID values are retained. |
-| qBittorrent/Gluetun | Supply AirVPN's WireGuard key, preshared key, and assigned addresses. Downloads use both media trees. qBittorrent shares Gluetun's network namespace; its ports are published by Gluetun. |
-| Uptime Kuma | Keep `./uptime-kuma-data`, containing monitors and notification settings. |
-| Vaultwarden | Preserve `./vw-data`, the public vault URL, and SMTP settings. Signups remain disabled. |
-| WG-Easy | Supply the VPN endpoint, admin password, and current client DNS address. Preserve the existing WireGuard state in the project directory. This is the legacy image family used by the inspected Compose file. |
+### Web and automation
 
-Firezone and WG-Easy both publish UDP 51820 on `vpn-edge`. Select one or explicitly change its host-port assignment before running both.
+| Project | Required private or external inputs | State to preserve |
+| --- | --- | --- |
+| Anki | `SYNC_USER1`; client-facing `BASE_URL` | `data/` |
+| Blog | Generated Hugo output from the separate source repository | `public/` is replaceable output; preserve local build files |
+| FBN | Source checkout, auth export, group, Apprise URL, external volume name | External `FBN_DATA_VOLUME`, including browser profile and SQLite state |
+| GitHub runner | Repository URL, registration token, labels, work directory | Runner registration can be recreated; protect Docker-socket and blog write access |
+| Homarr | Base URL, password, integration credentials | `homarr/configs`, `homarr/icons`, `homarr/data` |
+| Linkding | Application settings in the private `.env` | Configured data directory |
+| Planka | `SECRET_KEY`, base URL, database URL | `data` and `db-data` volumes |
+| Vaultwarden | Domain, SMTP settings, installed image | `vw-data/` |
+
+### Monitoring, documents, and archives
+
+| Project | Required private or external inputs | State to preserve |
+| --- | --- | --- |
+| ArchiveBox | DNS server and chosen image versions | Shared `data/` tree used by ArchiveBox and pywb |
+| Dozzle | Remote Docker endpoints, container filters, generated users file | `data/` and private authentication configuration |
+| Paperless | `docker-compose.env` with secret, URL, database/OCR/mail/consumer settings | `data`, `media`, `redisdata`, `consume`, and `export` |
+| Uptime Kuma | Installed image | `uptime-kuma-data/` |
+
+### Media, network, and home services
+
+| Project | Required private or external inputs | State to preserve |
+| --- | --- | --- |
+| File Browser | Authentication decision and both media roots | Separate database directories, settings files, and media trees |
+| Firezone | Complete legacy Firezone environment: database credentials, salts, admin settings, external URL | `firezone/`, `postgres-data`, private environment |
+| FTP | User, password, media directory | External media tree and private account settings |
+| Homebridge | Existing `HOMEBRIDGE_DATA_DIR` | The configured host directory, including pairing and plugin state |
+| Nginx Proxy Manager | Installed image and frame policy | `data/`, `letsencrypt/`, installed environment |
+| Pi-hole | Admin credential and installed image-compatible environment | `etc-pihole/`, `etc-dnsmasq.d/` |
+| Plex | Media roots and installed image | `config/`, local TV/movie directories, both media trees |
+| qBittorrent/Gluetun | AirVPN WireGuard private key, preshared key, assigned addresses | qBittorrent config, Gluetun state, both download trees |
+| WG-Easy | Endpoint, admin password, client DNS | Project directory containing WireGuard keys and peer state |
+
+## Cross-project constraints
+
+### Host names
+
+The sanitized configuration uses names such as `rpiblog` and `vpn-edge`. The Mac currently resolves most deployment names through `/etc/hosts`; the repository does not manage that file. `vpn-edge` was not present there when checked. Live NPM uses LAN addresses for its backends, while `configs/nginx/routes.json` uses logical names. Make sure the system applying a configuration can resolve any name it is expected to use.
+
+### Port ownership
+
+Firezone and WG-Easy both publish UDP 51820 on `vpn-edge`. They cannot use that host port simultaneously without changing one definition. The NPM template also publishes UDP 51820 on `rpiproxy`; there is no corresponding HTTP proxy row, so document the intended forwarding path before depending on that port.
+
+### Image changes
+
+Most image defaults float on `latest` or another moving tag. Set image variables to the installed tag or digest before an intentional upgrade. Rendering a Compose file does not validate application-level settings, schema migrations, architecture support, or rollback compatibility.
+
+Planka is pinned to 2.2.1 and an inspected digest. An older Planka database needs its supported migration sequence; do not point a newer image at it casually. Firezone and WG-Easy use legacy image families and need version-specific review before an upgrade.
+
+### Docker access
+
+Homarr, Dozzle, and the GitHub runner mount the Docker socket. Dozzle can also connect to remote Docker sources. These connections grant broad access to containers and often the host, so keep their credentials private and restrict web access.
 
 ## Fail2ban and Nginx
 
 The Fail2ban project assembles the `data` tree from `configs/fail2ban`. Before using it:
 
 1. Copy `data/cloudflare-credentials.ini.example` to `data/cloudflare-credentials.ini` and fill the account email and Global API Key. Restrict the file to the account running the service.
-2. Copy `data/f2b-integration.json.example` to `data/f2b-integration.json`. Add owner/admin public networks to `protected_networks` and the jail's `ignoreip`. For an existing installation, retain its `notes` and `set_prefix` values so the helpers recognize their rules and ipsets.
+2. Copy `data/f2b-integration.json.example` to `data/f2b-integration.json`. Add owner/admin public networks to `protected_networks` and the jail's `ignoreip`. For an existing installation, retain its `notes`, `owner_id`, `ownership_file`, and `set_prefix` values, together with the ownership journal. Set `database` to the container path of the existing Fail2ban SQLite database.
 3. Preserve any additional private jails and exclusions. `NPM_LOG_DIR` selects the read-only NPM log mount.
 
-The private integration policy could not be read from the host, so the example contains public Cloudflare ranges only. Both helpers exclude non-global IP addresses. The Cloudflare helper removes only rules with its ownership note; the local helper uses IPv4/IPv6 ipsets in `INPUT` and `DOCKER-USER`.
+The private integration policy could not be read from the host, so the example contains public Cloudflare ranges only. Both helpers exclude non-global IP addresses. The Cloudflare helper records creation intent and rule ownership in an append-only journal; unban requires a matching rule ID, address, and creation note. The local helper uses IPv4/IPv6 ipsets in `INPUT` and `DOCKER-USER` and restores unexpired bans from the database at startup.
+
+The jail selects `action.d/persistent.py`, which preserves bans during shutdown and allows explicit unban operations while running. Restored tickets skip Cloudflare writes. Its lifecycle handling and database query target Fail2ban 1.1.0; check these when changing the container image. The legacy `.conf` actions remain available but are not selected by this jail.
 
 NPM's `nginx.conf` includes `data/nginx/custom/cloudflare-trusted.conf` and accepts `CF-Connecting-IP` only from those peers. Keep the ranges aligned with Cloudflare's published list. Nginx's remaining `/etc/nginx` includes come from the NPM image.
 
+## NPM route reference
+
+[`configs/nginx/routes.json`](../configs/nginx/routes.json) records the nine observed routes with example domains and logical backend names. It is not an import file and changing it does not change NPM. When an operator intentionally changes a live route, update the reference separately and verify the public URL and direct backend.
+
 ## Home Assistant and kiosk
 
-`configs/homeassistant` contains the retained YAML configuration with private addresses replaced by `!secret` references. Copy `secrets.yaml.example` to `secrets.yaml` and supply the actual values. Preserve existing automations, scripts, scenes, and themes. The host was inaccessible over SSH; validate the legacy ping configuration against its installed Home Assistant version before using it.
+`configs/homeassistant` contains retained YAML with private addresses replaced by `!secret` references. Copy `secrets.yaml.example` to `secrets.yaml`, fill the actual values, and preserve the existing automations, scripts, scenes, and themes. The Home Assistant host was not inspected through SSH, so validate the retained configuration against its installed version before applying it.
 
-The kiosk takes a private URL file based on [kiosk.urls.example](../configs/kiosk.urls.example). See [Kiosk](apps/kiosk.md) for desktop requirements.
+The kiosk reads a private URL file based on [`kiosk.urls.example`](../configs/kiosk.urls.example). It needs a dedicated desktop browser session plus `xset` and `xdotool` for automatic rotation. See [the kiosk notes](apps/kiosk.md).
 
-## Local checks and updates
+## Repository checks
 
 From the repository root:
 
@@ -67,15 +139,6 @@ python3 scripts/check.py
 python3 -m unittest discover -s tests
 ```
 
-The checker assembles all projects in temporary directories and runs `docker compose config --quiet` with dummy private values. It also checks shell/Python syntax, JSON, and local Markdown links. It does not contact hosts, start containers, or build images.
-
-To preview an update on the machine holding an assembled project:
-
-```sh
-bash docker-compose/update.sh /path/to/project
-bash docker-compose/update-all.sh /path/to/project-one /path/to/project-two
-```
-
-`--apply` runs the printed Compose commands: validate, pull images, build local images, and start services. The scripts do not upgrade the OS, discover other projects, remove orphan containers, or prune storage. FBN bootstrap and database migrations need project-specific review before an update.
+The checker uses dummy values to render all 22 Compose projects in temporary directories. It checks shell/Python syntax, JSON, YAML, and local Markdown links. It does not contact hosts, start containers, build images, or inspect private installed configuration.
 
 [Back to homelab](../README.md)

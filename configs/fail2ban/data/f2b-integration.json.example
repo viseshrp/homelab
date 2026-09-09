@@ -27,5 +27,8 @@
     "2405:8100::/32",
     "2a06:98c0::/29",
     "2c0f:f248::/32"
-  ]
+  ],
+  "owner_id": "homelab-proxy",
+  "ownership_file": "/data/cloudflare-ownership.jsonl",
+  "database": "/data/db/fail2ban.sqlite3"
 }

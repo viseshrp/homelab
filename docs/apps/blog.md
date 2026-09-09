@@ -18,4 +18,10 @@ hugo --minify --enableGitInfo
 
 The workflow deploys the checkout to `/opt/blog` using `rsync -rav`. Nginx serves the updated `public/` directory through its bind mount.
 
-[Compose](../../docker-compose/blog/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)
+## Verify and recover
+
+After publication, check the runner job, the generated files under `public/`, the direct `rpiblog:80` response, and both apex and `www` HTTPS routes. This distinguishes a build/deploy failure from an Nginx or proxy failure.
+
+The Hugo source repository is authoritative. Treat `public/` as rebuildable output; retain the local Dockerfile, Nginx configuration, and deployment workflow needed to serve a clean rebuild.
+
+[Compose](../../docker-compose/blog/docker-compose.yml) · [Operations](../operations.md) · [Application index](README.md)

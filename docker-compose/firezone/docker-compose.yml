@@ -28,6 +28,7 @@ services:
         window: 120s
       update_config:
         order: start-first
+    restart: unless-stopped
   postgres:
     image: "${POSTGRES_IMAGE:-postgres:15}"
     volumes:
@@ -45,6 +46,7 @@ services:
         window: 120s
       update_config:
         order: stop-first
+    restart: unless-stopped
 volumes:
   postgres-data:
 networks:

@@ -21,4 +21,10 @@ Private settings select the group, Apprise destination, authentication file, tim
 
 The first successful scan establishes a baseline by default. New posts enter a persistent delivery queue. Pending notifications survive a restart; a retry can produce a duplicate if a send succeeded before its completion was recorded.
 
-[Compose](../../docker-compose/fbn/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)
+## Verify and recover
+
+Check the most recent scan result and the delivery outcome, not only the container state. `restart: no` is deliberate: an account-action error stops the monitor so it does not loop against a broken session.
+
+Back up the external data volume consistently with the source version and private configuration. A restore test should load the browser profile, open the saved SQLite state, retain pending deliveries, and complete a scan without resetting the baseline.
+
+[Compose](../../docker-compose/fbn/docker-compose.yml) · [Operations](../operations.md) · [Application index](README.md)

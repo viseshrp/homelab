@@ -14,4 +14,10 @@ The public index, snapshots, and add view are disabled. SSL checking is enabled.
 
 pywb publishes a separate interface on port 8082. Its startup command indexes WARC files from the ArchiveBox capture tree into the `default` collection before starting the replay server.
 
-[Compose](../../docker-compose/archivebox/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)
+## Verify and recover
+
+Verify two outcomes separately: ArchiveBox can create a new capture, and pywb can replay an existing WARC. A working ArchiveBox page does not prove that browser capture dependencies or replay indexes work.
+
+The shared `data/` tree is the recovery unit. Preserve snapshots, WARC files, ArchiveBox state, and the pywb collection/index data together. After a restore, compare capture counts and open representative archived assets rather than checking only the index page.
+
+[Compose](../../docker-compose/archivebox/docker-compose.yml) · [Operations](../operations.md) · [Application index](README.md)

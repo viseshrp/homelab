@@ -10,8 +10,10 @@ Thirty matching requests within two hours trigger an indefinite ban. The filter 
 
 ## Ban actions
 
-`cloudflare-apiv4` calls a Python helper that manages exact-IP Cloudflare block rules. Unban removes only rules carrying this integration's ownership note. Credentials are read from a private INI file.
+The jail uses `persistent.py` actions for Cloudflare and the local firewall. Cloudflare rule IDs and unique creation notes are recorded in a private ownership journal. Unban removes only exact-IP rules with matching ownership records. Credentials are read from a private INI file.
 
-The legacy `ufw-ip-ban` action name now calls a source-IP helper. IPv4 and IPv6 ipsets apply to HTTP(S) traffic in `INPUT` and `DOCKER-USER`. It does not inspect request headers with iptables string matching. Private addresses and configured protected networks are excluded by both helpers.
+The local action calls a source-IP helper. IPv4 and IPv6 ipsets apply to HTTP(S) traffic in `INPUT` and `DOCKER-USER`. It does not inspect request headers with iptables string matching. Private addresses and configured protected networks are excluded by both helpers.
+
+Startup restores unexpired local bans from the Fail2ban database. Restored tickets skip Cloudflare writes. Shutdown preserves external bans; explicit unban operations still remove owned rules. The action follows Fail2ban 1.1.0 lifecycle behavior.
 
 [Configuration and private inputs](../configuration.md#fail2ban-and-nginx) · [Back to homelab](../../README.md)

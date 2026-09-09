@@ -3,6 +3,8 @@
 import json
 import subprocess
 import sys
+import sqlite3
+import time
 from integration import address, protected, settings
 
 
@@ -24,10 +26,26 @@ def ensure(config):
                 run([binary, '-w', '5', '-I', chain, '1'] + rule)
 
 
+def restore(config):
+    # Fail2ban 1.1.0 stores the current ban per IP/jail in bips.
+    # Open read-only; expired timed bans are excluded and protected IPs stay ignored.
+    with sqlite3.connect('file:' + config['database'] + '?mode=ro', uri=True) as db:
+        rows = db.execute('SELECT ip FROM bips WHERE jail = ? AND '
+                          '(bantime = -1 OR (bantime > 0 AND timeofban + bantime > ?))',
+                          (config['jail'], time.time())).fetchall()
+    ips = [str(address(row[0])) for row in rows if not protected(row[0], config)]
+    ensure(config)
+    commands = ['add ' + config['set_prefix'] + str(address(ip).version) + ' ' + ip for ip in ips]
+    run(['ipset', 'restore', '-exist'], data='\n'.join(commands) + '\n')
+    return len(ips)
+
+
 def main():
     config = settings()
     command = sys.argv[1]
-    if command == 'start':
+    if command == 'restore':
+        print(json.dumps({'restored_local_bans': restore(config)}))
+    elif command == 'start':
         ensure(config)
         print('source-firewall: ready')
     elif command in ('ban', 'unban'):
@@ -54,7 +72,7 @@ def main():
         run(['ipset', 'restore', '-exist'], data='\n'.join(commands) + '\n')
         print(json.dumps({'added_or_existing': len(commands), 'protected_skipped': skipped}))
     else:
-        raise ValueError('Usage: source_firewall.py start|sync|ban IP|unban IP')
+        raise ValueError('Usage: source_firewall.py start|restore|sync|ban IP|unban IP')
 
 
 if __name__ == '__main__':

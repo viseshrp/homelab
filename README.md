@@ -1,10 +1,10 @@
 # Homelab
 
-My self-hosted setup for media, bookmarks, passwords, documents, and home automation. Homarr brings the apps together on a homepage called Falling Rock.
+This repository is the public, sanitized control plane for my homelab: Docker Compose templates, supporting configuration, deployment metadata, validation tools, and operating notes. Private `.env` files, credentials, live application databases, and host-specific state stay outside Git.
 
-Most services have a Docker Compose project under `/opt`. The OptiPlex handles media, `rpiblog` hosts the web apps, and `rpimon` holds monitoring and document tools. Nginx Proxy Manager gives the web apps HTTPS addresses.
+The lab currently maps 22 Compose projects to eight deployment hosts. Public web traffic enters through Nginx Proxy Manager; storage-heavy media services live on the OptiPlex; web apps and automation share `rpiblog`; monitoring, archives, and document services share `rpimon`.
 
-## Architecture
+## System map
 
 ```mermaid
 flowchart LR
@@ -40,74 +40,76 @@ flowchart LR
     clients -->|"FTP / TCP 20-21, 40000-40009"| ftp
 ```
 
-Web traffic enters through Nginx Proxy Manager or goes directly to an app's LAN port. qBittorrent uses Gluetun's AirVPN connection; Firezone and WG-Easy are separate remote-access VPN configurations.
+Nginx Proxy Manager currently lists nine enabled HTTPS proxy entries: eight subdomains plus the apex/`www` pair. The live route table and its observation date are in [the inventory](docs/inventory.md#https-ingress).
 
-[Architecture and storage layout](docs/architecture.md) · [Hosts and reachability](docs/inventory.md)
+## Host responsibilities
 
-## Applications
+| Host | Responsibility | Projects and components |
+| --- | --- | --- |
+| `rpiproxy` | Public ingress and request blocking | Nginx Proxy Manager, Fail2ban, Cloudflare ban integration |
+| `rpiblog` | Public web apps and automation | Blog, Homarr, Anki, Planka/PostgreSQL, Linkding, Vaultwarden, FBN, GitHub runner |
+| `rpimon` | Monitoring, documents, and web archives | Uptime Kuma, Dozzle, Paperless/Redis/Tika/Gotenberg, ArchiveBox/pywb |
+| `optiplex` | Media storage and download traffic | Plex, qBittorrent/Gluetun, two File Browser instances, Reelname |
+| `rpihole` | LAN DNS | Pi-hole |
+| `rpihass` | Home automation | Home Assistant, Homebridge |
+| `rpinfs` | File transfer | FTP service backed by a media mount |
+| `vpn-edge` | Logical repository name for the Firezone/WG-Easy host | Firezone/PostgreSQL, alternate WG-Easy definition |
 
-### Homepage and personal apps
+The Mac resolves the listed `rpi*` aliases and `optiplex` through `/etc/hosts`. `vpn-edge` is a repository label and was not present in that file when checked; live NPM targets that machine by LAN address. The [inventory](docs/inventory.md#host-name-resolution) records the exact alias relationship without publishing private addresses.
 
-These apps share `rpiblog`.
+## Start here
 
-| App | My setup |
+| Need | Document |
 | --- | --- |
-| [Homarr](docs/apps/homarr.md) | Homepage with app shortcuts, media widgets, and DNS counters |
-| [Hugo blog](docs/apps/blog.md) | Static site served by Nginx and published through a [GitHub Actions runner](docs/apps/github-runner.md) |
-| [Anki](docs/apps/anki.md) | Private flashcard synchronization endpoint |
-| [Vaultwarden](docs/apps/vaultwarden.md) | Password vault for Bitwarden-compatible clients |
-| [Planka](docs/apps/planka.md) | Kanban boards backed by [PostgreSQL](docs/apps/postgresql.md) |
-| [Linkding](docs/apps/linkding.md) | Searchable bookmark collection |
+| Understand traffic, dependencies, state, and failure domains | [Architecture](docs/architecture.md) |
+| Find a service owner, host, port, route, or data path | [Inventory](docs/inventory.md) |
+| Create a sanitized project directory or supply private settings | [Configuration](docs/configuration.md) |
+| Update, verify, troubleshoot, back up, or recover a stack | [Operations](docs/operations.md) |
+| Read service-specific deployment notes | [Application index](docs/apps/README.md) |
+| Configure server-to-client ZIP backups | [Stashfleet](stashfleet/README.md) |
 
-### Media
+## Repository contract
 
-The media stack lives on `optiplex` and uses two storage trees, `/mnt/media2` and `/mnt/media3`.
+- [`deployments.json`](deployments.json) maps each Compose project to its intended host, `/opt` directory, and copied assets.
+- [`docker-compose/`](docker-compose) contains sanitized templates and `.env.example` files. These are starting points, not byte-for-byte mirrors of installed projects.
+- [`configs/`](configs) contains checked-in supporting files. Secrets, personal allowlists, integration tokens, and live databases are excluded.
+- [`configs/nginx/routes.json`](configs/nginx/routes.json) records the proxy map with example domains and logical host names. It is documentation, not an Nginx Proxy Manager import.
+- Installed state wins during recovery. Never replace a live `.env`, named volume, bind mount, certificate directory, or database with a freshly prepared example.
 
-| App | My setup |
-| --- | --- |
-| [Plex](docs/apps/plex.md) | Streams the media library; [Reelname](docs/apps/reelname.md) is installed alongside it for filename cleanup |
-| [qBittorrent](docs/apps/qbittorrent.md) | Downloads to both media trees through [Gluetun](docs/apps/gluetun.md), configured for AirVPN over WireGuard |
-| [File Browser](docs/apps/filebrowser.md) | Two web interfaces, one for each media tree |
+## Validate the repository
 
-### Documents and archives
+Run the offline checks from the repository root:
 
-| App | My setup |
-| --- | --- |
-| [Paperless-ngx](docs/apps/paperless.md) | Document storage and indexing on `rpimon`; [Redis](docs/apps/redis.md) handles task brokering, [Tika](docs/apps/tika.md) extracts text, and [Gotenberg](docs/apps/gotenberg.md) converts documents |
-| [ArchiveBox](docs/apps/archivebox.md) | Web-page captures on `rpimon`, with [pywb](docs/apps/pywb.md) for replaying archived pages |
-| [FTP server](docs/apps/ftp.md) | Access to a media-download directory on `rpinfs` |
-
-### Monitoring and automation
-
-| App | My setup |
-| --- | --- |
-| [Uptime Kuma](docs/apps/uptime-kuma.md) | Service monitoring and the status interface on `rpimon` |
-| [Dozzle](docs/apps/dozzle.md) | Container logs in the browser, hosted on `rpimon` |
-| [FBN](docs/apps/fbn.md) | Facebook-group notifications on `rpiblog` |
-| [Home Assistant](docs/apps/home-assistant.md) | Home-automation interface on `rpihass` |
-| [Homebridge](docs/apps/homebridge.md) | HomeKit bridge configuration, with the dashboard pointing to `rpihass` |
-
-### Network services
-
-| Service | My setup |
-| --- | --- |
-| [Nginx Proxy Manager](docs/apps/nginx-proxy-manager.md) | HTTPS routing on `rpiproxy`; [Fail2ban](docs/apps/fail2ban.md) reads its logs and has [Cloudflare](docs/apps/cloudflare.md) and source-IP firewall ban actions configured |
-| [Pi-hole](docs/apps/pihole.md) | DNS filtering on `rpihole` |
-| [Firezone](docs/apps/firezone.md) | Remote-access VPN configuration with PostgreSQL on `vpn-edge` |
-| [WG-Easy](docs/apps/wg-easy.md) | Alternative WireGuard server configuration on `vpn-edge` |
-
-### Kiosk display
-
-The [kiosk scripts](docs/apps/kiosk.md) rotate a display through monitoring pages or terminal sessions.
-
-## Configuration files
-
-```text
-docker-compose/    Application Compose files
-configs/           App settings, proxy-log filters, and service files
-scripts/           Local project preparation, validation, and kiosk scripts
-docs/apps/         Individual app setups
-docs/              Architecture and host details
+```sh
+python3 scripts/check.py
+python3 -m unittest discover -s tests
 ```
 
-[Configure and validate a project](docs/configuration.md) · [Project-to-host mapping](deployments.json)
+`scripts/check.py` assembles every project in a temporary directory, renders it with `docker compose config --quiet`, checks file syntax, and verifies local Markdown links. It does not contact a host, build an image, or start a container.
+
+To inspect one prepared project without touching an installation:
+
+```sh
+homelab_stage=$(mktemp -d)
+python3 scripts/prepare.py planka "$homelab_stage/planka"
+cp "$homelab_stage/planka/.env.example" "$homelab_stage/planka/.env"
+docker compose --project-directory "$homelab_stage/planka" config
+```
+
+Fill required values in the staged `.env` before the final command. `prepare.py` refuses to overwrite an existing destination.
+
+## Backups
+
+[`stashfleet/`](stashfleet) contains the backup CLI used for configurable, read-only server pulls into a local ZIP, with optional rclone upload. A successful file copy is not proof of database consistency: PostgreSQL, SQLite, and application-managed data still need a quiesced copy or an application-level export and a restore test. The [operations guide](docs/operations.md#backup-and-recovery) defines the recovery boundary for these stacks.
+
+## Layout
+
+```text
+configs/           Sanitized application and integration configuration
+docker-compose/    One reusable Compose template per deployable project
+docs/              Architecture, inventory, configuration, and runbooks
+deployments.json   Project-to-host and project-to-directory map
+scripts/           Project preparation, validation, and kiosk helpers
+stashfleet/        Standalone backup package, tests, and scheduler examples
+tests/             Offline repository checks
+```

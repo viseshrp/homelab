@@ -92,44 +92,122 @@ class FilterTests(unittest.TestCase):
             return any(p.search(log) for p in patterns)
         for path in ['/.env', '/.git/config', '/actuator/env', '/foo/.env.production']:
             self.assertTrue(matches(path, 404), path)
+        fallback = '[09/Sep/2026:12:00:00 +0000] 404 - GET https example.com "/.env" [Client 1.1.1.1] [Length 123] "-" "Browser"'
+        self.assertTrue(any(p.search(fallback) for p in patterns))
         for path, status in [('/', 301), ('/login', 401), ('/favicon.ico', 404),
                              ('/api/items', 403), ('/.env', 200)]:
             self.assertFalse(matches(path, status), path)
 
 
 class CloudflareTests(unittest.TestCase):
-    def api(self):
+    def setUp(self):
         import cloudflare_firewall
-        api = object.__new__(cloudflare_firewall.Cloudflare)
-        api.config = {'notes': 'test-owner', 'protected_networks': []}
-        api.path = '/rules'
-        return api
+        from ownership import Ownership
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.api = object.__new__(cloudflare_firewall.Cloudflare)
+        self.api.config = {'notes': 'test-owner', 'owner_id': 'test-instance', 'protected_networks': []}
+        self.api.ownership = Ownership(Path(self.temp.name) / 'ownership.jsonl')
+        self.api.path = '/rules'
 
-    def test_unban_preserves_other_owners(self):
-        api = self.api()
-        mine = {'mode': 'block', 'notes': 'test-owner', 'id': 'a' * 32}
-        other = {'mode': 'block', 'notes': 'manual', 'id': 'b' * 32}
-        with patch.object(api, 'rules', side_effect=[[mine, other], [other]]), \
-             patch.object(api, 'request') as request:
-            result = api.unban('1.1.1.1')
+    def rule(self, id='a', notes='manual', mode='block'):
+        return {'id': id * 32, 'mode': mode, 'notes': notes,
+                'configuration': {'target': 'ip', 'value': '1.1.1.1'}}
+
+    def test_unban_preserves_other_owners_even_with_matching_notes(self):
+        mine = self.rule(notes='test-owner')
+        other = self.rule(id='b', notes='test-owner')
+        self.api.ownership.append({'event': 'created', 'id': mine['id'],
+                                   'ip': '1.1.1.1', 'notes': mine['notes']})
+        with patch.object(self.api, 'rules', side_effect=[[mine, other], [other]]), \
+             patch.object(self.api, 'request') as request:
+            result = self.api.unban('1.1.1.1')
         request.assert_called_once_with('DELETE', '/rules/' + 'a' * 32)
         self.assertEqual(result['rules'], 1)
+        self.assertEqual(self.api.ownership.read()[0], {})
 
-    def test_lost_write_response_is_verified_before_retry(self):
+    def test_lost_write_response_recovers_recorded_intent(self):
         import cloudflare_firewall
-        api = self.api()
-        with patch.object(api, 'rules', side_effect=[[], [{'mode': 'block'}]]), \
-             patch.object(api, 'request', side_effect=cloudflare_firewall.ApiError('timeout')) as request:
-            result = api.ban('1.1.1.1')
-        self.assertEqual(result['status'], 'verified-blocked')
+        records = []
+        def write(method, path, body):
+            self.assertEqual(method, 'POST')
+            records.append(self.rule(notes=body['notes']))
+            raise cloudflare_firewall.ApiError('lost response')
+        with patch.object(self.api, 'rules', side_effect=lambda *args: list(records)), \
+             patch.object(self.api, 'request', side_effect=write) as request:
+            result = self.api.ban('1.1.1.1')
+        self.assertEqual(result['status'], 'blocked')
         self.assertEqual(request.call_count, 1)
+        self.assertIn('a' * 32, self.api.ownership.read()[0])
 
     def test_allowlisted_ip_is_never_written(self):
-        api = self.api()
-        with patch.object(api, 'rules', return_value=[{'mode': 'whitelist'}]), \
-             patch.object(api, 'request') as request:
-            self.assertEqual(api.ban('1.1.1.1')['status'], 'allowlisted')
+        with patch.object(self.api, 'rules', return_value=[self.rule(mode='whitelist')]), \
+             patch.object(self.api, 'request') as request:
+            self.assertEqual(self.api.ban('1.1.1.1')['status'], 'allowlisted')
             request.assert_not_called()
+
+    def test_repeated_pagination_page_fails(self):
+        import cloudflare_firewall
+        with patch.object(self.api, 'request', return_value={
+            'result': [self.rule()], 'result_info': {'total_pages': 2}
+        }):
+            with self.assertRaises(cloudflare_firewall.ApiError):
+                self.api.rules('1.1.1.1')
+
+
+class RestoreTests(unittest.TestCase):
+    def test_restore_excludes_expired_other_jail_and_private_bans(self):
+        import sqlite3
+        with tempfile.TemporaryDirectory() as tmp:
+            database = Path(tmp) / 'fail2ban.sqlite3'
+            with sqlite3.connect(database) as connection:
+                connection.execute('CREATE TABLE bips (ip TEXT, jail TEXT, bantime INTEGER, timeofban REAL)')
+                connection.executemany('INSERT INTO bips VALUES (?, ?, ?, ?)', [
+                    ('1.1.1.1', 'npm-docker', -1, 0),
+                    ('8.8.8.8', 'npm-docker', 100, 950),
+                    ('8.8.4.4', 'npm-docker', 10, 0),
+                    ('9.9.9.9', 'another-jail', -1, 0),
+                    ('10.0.0.1', 'npm-docker', -1, 0),
+                ])
+            before = database.read_bytes()
+            config = {'database': str(database), 'jail': 'npm-docker',
+                      'protected_networks': [], 'set_prefix': 'test-'}
+            with patch.object(source_firewall, 'ensure'), \
+                 patch.object(source_firewall.time, 'time', return_value=1000), \
+                 patch.object(source_firewall, 'run') as run:
+                self.assertEqual(source_firewall.restore(config), 2)
+            run.assert_called_once_with(['ipset', 'restore', '-exist'],
+                                        data='add test-4 1.1.1.1\nadd test-4 8.8.8.8\n')
+            self.assertEqual(database.read_bytes(), before)
+
+
+class PersistentActionTests(unittest.TestCase):
+    def test_shutdown_preserves_bans_and_explicit_flush_unbans(self):
+        import importlib.util
+        import types
+        class CommandAction:
+            def __init__(self, jail, name):
+                self._jail = jail
+            def flush(self):
+                return 'shutdown-noop'
+            def reload(self):
+                return True
+        fake = types.ModuleType('fail2ban.server.action')
+        fake.CommandAction = CommandAction
+        spec = importlib.util.spec_from_file_location(
+            'persistent_fixture', ROOT / 'configs/fail2ban/data/action.d/persistent.py')
+        module = importlib.util.module_from_spec(spec)
+        with patch.dict(sys.modules, {'fail2ban.server.action': fake}):
+            spec.loader.exec_module(module)
+        jail = types.SimpleNamespace(actions=types.SimpleNamespace(active=True))
+        action = module.Action(jail, 'fixture', 'python3 helper.py', skip_restored='true', startup='restore')
+        self.assertFalse(action.flush())
+        self.assertIn('<restored>', action.actionban)
+        self.assertFalse(action.actionstart_on_demand)
+        self.assertEqual(action.actionstart, 'python3 helper.py restore')
+        jail.actions.active = False
+        self.assertEqual(action.flush(), 'shutdown-noop')
+        self.assertEqual(action.actionflush, 'true')
 
 
 if __name__ == '__main__':

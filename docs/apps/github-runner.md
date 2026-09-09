@@ -20,4 +20,10 @@ The blog's publish workflow targets `self-hosted` and starts through manual disp
 
 The runner and web server share the deployment directory, so publication does not require copying the site to another machine.
 
-[Compose](../../docker-compose/gh-runner/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)
+## Verify and recover
+
+Confirm the runner is registered and idle, then run the manual blog workflow and verify the generated site through Nginx. A runner shown as online does not prove its labels, submodules, Hugo toolchain, Docker access, or `/opt/blog` permissions are correct.
+
+The registration token is replaceable; the source repository and workflow are authoritative. Treat Docker-socket access and the writable blog mount as host-level deployment privileges.
+
+[Compose](../../docker-compose/gh-runner/docker-compose.yml) · [Operations](../operations.md) · [Application index](README.md)

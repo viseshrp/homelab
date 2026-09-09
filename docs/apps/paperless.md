@@ -26,4 +26,10 @@ Named volumes hold application data, document media, and Redis state. Two direct
 
 The web service publishes port 8000. Redis and the conversion services stay on the internal network.
 
-[Compose](../../docker-compose/paperless/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)
+## Verify and recover
+
+Check all four containers, sign in on port 8000, and process a disposable test document through consume, text extraction, conversion, indexing, and search. A working login page does not prove the document pipeline.
+
+Use Paperless's export tooling for a portable recovery set and preserve the installed environment plus all named volumes and bind mounts. After a restore, compare document/correspondent/tag counts and open representative source and archived files.
+
+[Compose](../../docker-compose/paperless/docker-compose.yml) · [Operations](../operations.md) · [Application index](README.md)

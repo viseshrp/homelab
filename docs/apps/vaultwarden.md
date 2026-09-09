@@ -14,4 +14,10 @@ New account signups are disabled. SMTP settings provide email delivery, and the 
 
 The Compose file also publishes port 3012 and enables its WebSocket setting. The main proxy route forwards to port 8089. The container restarts automatically.
 
-[Compose](../../docker-compose/vaultwarden/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)
+## Verify and recover
+
+Check `rpiblog:8089` and the `pass` route, then unlock and sync from a Bitwarden-compatible client. Verify attachments and mail separately when they are part of the intended workflow.
+
+Back up `vw-data/` consistently with the domain and SMTP configuration. It contains the vault database and attachments. Test a restore with an isolated endpoint before allowing clients to sync against it.
+
+[Compose](../../docker-compose/vaultwarden/docker-compose.yml) · [Operations](../operations.md) · [Application index](README.md)

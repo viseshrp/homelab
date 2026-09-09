@@ -24,3 +24,5 @@ docker-compose/*/homarr/
 docker-compose/*/config/
 docker-compose/*/etc-pihole/
 docker-compose/*/etc-dnsmasq.d/
+**/cloudflare-ownership.jsonl*
+configs/fail2ban/data/db/
