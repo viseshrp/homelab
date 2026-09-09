@@ -21,12 +21,10 @@ The Mac's `/etc/hosts` file defines these homelab aliases:
 
 ```text
 rpiblog   rpihass   rpihole   rpimon   rpinfs   rpipass
-rpiproxy  rpivpn    rpizwcal  rpiz2w   optiplex
+rpiproxy  rpivpn    vpn-edge  rpizwcal  rpiz2w   optiplex
 ```
 
-Private addresses are intentionally omitted here. The aliases `rpiblog`, `rpihass`, `rpihole`, `rpimon`, `rpinfs`, `rpiproxy`, and `optiplex` match names used by this repository. `rpivpn` is the current host behind the repository's logical `vpn-edge` name. `rpipass`, `rpizwcal`, and `rpiz2w` have no project assignment in [`deployments.json`](../deployments.json).
-
-`vpn-edge` is a logical name in this repository for the machine hosting Firezone and WG-Easy. It was not present in the Mac's `/etc/hosts` file when checked. The live NPM Firezone route uses that machine's LAN address, while the sanitized route reference uses `vpn-edge`. Do not assume the logical name resolves until it is defined on the machine performing the lookup.
+Private addresses are intentionally omitted here. The aliases `rpiblog`, `rpihass`, `rpihole`, `rpimon`, `rpinfs`, `rpiproxy`, `rpivpn`, `vpn-edge`, and `optiplex` match names used by this repository. `rpivpn` and `vpn-edge` resolve to the same current Firezone/WG-Easy host. `rpipass`, `rpizwcal`, and `rpiz2w` have no project assignment in [`deployments.json`](../deployments.json).
 
 ## Deployment hosts
 

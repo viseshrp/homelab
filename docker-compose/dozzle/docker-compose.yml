@@ -7,6 +7,12 @@ services:
     - "./data:/data"
     - "/var/run/docker.sock:/var/run/docker.sock"
     restart: always
+    healthcheck:
+      test: ["CMD", "/dozzle", "healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     environment:
       DOZZLE_HOSTNAME: "${DOZZLE_HOSTNAME:-rpimon}"
       DOZZLE_REMOTE_AGENT: "${DOZZLE_REMOTE_AGENT:-}"

@@ -33,7 +33,7 @@ The NPM UI displayed version 2.15.1 and these nine enabled rows during a read-on
 | `status.<domain>` | `rpimon:3001` | Uptime Kuma |
 | `<domain>` and `www.<domain>` | `rpiblog:80` | Hugo site |
 
-The table uses sanitized domains and logical host names. Live NPM stores LAN addresses for the observed backends. The Mac's `/etc/hosts` maps most logical names to those addresses, but it does not currently define `vpn-edge`. See [host name resolution](../inventory.md#host-name-resolution).
+The table uses sanitized domains and logical host names. Live NPM stores LAN addresses for the observed backends. The Mac's `/etc/hosts` maps the logical names to those addresses, including `rpivpn` and `vpn-edge` for the Firezone/WG-Easy host. See [host name resolution](../inventory.md#host-name-resolution).
 
 An Online row and the container health check cover NPM state only. Verify the public URL, direct backend, application logs, dependencies, and persisted data before declaring a service healthy.
 

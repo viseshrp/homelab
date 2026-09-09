@@ -55,7 +55,7 @@ Nginx Proxy Manager currently lists nine enabled HTTPS proxy entries: eight subd
 | `rpinfs` | File transfer | FTP service backed by a media mount |
 | `vpn-edge` | Logical repository name for the Firezone/WG-Easy host | Firezone/PostgreSQL, alternate WG-Easy definition |
 
-The Mac resolves the listed `rpi*` aliases and `optiplex` through `/etc/hosts`. `vpn-edge` is a repository label and was not present in that file when checked; live NPM targets that machine by LAN address. The [inventory](docs/inventory.md#host-name-resolution) records the exact alias relationship without publishing private addresses.
+The Mac resolves the listed `rpi*` aliases, `vpn-edge`, and `optiplex` through `/etc/hosts`. Both `rpivpn` and `vpn-edge` identify the current Firezone/WG-Easy host. The [inventory](docs/inventory.md#host-name-resolution) records the alias relationship without publishing private addresses.
 
 ## Start here
 

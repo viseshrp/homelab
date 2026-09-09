@@ -12,13 +12,15 @@ The local Docker socket gives it access to containers on `rpimon`. TLS-enabled D
 
 The service uses the `simple` authentication provider and disables analytics. `/opt/dozzle/data` is mounted at `/data` for persistent settings.
 
-The server and agents restart automatically. Authentication details, host addresses, and agent bind addresses stay in private configuration. Dozzle actions and shell access remain disabled.
+The server and standard agents restart automatically. The Home Assistant OS app starts at boot and uses a TCP watchdog for agent port 7007. The server and every agent use `/dozzle healthcheck`; the server check covers its local Docker connection, while each agent checks its own Docker connection. Authentication details, host addresses, and agent bind addresses stay in private configuration. Dozzle actions and shell access remain disabled.
 
 ## Verify and recover
 
 Confirm that authentication works, eight hosts appear, and the container inventory matches Docker on each host. Open a representative log stream from every non-empty host. The default running count does not include a container while it is restarting; enable **Show stopped containers** in Settings to inspect it.
 
 Preserve `data/` and the private users/source configuration. Agent port 7007 is a LAN-only management interface and must not be forwarded through NPM or the router.
+
+The default agent certificate encrypts traffic but does not restrict connections to this particular Dozzle server. Treat every agent port as Docker-administration access: keep it on the trusted LAN, restrict it to `rpimon` with host firewall rules when practical, or deploy custom Dozzle certificates.
 
 ## Verified state
 

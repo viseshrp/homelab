@@ -91,7 +91,7 @@ Compose derives default named-volume names from the project name. Changing the d
 
 ### Host names
 
-The sanitized configuration uses names such as `rpiblog` and `vpn-edge`. The Mac currently resolves most deployment names through `/etc/hosts`; the repository does not manage that file. `vpn-edge` was not present there when checked. Live NPM uses LAN addresses for its backends, while `configs/nginx/routes.json` uses logical names. Make sure the system applying a configuration can resolve any name it is expected to use.
+The sanitized configuration uses names such as `rpiblog` and `vpn-edge`. The Mac currently resolves deployment names through `/etc/hosts`; the repository does not manage that file. `rpivpn` and `vpn-edge` resolve to the same current Firezone/WG-Easy host. Live NPM uses LAN addresses for its backends, while `configs/nginx/routes.json` uses logical names.
 
 ### Port ownership
 
@@ -140,6 +140,6 @@ python3 scripts/check.py
 python3 -m unittest discover -s tests
 ```
 
-The checker uses dummy values to render all 22 Compose projects in temporary directories. It checks shell/Python syntax, JSON, YAML, and local Markdown links. It does not contact hosts, start containers, build images, or inspect private installed configuration.
+The checker uses dummy values to render all 23 Compose projects in temporary directories. It checks shell/Python syntax, JSON, YAML, and local Markdown links. It does not contact hosts, start containers, build images, or inspect private installed configuration.
 
 [Back to homelab](../README.md)
