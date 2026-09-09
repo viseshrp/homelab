@@ -1,5 +1,11 @@
 # Homelab
 
+My self-hosted setup for media, bookmarks, passwords, documents, and home automation. Homarr brings the apps together on a homepage called Falling Rock.
+
+Most services have a Docker Compose project under `/opt`. The OptiPlex handles media, `rpiblog` hosts the web apps, and `rpimon` holds monitoring and document tools. Nginx Proxy Manager gives the web apps HTTPS addresses.
+
+## Architecture
+
 ```mermaid
 flowchart LR
     clients["Browsers & app clients"]
@@ -20,7 +26,7 @@ flowchart LR
 
     cloudflare["Cloudflare<br/>Ban API"]
     airvpn["AirVPN"]
-    tools["Other projects<br/>Cal.com + PostgreSQL (HTTP / TCP)<br/>Glances · Kiosk display (HTTP / TCP)"]
+    tools["Kiosk display<br/>Monitoring pages / HTTP"]
 
     clients -->|"HTTPS 443"| proxy
     proxy -->|"HTTP"| web
@@ -34,66 +40,72 @@ flowchart LR
     clients -->|"FTP / TCP 20-21, 40000-40009"| ftp
 ```
 
-LAN web interfaces use HTTP directly: File Browser on 8080/8081, qBittorrent on 8085, Dozzle on 8080, ArchiveBox on 8002, pywb on 8082, and Paperless on 8000. qBittorrent shares Gluetun's network namespace and exposes torrent traffic on TCP/UDP 6881. Homarr, Dozzle, and the GitHub runner access Docker through a Unix socket.
+Web traffic enters through Nginx Proxy Manager or goes directly to an app's LAN port. qBittorrent uses Gluetun's AirVPN connection; Firezone and WG-Easy are separate remote-access VPN configurations.
 
-My homelab splits web apps, media, monitoring, DNS, and home automation across dedicated hosts. Most apps have their own Docker Compose project under `/opt`. Nginx Proxy Manager handles HTTPS routes, and Homarr is the homepage.
+[Architecture and storage layout](docs/architecture.md) · [Hosts and reachability](docs/inventory.md)
 
-The OptiPlex holds the media stack: Plex, qBittorrent behind Gluetun, two File Browser instances, and Reelname. `rpiblog` hosts the web apps, while `rpimon` holds monitoring and document tools.
+## Applications
 
-[Architecture](docs/architecture.md) · [Hosts and reachability](docs/inventory.md)
+### Homepage and personal apps
 
-Host aliases replace private addresses throughout these pages. `vpn-edge` names the host with the Firezone and WG-Easy projects.
+These apps share `rpiblog`.
 
-## Web apps
+| App | My setup |
+| --- | --- |
+| [Homarr](docs/apps/homarr.md) | Homepage with app shortcuts, media widgets, and DNS counters |
+| [Hugo blog](docs/apps/blog.md) | Static site served by Nginx and published through a [GitHub Actions runner](docs/apps/github-runner.md) |
+| [Anki](docs/apps/anki.md) | Private flashcard synchronization endpoint |
+| [Vaultwarden](docs/apps/vaultwarden.md) | Password vault for Bitwarden-compatible clients |
+| [Planka](docs/apps/planka.md) | Kanban boards backed by [PostgreSQL](docs/apps/postgresql.md) |
+| [Linkding](docs/apps/linkding.md) | Searchable bookmark collection |
 
-| App | Use | Host |
-| --- | --- | --- |
-| [Homarr](docs/apps/homarr.md) | Homepage and app shortcuts | `rpiblog` |
-| [Hugo blog](docs/apps/blog.md) | Static personal site served by Nginx | `rpiblog` |
-| [GitHub Actions runner](docs/apps/github-runner.md) | Blog builds and publication | `rpiblog` |
-| [Anki](docs/apps/anki.md) | Flashcard synchronization | `rpiblog` |
-| [Vaultwarden](docs/apps/vaultwarden.md) | Password vault | `rpiblog` |
-| [Planka](docs/apps/planka.md) | Kanban boards | `rpiblog` |
-| [Linkding](docs/apps/linkding.md) | Bookmarks | `rpiblog` |
-| [FBN](docs/apps/fbn.md) | Facebook-group notifications | `rpiblog` |
-| [Cal.com](docs/apps/calcom.md) | Scheduling | Local Compose configuration |
+### Media
 
-## Media and files
+The media stack lives on `optiplex` and uses two storage trees, `/mnt/media2` and `/mnt/media3`.
 
-| App | Use | Host |
-| --- | --- | --- |
-| [Plex](docs/apps/plex.md) | Media library and streaming | `optiplex` |
-| [qBittorrent](docs/apps/qbittorrent.md) | Downloads | `optiplex` |
-| [Gluetun](docs/apps/gluetun.md) | VPN networking for qBittorrent | `optiplex` |
-| [File Browser](docs/apps/filebrowser.md) | Web access to each media tree | `optiplex` |
-| [Reelname](docs/apps/reelname.md) | Media filename cleanup | `optiplex` |
-| [FTP server](docs/apps/ftp.md) | Access to a download directory | `rpinfs` |
-| [ArchiveBox](docs/apps/archivebox.md) | Web-page archive | `rpimon` |
-| [pywb](docs/apps/pywb.md) | Replay of archived pages | `rpimon` |
-| [Paperless-ngx](docs/apps/paperless.md) | Document archive | `rpimon` |
+| App | My setup |
+| --- | --- |
+| [Plex](docs/apps/plex.md) | Streams the media library; [Reelname](docs/apps/reelname.md) is installed alongside it for filename cleanup |
+| [qBittorrent](docs/apps/qbittorrent.md) | Downloads to both media trees through [Gluetun](docs/apps/gluetun.md), configured for AirVPN over WireGuard |
+| [File Browser](docs/apps/filebrowser.md) | Two web interfaces, one for each media tree |
 
-## Network and home automation
+### Documents and archives
 
-| App | Use | Host |
-| --- | --- | --- |
-| [Nginx Proxy Manager](docs/apps/nginx-proxy-manager.md) | HTTPS routing | `rpiproxy` |
-| [Fail2ban](docs/apps/fail2ban.md) | Log-based ban rules | `rpiproxy` |
-| [Cloudflare](docs/apps/cloudflare.md) | External ban-action integration | External service |
-| [Pi-hole](docs/apps/pihole.md) | DNS filtering | `rpihole` |
-| [Home Assistant](docs/apps/home-assistant.md) | Home automation | `rpihass` |
-| [Homebridge](docs/apps/homebridge.md) | HomeKit bridge | Dashboard target: `rpihass` |
-| [Firezone](docs/apps/firezone.md) | Remote-access VPN configuration | `vpn-edge` |
-| [WG-Easy](docs/apps/wg-easy.md) | WireGuard configuration | `vpn-edge` |
+| App | My setup |
+| --- | --- |
+| [Paperless-ngx](docs/apps/paperless.md) | Document storage and indexing on `rpimon`; [Redis](docs/apps/redis.md) handles task brokering, [Tika](docs/apps/tika.md) extracts text, and [Gotenberg](docs/apps/gotenberg.md) converts documents |
+| [ArchiveBox](docs/apps/archivebox.md) | Web-page captures on `rpimon`, with [pywb](docs/apps/pywb.md) for replaying archived pages |
+| [FTP server](docs/apps/ftp.md) | Access to a media-download directory on `rpinfs` |
 
-## Monitoring and supporting tools
+### Monitoring and automation
 
-| App | Use | Host / project |
-| --- | --- | --- |
-| [Uptime Kuma](docs/apps/uptime-kuma.md) | Availability monitoring | `rpimon` |
-| [Dozzle](docs/apps/dozzle.md) | Container logs | `rpimon` |
-| [Glances](docs/apps/glances.md) | Host metrics | Local Docker and service configurations |
-| [Kiosk display](docs/apps/kiosk.md) | Rotating monitoring display | `scripts/` |
-| [PostgreSQL](docs/apps/postgresql.md) | Application databases | Planka, Firezone, Cal.com |
-| [Redis](docs/apps/redis.md) | Task broker | Paperless |
-| [Apache Tika](docs/apps/tika.md) | Document extraction | Paperless |
-| [Gotenberg](docs/apps/gotenberg.md) | Document conversion | Paperless |
+| App | My setup |
+| --- | --- |
+| [Uptime Kuma](docs/apps/uptime-kuma.md) | Service monitoring and the status interface on `rpimon` |
+| [Dozzle](docs/apps/dozzle.md) | Container logs in the browser, hosted on `rpimon` |
+| [FBN](docs/apps/fbn.md) | Facebook-group notifications on `rpiblog` |
+| [Home Assistant](docs/apps/home-assistant.md) | Home-automation interface on `rpihass` |
+| [Homebridge](docs/apps/homebridge.md) | HomeKit bridge configuration, with the dashboard pointing to `rpihass` |
+
+### Network services
+
+| Service | My setup |
+| --- | --- |
+| [Nginx Proxy Manager](docs/apps/nginx-proxy-manager.md) | HTTPS routing on `rpiproxy`; [Fail2ban](docs/apps/fail2ban.md) reads its logs and has [Cloudflare](docs/apps/cloudflare.md) and UFW ban actions configured |
+| [Pi-hole](docs/apps/pihole.md) | DNS filtering on `rpihole` |
+| [Firezone](docs/apps/firezone.md) | Remote-access VPN configuration with PostgreSQL on `vpn-edge` |
+| [WG-Easy](docs/apps/wg-easy.md) | Alternative WireGuard server configuration on `vpn-edge` |
+
+### Kiosk display
+
+The [kiosk scripts](docs/apps/kiosk.md) rotate a display through monitoring pages or terminal sessions.
+
+## Configuration files
+
+```text
+docker-compose/    Application Compose files
+configs/           App settings, proxy-log filters, and service files
+scripts/           Kiosk display scripts
+docs/apps/         Individual app setups
+docs/              Architecture and host details
+```

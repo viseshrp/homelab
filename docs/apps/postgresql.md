@@ -1,6 +1,6 @@
 # PostgreSQL
 
-PostgreSQL stores application data for Planka, Firezone, and the Cal.com configuration. Each project has its own database container and volume.
+PostgreSQL stores application data for Planka and Firezone. Each project has its own database container and volume.
 
 ## Databases
 
@@ -8,7 +8,6 @@ PostgreSQL stores application data for Planka, Firezone, and the Cal.com configu
 | --- | --- | --- |
 | Planka on `rpiblog` | `postgres:14-alpine` | `db-data` |
 | Firezone on `vpn-edge` | `postgres:15` | `postgres-data` |
-| Cal.com configuration | `postgres` | `database-data` |
 
 ## Storage and connections
 
