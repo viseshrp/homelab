@@ -1,0 +1,39 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "stashfleet"
+version = "0.1.0"
+description = "Parallel SSH folder backups with ZIP archives and optional cloud uploads"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+dependencies = ["click>=8.1,<9", "rich>=13.9,<16"]
+
+[project.scripts]
+stashfleet = "stashfleet.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8,<10", "ruff>=0.11"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/stashfleet"]
+
+[tool.hatch.build.targets.sdist]
+include = ["/src", "/tests", "/examples", "/README.md", "/LICENSE", "/pyproject.toml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ASYNC"]
+
+[tool.ruff.lint.per-file-ignores]
+# The fake backend handles tiny local fixtures and deliberately yields between chunks.
+"src/stashfleet/demo.py" = ["ASYNC240"]

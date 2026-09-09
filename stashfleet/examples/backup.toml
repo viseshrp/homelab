@@ -1,0 +1,51 @@
+# Copy to backup.toml and edit. This file contains no real hosts or credentials.
+# Relative local paths resolve beside this file. Remote source folders must be absolute.
+destination = "./backups"
+
+[runner]
+parallel_hosts = 2
+transfers = 2
+attempts = 3                # Includes the first attempt; per pull/upload/delete operation
+retry_delay = 2.0           # Seconds; exponential backoff, capped at 60 seconds
+connect_timeout = 15       # Seconds
+transfer_timeout = 3600.0  # Seconds per attempt, including subprocess cleanup
+
+[hosts.server_a]
+address = "server-a.example.invalid"  # Or an existing SSH alias
+user = "backup"
+# port = 22
+# identity_file = "~/.ssh/id_ed25519"
+# ssh_config = "~/.ssh/config"
+
+[hosts.server_b]
+address = "server-b.example.invalid"
+user = "backup"
+
+[[jobs]]
+name = "configuration"
+host = "server_a"
+source = "/srv/config"
+excludes = ["*.tmp", "cache/**"]
+
+[[jobs]]
+name = "documents"
+host = "server_b"
+source = "/srv/documents"
+
+[archive]
+compression = "deflate" # store | deflate | bzip2 | lzma
+level = 6               # deflate: 0..9; bzip2: 1..9; omit for store/lzma
+
+[cloud]
+enabled = false
+destination = "gdrive:stashfleet" # Or an rclone crypt remote, e.g. encrypted:stashfleet
+
+[retention]
+keep_local = 0 # Keep all by default. Positive N keeps newest N completed local runs.
+keep_cloud = 0 # Positive N keeps newest N recorded uploaded ZIPs at this cloud destination.
+
+[rclone]
+binary = "rclone"
+ssh_binary = "ssh"
+# config = "~/.config/rclone/rclone.conf"
+# bandwidth_limit = "10M" # Per rclone process, not aggregate across hosts

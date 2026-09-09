@@ -1,0 +1,17 @@
+[Unit]
+Description=Stashfleet folder backup
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+# Replace user, group, executable, config, and HOME with your Linux client's paths.
+User=backup
+Group=backup
+Environment=HOME=/home/backup
+ExecStart=/home/backup/.local/bin/stashfleet run --config /home/backup/.config/stashfleet/backup.toml --plain
+UMask=0077
+TimeoutStartSec=infinity
+TimeoutStopSec=30
+KillMode=control-group
+NoNewPrivileges=true
