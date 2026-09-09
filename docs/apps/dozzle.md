@@ -14,4 +14,4 @@ The service uses the `simple` authentication provider and disables analytics. `/
 
 The container restarts automatically. Authentication details and remote-source addresses stay in private configuration.
 
-[Back to homelab](../../README.md)
+[Compose](../../docker-compose/dozzle/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)

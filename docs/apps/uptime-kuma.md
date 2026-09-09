@@ -14,4 +14,4 @@ Nginx Proxy Manager forwards the `status` HTTPS hostname to `rpimon:3001`. Homar
 
 The container restarts automatically. Notification destinations remain private.
 
-[Back to homelab](../../README.md)
+[Compose](../../docker-compose/uptime-kuma/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)

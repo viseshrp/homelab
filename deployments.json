@@ -1,0 +1,142 @@
+{
+  "anki": {
+    "host": "rpiblog",
+    "directory": "/opt/anki",
+    "compose": "docker-compose.yml",
+    "assets": {}
+  },
+  "archivebox": {
+    "host": "rpimon",
+    "directory": "/opt/archivebox",
+    "compose": "docker-compose.yml",
+    "assets": {}
+  },
+  "blog": {
+    "host": "rpiblog",
+    "directory": "/opt/blog",
+    "compose": "docker-compose.yml",
+    "assets": {}
+  },
+  "dozzle": {
+    "host": "rpimon",
+    "directory": "/opt/dozzle",
+    "compose": "docker-compose.yml",
+    "assets": {}
+  },
+  "fail2ban": {
+    "host": "rpiproxy",
+    "directory": "/opt/fail2ban",
+    "compose": "docker-compose.yml",
+    "assets": {
+      "configs/fail2ban/data": "data"
+    }
+  },
+  "fbn": {
+    "host": "rpiblog",
+    "directory": "/opt/fbn-compose",
+    "compose": "docker-compose.yml",
+    "assets": {}
+  },
+  "filebrowser": {
+    "host": "optiplex",
+    "directory": "/opt/filebrowser",
+    "compose": "docker-compose.yml",
+    "assets": {}
+  },
+  "firezone": {
+    "host": "vpn-edge",
+    "directory": "/opt/firezone",
+    "compose": "docker-compose.yml",
+    "assets": {}
+  },
+  "ftp": {
+    "host": "rpinfs",
+    "directory": "/opt/ftp",
+    "compose": "docker-compose.yml",
+    "assets": {}
+  },
+  "gh-runner": {
+    "host": "rpiblog",
+    "directory": "/opt/gh-runner",
+    "compose": "docker-compose.yml",
+    "assets": {}
+  },
+  "homarr": {
+    "host": "rpiblog",
+    "directory": "/opt/homarr",
+    "compose": "docker-compose.yml",
+    "assets": {
+      "configs/homarr/vis.json": "homarr/configs/vis.json"
+    }
+  },
+  "homebridge": {
+    "host": "rpihass",
+    "directory": null,
+    "compose": "docker-compose.yml",
+    "assets": {},
+    "status": "Retained template; SSH unavailable"
+  },
+  "linkding": {
+    "host": "rpiblog",
+    "directory": "/opt/linkding",
+    "compose": "docker-compose.yml",
+    "assets": {}
+  },
+  "npm": {
+    "host": "rpiproxy",
+    "directory": "/opt/nginx",
+    "compose": "docker-compose.yml",
+    "assets": {
+      "configs/nginx/nginx.conf": "nginx.conf",
+      "configs/nginx/data/nginx/custom/cloudflare-trusted.conf": "data/nginx/custom/cloudflare-trusted.conf"
+    }
+  },
+  "paperless": {
+    "host": "rpimon",
+    "directory": "/opt/paperless",
+    "compose": "docker-compose.yml",
+    "assets": {}
+  },
+  "pihole": {
+    "host": "rpihole",
+    "directory": "/opt/pihole-docker",
+    "compose": "docker-compose.yml",
+    "assets": {}
+  },
+  "planka": {
+    "host": "rpiblog",
+    "directory": "/opt/planka",
+    "compose": "docker-compose.yml",
+    "assets": {}
+  },
+  "plex": {
+    "host": "optiplex",
+    "directory": "/opt/plex",
+    "compose": "docker-compose.yml",
+    "assets": {}
+  },
+  "qbit": {
+    "host": "optiplex",
+    "directory": "/opt/qbit",
+    "compose": "docker-compose.yml",
+    "assets": {}
+  },
+  "uptime-kuma": {
+    "host": "rpimon",
+    "directory": "/opt/kuma",
+    "compose": "docker-compose.yml",
+    "assets": {}
+  },
+  "vaultwarden": {
+    "host": "rpiblog",
+    "directory": "/opt/vw",
+    "compose": "docker-compose.yml",
+    "assets": {}
+  },
+  "wg-easy": {
+    "host": "vpn-edge",
+    "directory": "/opt/wg-easy",
+    "compose": "docker-compose.yml",
+    "assets": {}
+  }
+}

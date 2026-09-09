@@ -14,4 +14,4 @@ The default data directory is `/opt/linkding/data`, mounted at `/etc/linkding/da
 
 The container has an automatic restart policy.
 
-[Back to homelab](../../README.md)
+[Compose](../../docker-compose/linkding/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)

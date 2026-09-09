@@ -20,4 +20,4 @@ The configuration directory stores client settings and torrent state. The two do
 
 Both qBittorrent and [Gluetun](gluetun.md) use `unless-stopped` restart policies.
 
-[Back to homelab](../../README.md)
+[Compose](../../docker-compose/qbit/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)

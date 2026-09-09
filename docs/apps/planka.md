@@ -17,4 +17,4 @@ Planka listens on container port 1337, published as host port 3001. Nginx Proxy 
 
 The database connection URL and application secret are private settings. PostgreSQL stays on the Compose network without a published host port. Both containers use `unless-stopped`.
 
-[Back to homelab](../../README.md)
+[Compose](../../docker-compose/planka/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)

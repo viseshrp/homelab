@@ -1,0 +1,38 @@
+services:
+  gluetun:
+    image: "${GLUETUN_IMAGE:-qmcgaw/gluetun}"
+    container_name: gluetun
+    ports:
+    - 6881:6881
+    - 6881:6881/udp
+    - 8085:8085
+    volumes:
+    - "./gluetun-data:/gluetun"
+    restart: unless-stopped
+    devices:
+    - "/dev/net/tun:/dev/net/tun"
+    cap_add:
+    - NET_ADMIN
+    environment:
+      VPN_SERVICE_PROVIDER: airvpn
+      VPN_TYPE: wireguard
+      WIREGUARD_PRIVATE_KEY: "${WIREGUARD_PRIVATE_KEY:?Set WIREGUARD_PRIVATE_KEY}"
+      WIREGUARD_PRESHARED_KEY: "${WIREGUARD_PRESHARED_KEY:?Set WIREGUARD_PRESHARED_KEY}"
+      WIREGUARD_ADDRESSES: "${WIREGUARD_ADDRESSES:?Set WIREGUARD_ADDRESSES}"
+  qbittorrent:
+    image: "${QBITTORRENT_IMAGE:-lscr.io/linuxserver/qbittorrent:latest}"
+    container_name: qbittorrent
+    volumes:
+    - "./qbit-data/config:/config"
+    - "${DOWNLOADS2_DIR:-/mnt/media2/Media/downloads}:/downloads"
+    - "${DOWNLOADS3_DIR:-/mnt/media3/Media/downloads}:/downloads2"
+    network_mode: service:gluetun
+    depends_on:
+    - gluetun
+    restart: unless-stopped
+    environment:
+      PUID: '1000'
+      PGID: '1000'
+      TZ: America/Toronto
+      WEBUI_PORT: '8085'
+      TORRENTING_PORT: '6881'

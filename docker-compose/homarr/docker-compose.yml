@@ -1,19 +1,16 @@
-version: '3'
-#---------------------------------------------------------------------#
-#     Homarr - A simple, yet powerful dashboard for your server.     #
-#---------------------------------------------------------------------#
 services:
   homarr:
+    image: "${HOMARR_IMAGE:-ghcr.io/ajnart/homarr:latest}"
     container_name: homarr
-    image: ghcr.io/ajnart/homarr:latest
-    restart: always
-    volumes:
-      - ./homarr/configs:/app/data/configs
-      - ./homarr/icons:/app/public/icons
-      - /var/run/docker.sock:/var/run/docker.sock
     ports:
-      - '7575:7575'
+    - 7575:7575
+    volumes:
+    - "./homarr/configs:/app/data/configs"
+    - "./homarr/icons:/app/public/icons"
+    - "/var/run/docker.sock:/var/run/docker.sock"
+    - "./homarr/data:/data"
+    restart: always
     environment:
-      - TZ=America/New_York
-      - BASE_URL=home.site.com
-      - PASSWORD=pass
+      TZ: America/New_York
+      BASE_URL: "${BASE_URL:-https://home.example.com}"
+      PASSWORD: "${PASSWORD:?Set PASSWORD}"

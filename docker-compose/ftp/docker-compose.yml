@@ -1,0 +1,13 @@
+services:
+  ftp-server:
+    image: "${FTP_SERVER_IMAGE:-garethflowers/ftp-server}"
+    container_name: my-ftp-server
+    ports:
+    - 20-21:20-21/tcp
+    - 40000-40009:40000-40009/tcp
+    volumes:
+    - "${FTP_DATA_DIR:-/mnt/media/Media/downloads}:/home/${FTP_USER:?Set FTP_USER}"
+    restart: always
+    environment:
+      FTP_PASS: "${FTP_PASS:?Set FTP_PASS}"
+      FTP_USER: "${FTP_USER:-media}"

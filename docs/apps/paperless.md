@@ -26,4 +26,4 @@ Named volumes hold application data, document media, and Redis state. Two direct
 
 The web service publishes port 8000. Redis and the conversion services stay on the internal network.
 
-[Back to homelab](../../README.md)
+[Compose](../../docker-compose/paperless/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)

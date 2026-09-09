@@ -18,4 +18,4 @@ hugo --minify --enableGitInfo
 
 The workflow deploys the checkout to `/opt/blog` using `rsync -rav`. Nginx serves the updated `public/` directory through its bind mount.
 
-[Back to homelab](../../README.md)
+[Compose](../../docker-compose/blog/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)

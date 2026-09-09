@@ -12,6 +12,6 @@ The local configuration includes default integrations, Google Translate text-to-
 
 `configs/homeassistant/configuration.yaml` loads separate files for automations, scripts, scenes, and customization, plus a directory of themes.
 
-It also configures forwarded-header handling and trusted proxy sources. Device names, presence-sensor addresses, and private network values are omitted here.
+It also configures forwarded-header handling and trusted proxy sources. Presence-sensor addresses and proxy networks use `!secret` references. Fill `secrets.yaml` from the example and retain the existing included files.
 
-[Back to homelab](../../README.md)
+[Setup](../configuration.md) · [Back to homelab](../../README.md)

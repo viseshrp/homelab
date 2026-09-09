@@ -19,4 +19,4 @@ qBittorrent uses `network_mode: service:gluetun`, so Gluetun owns the network na
 
 This connection is for the download client's outbound traffic. The Firezone and WG-Easy projects provide separate remote-access VPN configurations.
 
-[Back to homelab](../../README.md)
+[Compose](../../docker-compose/qbit/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)

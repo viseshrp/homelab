@@ -14,4 +14,4 @@ The public index, snapshots, and add view are disabled. SSL checking is enabled.
 
 pywb publishes a separate interface on port 8082. Its startup command indexes WARC files from the ArchiveBox capture tree into the `default` collection before starting the replay server.
 
-[Back to homelab](../../README.md)
+[Compose](../../docker-compose/archivebox/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)

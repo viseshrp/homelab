@@ -22,8 +22,10 @@ The `data/` directory holds NPM configuration and logs. `letsencrypt/` holds cer
 | `status` | `rpimon:3001` | Uptime Kuma |
 | Root domain and `www` | `rpiblog:80` | Blog |
 
-## Log filtering
+## Client addresses and log filtering
 
-[Fail2ban](fail2ban.md) reads NPM's logs from `/opt/nginx/data/logs`. Its jail uses Cloudflare and UFW actions to ban matching clients.
+The mounted `nginx.conf` trusts client-address headers only from the Cloudflare ranges in `data/nginx/custom/cloudflare-trusted.conf`.
 
-[Back to homelab](../../README.md)
+[Fail2ban](fail2ban.md) reads NPM's logs from `/opt/nginx/data/logs`. Its jail uses Cloudflare and source-IP firewall actions to ban matching clients.
+
+[Compose](../../docker-compose/npm/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)

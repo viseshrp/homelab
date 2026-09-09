@@ -1,16 +1,31 @@
-version: "3"
-
 services:
-  filebrowser:
-    image: filebrowser/filebrowser:latest
-    container_name: filebrowser
-    environment:
-      - PUID=0
-      - PGID=0
-    volumes:
-      - './filebrowser.db:/database/filebrowser.db'
-      - './settings.json:/config/settings.json'
-      - '/mnt:/srv'
+  filebrowser2:
+    image: "${FILEBROWSER2_IMAGE:-filebrowser/filebrowser:latest}"
+    container_name: filebrowser2
     ports:
-      - 8080:80
+    - 8080:80
+    volumes:
+    - "./filebrowser2-data:/database"
+    - "./settings.json:/config/settings.json"
+    - "${MEDIA2_DIR:-/mnt/media2/Media}:/srv"
     restart: unless-stopped
+    environment:
+      PUID: '0'
+      PGID: '0'
+      FB_BRANDING.DISABLEEXTERNAL: 'true'
+      FB_NOAUTH: "${FB_NOAUTH:-false}"
+  filebrowser3:
+    image: "${FILEBROWSER3_IMAGE:-filebrowser/filebrowser:latest}"
+    container_name: filebrowser3
+    ports:
+    - 8081:80
+    volumes:
+    - "./filebrowser3-data:/database"
+    - "./settings3.json:/config/settings.json"
+    - "${MEDIA3_DIR:-/mnt/media3/Media}:/srv"
+    restart: unless-stopped
+    environment:
+      PUID: '0'
+      PGID: '0'
+      FB_BRANDING.DISABLEEXTERNAL: 'true'
+      FB_NOAUTH: "${FB_NOAUTH:-false}"

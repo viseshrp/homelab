@@ -20,4 +20,4 @@ Nginx Proxy Manager forwards the `plex` HTTPS hostname to port 32400. Homarr lin
 
 The two external media trees also contain qBittorrent's download directories. Separate File Browser instances expose their `Media/` directories through the web.
 
-[Back to homelab](../../README.md)
+[Compose](../../docker-compose/plex/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)

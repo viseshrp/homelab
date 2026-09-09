@@ -19,4 +19,4 @@ Each instance has its own database directory: `filebrowser2-data/` or `filebrows
 
 The first instance uses `settings.json`; the second uses `settings3.json`. Each file is mounted at `/config/settings.json` in its container. Both containers use `unless-stopped`.
 
-[Back to homelab](../../README.md)
+[Compose](../../docker-compose/filebrowser/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)

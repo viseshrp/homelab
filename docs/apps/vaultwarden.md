@@ -14,4 +14,4 @@ New account signups are disabled. SMTP settings provide email delivery, and the 
 
 The Compose file also publishes port 3012 and enables its WebSocket setting. The main proxy route forwards to port 8089. The container restarts automatically.
 
-[Back to homelab](../../README.md)
+[Compose](../../docker-compose/vaultwarden/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)

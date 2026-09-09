@@ -1,19 +1,12 @@
-#!/bin/bash
-set -ex
-
-xset s noblank
-xset s off
-xset -dpms
-
-unclutter -idle 0.5 -root &
-
-#sed -i 's/"exited_cleanly":false/"exited_cleanly":true/' /home/viseshprasad/.config/chromium/Default/Preferences
-#sed -i 's/"exit_type":"Crashed"/"exit_type":"Normal"/' /home/viseshprasad/.config/chromium/Default/Preferences
-
-#/snap/bin/chromium --noerrdialogs --disable-infobars --kiosk http://192.168.68.77:61208/ http://192.168.68.76:61208/ http://192.168.68.53:61208/ http://192.168.68.78:61208/ http://192.168.68.88:8123/a0d7b954_glances/dashboard http://192.168.68.77/admin/index.php &
-#/snap/bin/chromium
-gnome-terminal --window -- gnome-terminal --tab --command="/opt/glances/venv/bin/glances -c 192.168.68.77:61209" --tab --command="/opt/glances/venv/bin/glances -c 192.168.68.93:61209" --tab --command="/opt/glances/venv/bin/glances -c 192.168.68.100:61209" --tab --command="/opt/glances/venv/bin/glances -c 192.168.68.78:61209" --tab --command="/opt/glances/venv/bin/glances -c 192.168.68.53:61209" --tab --command="/opt/glances/venv/bin/glances -c localhost:61209" --tab --command="/opt/glances/venv/bin/glances -c 192.168.68.91:61209"
-while true; do
-   xdotool keydown ctrl+Next; xdotool keyup ctrl+Next;
-   sleep 15
-done
+#!/usr/bin/env bash
+# Open the same page set without automatic tab rotation.
+set -euo pipefail
+if [[ $# != 1 ]]; then printf 'Usage: %s URL_FILE\n' "$0" >&2; exit 2; fi
+urls=()
+while IFS= read -r url || [[ -n $url ]]; do
+  [[ -z $url || $url == \#* ]] && continue
+  [[ $url == http://* || $url == https://* ]] || { printf 'Only HTTP(S) URLs are accepted\n' >&2; exit 2; }
+  urls+=("$url")
+done < "$1"
+[[ ${#urls[@]} -gt 0 ]] || { printf 'URL file is empty\n' >&2; exit 2; }
+exec "${KIOSK_BROWSER:-chromium}" --new-window "${urls[@]}"

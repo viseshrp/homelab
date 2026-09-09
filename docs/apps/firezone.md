@@ -19,4 +19,4 @@ The configuration enables IP forwarding and grants `NET_ADMIN` and `SYS_MODULE`.
 
 A private environment file supplies application and database settings. WG-Easy is also configured on this host with UDP 51820, so the two default port bindings cannot run together unchanged.
 
-[Back to homelab](../../README.md)
+[Compose](../../docker-compose/firezone/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)

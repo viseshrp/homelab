@@ -14,4 +14,4 @@ The container publishes UDP 51820 for WireGuard and TCP 51821 for administration
 
 Firezone's configuration on the same host also binds UDP 51820. Only one can use that host port at a time. WG-Easy uses an `unless-stopped` restart policy.
 
-[Back to homelab](../../README.md)
+[Compose](../../docker-compose/wg-easy/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)

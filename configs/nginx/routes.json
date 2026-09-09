@@ -1,0 +1,96 @@
+{
+  "description": "Reference for NPM proxy-host entries; not an NPM import file. Replace example domains and resolve host aliases on the proxy host.",
+  "routes": [
+    {
+      "domains": [
+        "anki.example.com"
+      ],
+      "scheme": "http",
+      "host": "rpiblog",
+      "port": 8080,
+      "certificate": "Lets Encrypt",
+      "access_list": "Public"
+    },
+    {
+      "domains": [
+        "boards.example.com"
+      ],
+      "scheme": "http",
+      "host": "rpiblog",
+      "port": 3001,
+      "certificate": "Lets Encrypt",
+      "access_list": "Public"
+    },
+    {
+      "domains": [
+        "firezone.example.com"
+      ],
+      "scheme": "http",
+      "host": "vpn-edge",
+      "port": 13000,
+      "certificate": "Lets Encrypt",
+      "access_list": "Public"
+    },
+    {
+      "domains": [
+        "home.example.com"
+      ],
+      "scheme": "http",
+      "host": "rpiblog",
+      "port": 7575,
+      "certificate": "Lets Encrypt",
+      "access_list": "Public"
+    },
+    {
+      "domains": [
+        "links.example.com"
+      ],
+      "scheme": "http",
+      "host": "rpiblog",
+      "port": 9090,
+      "certificate": "Lets Encrypt",
+      "access_list": "Public"
+    },
+    {
+      "domains": [
+        "pass.example.com"
+      ],
+      "scheme": "http",
+      "host": "rpiblog",
+      "port": 8089,
+      "certificate": "Lets Encrypt",
+      "access_list": "Public"
+    },
+    {
+      "domains": [
+        "plex.example.com"
+      ],
+      "scheme": "http",
+      "host": "optiplex",
+      "port": 32400,
+      "certificate": "Lets Encrypt",
+      "access_list": "Public"
+    },
+    {
+      "domains": [
+        "status.example.com"
+      ],
+      "scheme": "http",
+      "host": "rpimon",
+      "port": 3001,
+      "certificate": "Lets Encrypt",
+      "access_list": "Public"
+    },
+    {
+      "domains": [
+        "example.com",
+        "www.example.com"
+      ],
+      "scheme": "http",
+      "host": "rpiblog",
+      "port": 80,
+      "certificate": "Lets Encrypt",
+      "access_list": "Public"
+    }
+  ]
+}

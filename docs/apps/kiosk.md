@@ -1,17 +1,11 @@
-# Kiosk display
+# Kiosk
 
-The kiosk scripts rotate a display through monitoring pages or terminal sessions.
+The kiosk opens monitoring pages on an X11 desktop display.
 
-## Browser display
+## Setup
 
-`scripts/kiosk.sh` disables screen blanking and DPMS, hides the pointer with `unclutter`, and launches Chromium in kiosk mode.
+Copy [the URL example](../../configs/kiosk.urls.example) to a private file and replace the addresses. `scripts/kiosk.sh URL_FILE` opens Chromium in kiosk mode and rotates tabs every 15 seconds. `scripts/kiosk-manual.sh URL_FILE` opens the pages for manual navigation.
 
-An `xdotool` loop switches to the next tab and refreshes it every ten seconds. The page list includes Home Assistant and Pi-hole.
-
-## Terminal display
-
-`scripts/kiosk-manual.sh` opens monitoring commands in GNOME Terminal tabs and switches between them every fifteen seconds.
-
-Both scripts use an X11 desktop. Their endpoint lists and executable paths are machine-specific.
+`KIOSK_BROWSER` selects the browser executable; `KIOSK_INTERVAL` changes the rotation interval. `KIOSK_PROFILE_DIR` selects the dedicated browser profile. Automatic rotation requires `xset` and `xdotool` and targets the browser's window. Launch it in a dedicated desktop session with Chromium closed so the process owns its window.
 
 [Back to homelab](../../README.md)

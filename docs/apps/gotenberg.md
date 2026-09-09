@@ -12,4 +12,4 @@ The container uses an `unless-stopped` restart policy and has no published host 
 
 Gotenberg handles conversion requests without a persistent volume in this stack. Paperless stores the documents and resulting application data in its own data and media volumes.
 
-[Back to homelab](../../README.md)
+[Compose](../../docker-compose/paperless/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)

@@ -21,4 +21,4 @@ Private settings select the group, Apprise destination, authentication file, tim
 
 The first successful scan establishes a baseline by default. New posts enter a persistent delivery queue. Pending notifications survive a restart; a retry can produce a duplicate if a send succeeded before its completion was recorded.
 
-[Back to homelab](../../README.md)
+[Compose](../../docker-compose/fbn/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)

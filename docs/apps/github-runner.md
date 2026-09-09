@@ -20,4 +20,4 @@ The blog's publish workflow targets `self-hosted` and starts through manual disp
 
 The runner and web server share the deployment directory, so publication does not require copying the site to another machine.
 
-[Back to homelab](../../README.md)
+[Compose](../../docker-compose/gh-runner/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)

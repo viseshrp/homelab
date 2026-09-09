@@ -8,7 +8,7 @@ The lab separates services by host role. Each Compose project has its own direct
 
 Homarr is the homepage on `rpiblog:7575`. Its sidebars mix HTTPS app names with direct LAN links to tools such as Dozzle, File Browser, and qBittorrent.
 
-Fail2ban shares the proxy host. It reads NPM's access/error logs and has Cloudflare and UFW ban actions configured.
+Fail2ban shares the proxy host. It reads NPM's access logs and has Cloudflare and source-IP firewall ban actions configured.
 
 ## Application hosts
 

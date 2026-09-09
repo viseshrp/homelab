@@ -1,19 +1,17 @@
 # Fail2ban
 
-Fail2ban watches log files for repeated request patterns and applies bans through configured actions.
+Fail2ban blocks repeated probes for sensitive files and exploit endpoints in Nginx Proxy Manager's access logs.
 
 ## My setup
 
-The Compose project lives at `/opt/fail2ban` on `rpiproxy` and uses `crazymax/fail2ban`. It runs with host networking and the `NET_ADMIN` and `NET_RAW` capabilities.
+`rpiproxy:/opt/fail2ban` runs `crazymax/fail2ban` with host networking and `NET_ADMIN`/`NET_RAW`. The `npm-docker` jail reads the default-host, proxy-host, and fallback HTTP access logs from `/opt/nginx/data/logs`.
 
-The `npm-docker` jail reads Nginx Proxy Manager's default-host access log and per-proxy access/error logs. `/opt/nginx/data/logs` is mounted at `/var/log/npm` inside the container.
+Thirty matching requests within two hours trigger an indefinite ban. The filter targets paths such as `.env`, `.git/config`, and exploit endpoints returning 4xx responses. Ordinary redirects, login failures, and missing assets do not match.
 
-## Rules and actions
+## Ban actions
 
-The jail has a threshold of 30 matches in two hours and an indefinite ban duration. Private-network exclusions keep local traffic outside that rule.
+`cloudflare-apiv4` calls a Python helper that manages exact-IP Cloudflare block rules. Unban removes only rules carrying this integration's ownership note. Credentials are read from a private INI file.
 
-The filter matches selected 3xx and 4xx log patterns. The configured actions are `cloudflare-apiv4` and `ufw-ip-ban`.
+The legacy `ufw-ip-ban` action name now calls a source-IP helper. IPv4 and IPv6 ipsets apply to HTTP(S) traffic in `INPUT` and `DOCKER-USER`. It does not inspect request headers with iptables string matching. Private addresses and configured protected networks are excluded by both helpers.
 
-Jails, filters, and actions are stored beneath `/opt/fail2ban/data`. Cloudflare credentials belong in the private action configuration.
-
-[Back to homelab](../../README.md)
+[Configuration and private inputs](../configuration.md#fail2ban-and-nginx) · [Back to homelab](../../README.md)

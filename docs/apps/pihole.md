@@ -17,4 +17,4 @@ Homarr links to its `/admin` interface and includes a widget for DNS query and b
 
 These directories retain Pi-hole and DNS configuration across container replacement. The administration credential is supplied privately.
 
-[Back to homelab](../../README.md)
+[Compose](../../docker-compose/pihole/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)

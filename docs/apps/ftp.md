@@ -17,4 +17,4 @@ The host directory `/mnt/media/Media/downloads` is mounted as the FTP user's hom
 
 The container has an automatic restart policy. The FTP project and its account configuration are stored separately from the files on the media mount.
 
-[Back to homelab](../../README.md)
+[Compose](../../docker-compose/ftp/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)

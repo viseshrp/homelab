@@ -1,0 +1,8 @@
+services:
+  webserver:
+    build: "."
+    ports:
+    - 80:80
+    volumes:
+    - "./public:/usr/share/nginx/html"
+    restart: always

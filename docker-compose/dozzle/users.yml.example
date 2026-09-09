@@ -1,0 +1,2 @@
+# Generate users.yml with Dozzle's generate command; do not commit the generated password hash.
+users: {}

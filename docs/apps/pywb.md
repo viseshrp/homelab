@@ -17,4 +17,4 @@ The entrypoint creates a `default` collection, adds captures matching `/archiveb
 
 ArchiveBox supplies the captures. The replay collection and its indexes persist in the shared data directory.
 
-[Back to homelab](../../README.md)
+[Compose](../../docker-compose/archivebox/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)

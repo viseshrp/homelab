@@ -91,7 +91,7 @@ The media stack lives on `optiplex` and uses two storage trees, `/mnt/media2` an
 
 | Service | My setup |
 | --- | --- |
-| [Nginx Proxy Manager](docs/apps/nginx-proxy-manager.md) | HTTPS routing on `rpiproxy`; [Fail2ban](docs/apps/fail2ban.md) reads its logs and has [Cloudflare](docs/apps/cloudflare.md) and UFW ban actions configured |
+| [Nginx Proxy Manager](docs/apps/nginx-proxy-manager.md) | HTTPS routing on `rpiproxy`; [Fail2ban](docs/apps/fail2ban.md) reads its logs and has [Cloudflare](docs/apps/cloudflare.md) and source-IP firewall ban actions configured |
 | [Pi-hole](docs/apps/pihole.md) | DNS filtering on `rpihole` |
 | [Firezone](docs/apps/firezone.md) | Remote-access VPN configuration with PostgreSQL on `vpn-edge` |
 | [WG-Easy](docs/apps/wg-easy.md) | Alternative WireGuard server configuration on `vpn-edge` |
@@ -105,7 +105,9 @@ The [kiosk scripts](docs/apps/kiosk.md) rotate a display through monitoring page
 ```text
 docker-compose/    Application Compose files
 configs/           App settings, proxy-log filters, and service files
-scripts/           Kiosk display scripts
+scripts/           Local project preparation, validation, and kiosk scripts
 docs/apps/         Individual app setups
 docs/              Architecture and host details
 ```
+
+[Configure and validate a project](docs/configuration.md) · [Project-to-host mapping](deployments.json)

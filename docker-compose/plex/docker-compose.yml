@@ -1,18 +1,16 @@
-version: "3"
-
 services:
   plex:
-    image: lscr.io/linuxserver/plex:latest
+    image: "${PLEX_IMAGE:-lscr.io/linuxserver/plex:latest}"
     container_name: plex
-    network_mode: host
-    environment:
-      - PUID=0
-      - PGID=0
-      - VERSION=docker
     volumes:
-      - './config:/config'
-      - './tv:/tv'
-      - './movies:/movies'
-#      - '/mnt/nfsshare:/share'
-      - '/mnt/media:/mnt/media'
+    - "./config:/config"
+    - "./tv:/tv"
+    - "./movies:/movies"
+    - "${MEDIA2_ROOT:-/mnt/media2}:/mnt/media"
+    - "${MEDIA3_ROOT:-/mnt/media3}:/mnt/media3"
+    network_mode: host
     restart: unless-stopped
+    environment:
+      PUID: '0'
+      PGID: '0'
+      VERSION: docker

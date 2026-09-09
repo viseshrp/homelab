@@ -12,4 +12,4 @@ Paperless connects over the Compose network at `redis://broker:6379`. Redis has 
 
 The `redisdata` volume is mounted at `/data`, retaining Redis state across container replacement. Document files and Paperless application data have their own volumes.
 
-[Back to homelab](../../README.md)
+[Compose](../../docker-compose/paperless/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)

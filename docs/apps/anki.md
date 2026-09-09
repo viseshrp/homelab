@@ -14,4 +14,4 @@ Nginx Proxy Manager forwards the `anki` hostname to `rpiblog:8080` over HTTP and
 
 The host's `/opt/anki/data` directory is mounted at `/data`. It holds the server's persistent sync data. The container runs as `0:0` with an `unless-stopped` restart policy.
 
-[Back to homelab](../../README.md)
+[Compose](../../docker-compose/anki/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)

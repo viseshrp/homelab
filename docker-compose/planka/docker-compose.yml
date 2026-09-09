@@ -1,50 +1,26 @@
-version: '3'
-
 services:
   planka:
-    image: ghcr.io/plankanban/planka:latest
-    command: >
-      bash -c
-        "for i in `seq 1 30`; do
-          ./start.sh &&
-          s=$$? && break || s=$$?;
-          echo \"Tried $$i times. Waiting 5 seconds...\";
-          sleep 5;
-        done; (exit $$s)"
-    restart: unless-stopped
-    volumes:
-      - user-avatars:/app/public/user-avatars
-      - project-background-images:/app/public/project-background-images
-      - attachments:/app/private/attachments
+    image: "${PLANKA_IMAGE:-ghcr.io/plankanban/planka:2.2.1@sha256:125f45330853210c678fed1132bedc0912b4a11a27779b79802fbca108e069e2}"
     ports:
-      - 3001:1337
-    environment:
-      - BASE_URL=https://boards.site.com
-      - TRUST_PROXY=1
-      - DATABASE_URL=postgresql://postgres@postgres/planka
-      - SECRET_KEY=
-
-      # related: https://github.com/knex/knex/issues/2354
-      # As knex does not pass query parameters from the connection string we
-      # have to use environment variables in order to pass the desired values, e.g.
-      # - PGSSLMODE=<value>
-
-      # Configure knex to accept SSL certificates
-      # - KNEX_REJECT_UNAUTHORIZED_SSL_CERTIFICATE=false
-    depends_on:
-      - postgres
-
-  postgres:
-    image: postgres:14-alpine
-    restart: unless-stopped
+    - 3001:1337
     volumes:
-      - db-data:/var/lib/postgresql/data
+    - data:/app/data
+    depends_on:
+    - postgres
+    restart: unless-stopped
     environment:
-      - POSTGRES_DB=planka
-      - POSTGRES_HOST_AUTH_METHOD=trust
-
+      BASE_URL: "${BASE_URL:-https://boards.example.com}"
+      TRUST_PROXY: 'true'
+      DATABASE_URL: "${DATABASE_URL:-postgresql://postgres@postgres/planka}"
+      SECRET_KEY: "${SECRET_KEY:?Set SECRET_KEY}"
+  postgres:
+    image: "${POSTGRES_IMAGE:-postgres:14-alpine}"
+    volumes:
+    - db-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: planka
+      POSTGRES_HOST_AUTH_METHOD: trust
 volumes:
-  user-avatars:
-  project-background-images:
-  attachments:
+  data:
   db-data:

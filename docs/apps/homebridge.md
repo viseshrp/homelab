@@ -18,4 +18,4 @@ The `/homebridge` directory holds plugin configuration and pairing state. Keepin
 
 HomeKit pairing details and plugin credentials remain private.
 
-[Back to homelab](../../README.md)
+[Compose](../../docker-compose/homebridge/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)

@@ -20,4 +20,4 @@ The left sidebar contains Plex, Firezone, NPM, Planka, the blog, Linkding, File 
 
 Some shortcuts use HTTPS hostnames; others open a host's LAN port directly. The board also includes Plex sessions, a torrent widget, and Pi-hole counters. Widget credentials are stored privately with the board configuration.
 
-[Back to homelab](../../README.md)
+[Compose](../../docker-compose/homarr/docker-compose.yml) · [Setup](../configuration.md) · [Back to homelab](../../README.md)

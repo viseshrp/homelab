@@ -24,21 +24,21 @@ sun:
 http:
   use_x_forwarded_for: true
   trusted_proxies:
-    - 172.30.33.0/24
+    - !secret proxy_network
 
 binary_sensor:
   - platform: ping
-    host: 192.168.68.83
-    name: pixel_visesh
+    host: !secret presence_device_one
+    name: presence_device_one
     count: 8
     scan_interval: 15
   - platform: ping
-    host: 192.168.68.62
-    name: iphone_supraja
+    host: !secret presence_device_two
+    name: presence_device_two
     count: 8
     scan_interval: 15
   - platform: ping
-    host: 192.168.68.91
+    host: !secret proxy_host
     name: rpiproxy
     count: 8
     scan_interval: 15
