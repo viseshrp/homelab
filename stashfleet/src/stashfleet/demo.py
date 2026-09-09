@@ -15,7 +15,7 @@ class FakeBackend:
     def __init__(self, cloud: Path):
         self.cloud = cloud
 
-    def validate(self) -> None:
+    def validate(self, *, upload_only: bool = False) -> None:
         pass
 
     async def pull(self, host: Host, job: Job, destination: Path, emit: EventSink) -> None:

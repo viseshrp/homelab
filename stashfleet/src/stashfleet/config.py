@@ -64,8 +64,8 @@ class CloudConfig:
     destination: str = ""  # Configured rclone remote, e.g. gdrive:stashfleet
 
     def target(self, filename: str) -> str:
-        base = self.destination.rstrip("/")
-        return f"{base}{'' if base.endswith(':') else '/'}{filename}"
+        separator = "" if self.destination.endswith((":", "/")) else "/"
+        return f"{self.destination}{separator}{filename}"
 
 
 @dataclass(frozen=True)

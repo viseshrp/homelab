@@ -3,13 +3,16 @@ import csv
 import json
 import os
 import signal
+import subprocess
 import sys
 import textwrap
+import time
 from dataclasses import replace
 
 import pytest
 
-from stashfleet import Config, Host, Job, RcloneBackend, TransferError
+from stashfleet import CloudConfig, Config, Host, Job, RcloneBackend, Runner, TransferError, state
+from stashfleet.demo import FakeBackend
 
 
 @pytest.fixture
@@ -28,6 +31,8 @@ def fake_rclone(tmp_path):
         from pathlib import Path
 
         Path(os.environ["FAKE_ARGS"]).write_text(json.dumps(sys.argv[1:]))
+        if parent_pid := os.environ.get("FAKE_PARENT_PID"):
+            Path(parent_pid).write_text(str(os.getpid()))
         mode = os.environ.get("FAKE_MODE", "success")
         if mode == "fail":
             print(json.dumps({"level": "error", "msg": "fake permission denied"}), flush=True)
@@ -36,11 +41,13 @@ def fake_rclone(tmp_path):
             child_code = (
                 "import signal,time,sys; from pathlib import Path; "
                 "signal.signal(signal.SIGTERM, lambda *_: "
-                "(Path(sys.argv[1]).write_text('terminated'), sys.exit(0))); "
+                "(Path(sys.argv[1]).write_text('terminated'), "
+                "time.sleep(float(sys.argv[3])), sys.exit(0))); "
                 "Path(sys.argv[2]).write_text('ready'); time.sleep(60)"
             )
             child = subprocess.Popen([sys.executable, "-c", child_code,
-                                      os.environ["FAKE_STOP"], os.environ["FAKE_READY"]])
+                                      os.environ["FAKE_STOP"], os.environ["FAKE_READY"],
+                                      os.environ.get("FAKE_STOP_DELAY", "0")])
             Path(os.environ["FAKE_PID"]).write_text(str(child.pid))
             # Reap our child when the group is terminated.
             def stop(*_):
@@ -102,6 +109,121 @@ def test_fake_process_progress_and_nonzero_exit(tmp_path, fake_rclone, monkeypat
         asyncio.run(
             backend.pull(cfg.hosts["alpha"], cfg.jobs[0], tmp_path / "output", events.append)
         )
+
+
+@pytest.mark.parametrize("missing", ["binary", "config"])
+def test_upload_validation_still_requires_rclone_dependencies(tmp_path, fake_rclone, missing):
+    cfg = config(tmp_path, fake_rclone)
+    if missing == "binary":
+        cfg = replace(cfg, rclone_binary=str(tmp_path / "missing-rclone"))
+        message = "executable not found"
+    else:
+        cfg = replace(cfg, rclone_config=tmp_path / "missing-rclone.conf")
+        message = "configuration/key file not found"
+    with pytest.raises(TransferError, match=message):
+        RcloneBackend(cfg).validate(upload_only=True)
+
+
+@pytest.mark.parametrize("command", ["run", "retry-upload"])
+def test_cli_sigterm_cleans_process_group_and_saves_state(tmp_path, fake_rclone, command):
+    source = tmp_path / "source"
+    source.mkdir()
+    (source / "fixture.txt").write_text("local test data")
+    cfg = config(tmp_path, fake_rclone)
+    cfg = replace(
+        cfg,
+        jobs=(replace(cfg.jobs[0], source=str(source)),),
+        cloud=CloudConfig(True, "fake:backups"),
+    )
+    config_path = tmp_path / "config.toml"
+    config_path.write_text(f"""destination = {json.dumps(str(cfg.destination))}
+[hosts.alpha]
+address = "alpha.invalid"
+[[jobs]]
+name = "config"
+host = "alpha"
+source = {json.dumps(str(source))}
+[runner]
+attempts = 1
+[rclone]
+binary = {json.dumps(str(fake_rclone))}
+ssh_binary = {json.dumps(sys.executable)}
+[cloud]
+enabled = true
+destination = "fake:backups"
+""")
+    args = [sys.executable, "-m", "stashfleet", command]
+    previous_finished = None
+    if command == "retry-upload":
+
+        class UploadFails(FakeBackend):
+            async def upload(self, *args):
+                raise RuntimeError("fake cloud offline")
+
+        pending = asyncio.run(Runner(cfg, backend=UploadFails(tmp_path / "cloud")).run())
+        assert pending.status == "cloud_pending"
+        previous_finished = state.read(cfg.destination, pending.run_id)["finished_at"]
+        args.append(pending.run_id)
+    args += ["--config", str(config_path), "--plain"]
+    markers = {
+        "FAKE_ARGS": tmp_path / "args.json",
+        "FAKE_STOP": tmp_path / "stopped",
+        "FAKE_READY": tmp_path / "ready",
+        "FAKE_PID": tmp_path / "child.pid",
+        "FAKE_PARENT_PID": tmp_path / "parent.pid",
+    }
+    env = {
+        **os.environ,
+        **{key: str(path) for key, path in markers.items()},
+        "FAKE_MODE": "block",
+        "FAKE_STOP_DELAY": "0.3",
+    }
+    proc = subprocess.Popen(args, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    def wait_for_marker(key):
+        deadline = time.monotonic() + 5
+        while not markers[key].exists():
+            assert proc.poll() is None, "CLI exited before the fixture was ready"
+            assert time.monotonic() < deadline, f"fixture did not create {key}"
+            time.sleep(0.01)
+
+    try:
+        wait_for_marker("FAKE_READY")
+        proc.terminate()
+        wait_for_marker("FAKE_STOP")
+        # A second SIGTERM during cleanup must not cancel the cleanup itself.
+        proc.terminate()
+        stdout, stderr = proc.communicate(timeout=10)
+        assert proc.returncode == 143, (stdout, stderr)
+        assert b"Terminated." in stderr
+        assert b"Traceback" not in stderr
+        for key in ("FAKE_PID", "FAKE_PARENT_PID"):
+            with pytest.raises(ProcessLookupError):
+                os.kill(int(markers[key].read_text()), 0)
+        with state.run_lock(cfg.destination):
+            manifest = state.history(cfg.destination)[0]
+        assert manifest["finished_at"]
+        assert manifest["finished_at"] != previous_finished
+        if command == "run":
+            assert manifest["status"] == "cancelled"
+            assert manifest["jobs"][0]["status"] == "cancelled"
+            assert not list((cfg.destination / "runs").rglob("*.zip*"))
+        else:
+            assert manifest["status"] == "cloud_pending"
+            assert manifest["cloud_state"] == "pending"
+            assert pending.archive.exists()
+    finally:
+        # Kill only these temporary fixture processes if an assertion failed.
+        if proc.poll() is None:
+            proc.kill()
+        proc.communicate(timeout=5)
+        for key in ("FAKE_PARENT_PID", "FAKE_PID"):
+            if markers[key].exists():
+                try:
+                    kill = os.killpg if key == "FAKE_PARENT_PID" else os.kill
+                    kill(int(markers[key].read_text()), signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
 
 
 @pytest.mark.parametrize("cancel", [False, True])

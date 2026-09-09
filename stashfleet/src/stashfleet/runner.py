@@ -68,8 +68,10 @@ class Runner:
         self.backend.validate()
         with state.run_lock(self.root):
             run_id = datetime.now(UTC).strftime("%Y%m%dT%H%M%S%fZ-") + uuid.uuid4().hex[:8]
-            data = self.root / "runs" / run_id / "data"
-            data.mkdir(parents=True, mode=0o700)
+            run_directory = self.root / "runs" / run_id
+            run_directory.mkdir(parents=True, mode=0o700)
+            data = run_directory / "data"
+            data.mkdir(mode=0o700)
             manifest = {
                 "schema": 1,
                 "id": run_id,
@@ -222,7 +224,7 @@ class Runner:
 
     async def retry_upload(self, run_id: str) -> RunResult:
         """Reuse a complete, SHA-256-verified ZIP; never contact source hosts."""
-        self.backend.validate()
+        self.backend.validate(upload_only=True)
         with state.run_lock(self.root):
             manifest = state.read(self.root, run_id)
             if not self.config.cloud.enabled or manifest["cloud_target"] != self._cloud_target(

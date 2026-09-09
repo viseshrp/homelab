@@ -57,6 +57,7 @@ stashfleet retry-upload RUN_ID --config backup.toml
 `--parallel-hosts N` overrides the TOML concurrency setting. Other settings are in TOML.
 Use `--plain` for scheduled logs or `--json-events` for machine-readable progress and results.
 An unsuccessful run returns exit code 1; invalid command-line usage returns 2.
+SIGTERM cancels active work, waits for cleanup, saves the run state, and returns 143.
 
 Paths in TOML resolve relative to the config file; `~` expands for local paths. Remote
 source folders must be absolute. Host/job names become ZIP directory names and must be
@@ -65,12 +66,14 @@ The example documents all options. No environment-specific hosts or credentials 
 
 ## Flow and recovery
 
-1. Acquire an OS lock on the destination and create a new run directory.
+1. Acquire an OS lock on the destination and create a private run directory (`0700`),
+   including when the destination already exists with broader permissions.
 2. Pull at most `parallel_hosts` servers at once, processing each host's jobs sequentially.
    Each rclone process permits `transfers` concurrent files. Compression runs in a worker
    thread; transfer subprocesses and progress are coordinated by asyncio.
 3. If **every pull succeeds**, stream all folders into one ZIP and rename the completed
-   temporary ZIP atomically. A source-set manifest is included inside the ZIP.
+   temporary ZIP atomically. A source-set manifest is included inside the ZIP. Directory
+   scan errors fail the archive and prevent upload and retention.
 4. If cloud is enabled, upload that ZIP. Record success only after rclone exits successfully.
 5. Apply explicit retention settings and save the final result.
 
@@ -200,6 +203,8 @@ asyncio.run(backup())  # The calling application owns the event loop.
 
 `Runner(config, backend=..., archiver=..., emit=...)` accepts injected implementations.
 `Backend` defines `validate`, async `pull`, async `upload`, and async `delete`.
+Implement `validate(*, upload_only=False)` so upload retries check only cloud-transfer
+dependencies; the rclone backend skips source SSH executable, key, and config checks then.
 `ArchiveBuilder` defines a synchronous, cooperatively cancellable `build` method.
 `Event` is independent of Rich. Callbacks execute on the event loop and should be quick
 and non-throwing. The library performs no printing and does not start an event loop.

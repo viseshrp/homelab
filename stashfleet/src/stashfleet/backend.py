@@ -21,7 +21,7 @@ class TransferError(RuntimeError):
 
 
 class Backend(Protocol):
-    def validate(self) -> None: ...
+    def validate(self, *, upload_only: bool = False) -> None: ...
 
     async def pull(self, host: Host, job: Job, destination: Path, emit: EventSink) -> None: ...
 
@@ -34,13 +34,16 @@ class RcloneBackend:
     def __init__(self, config: Config):
         self.config = config
 
-    def validate(self) -> None:
-        for binary in (self.config.rclone_binary, self.config.ssh_binary):
+    def validate(self, *, upload_only: bool = False) -> None:
+        binaries = [self.config.rclone_binary]
+        paths = [self.config.rclone_config]
+        if not upload_only:
+            binaries.append(self.config.ssh_binary)
+            for host in self.config.hosts.values():
+                paths.extend([host.identity_file, host.ssh_config])
+        for binary in binaries:
             if shutil.which(binary) is None:
                 raise TransferError(f"executable not found: {binary}")
-        paths = [self.config.rclone_config]
-        for host in self.config.hosts.values():
-            paths.extend([host.identity_file, host.ssh_config])
         for path in paths:
             if path is not None and not path.is_file():
                 raise TransferError(f"configuration/key file not found: {path}")

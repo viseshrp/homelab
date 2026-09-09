@@ -3,6 +3,7 @@
 import asyncio
 import json
 import shlex
+import signal
 from contextlib import contextmanager
 from dataclasses import asdict, replace
 from importlib.metadata import version
@@ -99,6 +100,38 @@ def finish(result, json_events: bool):
         raise click.exceptions.Exit(1)
 
 
+def run_async(operation):
+    """Give SIGTERM the same cleanup path as task cancellation, then exit 143."""
+    terminated = False
+
+    async def execute():
+        loop = asyncio.get_running_loop()
+        task = asyncio.current_task()
+        previous = signal.getsignal(signal.SIGTERM)
+
+        def terminate():
+            nonlocal terminated
+            # Repeated signals must not interrupt subprocess/thread cleanup.
+            if not terminated:
+                terminated = True
+                task.cancel()
+
+        loop.add_signal_handler(signal.SIGTERM, terminate)
+        try:
+            return await operation
+        finally:
+            loop.remove_signal_handler(signal.SIGTERM)
+            signal.signal(signal.SIGTERM, previous)
+
+    try:
+        return asyncio.run(execute())
+    except asyncio.CancelledError:
+        if not terminated:
+            raise
+        click.echo("Terminated.", err=True)
+        raise SystemExit(128 + signal.SIGTERM) from None
+
+
 @click.group()
 @click.version_option(version=version("stashfleet"))
 def main():
@@ -121,7 +154,7 @@ def run(config_path, parallel_hosts, plain, json_events, dry_run):
             show_plan(config, json_events)
             return
         with display(plain, json_events) as emit:
-            result = asyncio.run(Runner(config, emit=emit).run())
+            result = run_async(Runner(config, emit=emit).run())
         finish(result, json_events)
 
 
@@ -187,7 +220,7 @@ def retry_upload(run_id, config_path, plain, json_events):
     with friendly_errors():
         config = load_config(config_path)
         with display(plain, json_events) as emit:
-            result = asyncio.run(Runner(config, emit=emit).retry_upload(run_id))
+            result = run_async(Runner(config, emit=emit).retry_upload(run_id))
         finish(result, json_events)
 
 
@@ -215,5 +248,5 @@ def demo(directory, plain, json_events):
     with friendly_errors():
         config, backend = create_demo(directory.expanduser().resolve())
         with display(plain, json_events) as emit:
-            result = asyncio.run(Runner(config, backend=backend, emit=emit).run())
+            result = run_async(Runner(config, backend=backend, emit=emit).run())
         finish(result, json_events)

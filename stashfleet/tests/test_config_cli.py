@@ -1,12 +1,13 @@
 import asyncio
 import json
+import signal
 from dataclasses import replace
 
 import pytest
 from click.testing import CliRunner
 
-from stashfleet import ArchiveConfig, ConfigError, Job, load_config
-from stashfleet.cli import main
+from stashfleet import ArchiveConfig, CloudConfig, ConfigError, Job, load_config
+from stashfleet.cli import main, run_async
 from stashfleet.demo import create_demo
 from stashfleet.state import validate_run_id
 
@@ -66,6 +67,46 @@ def test_invalid_destinations(tmp_path):
         replace(config, jobs=(config.jobs[0], replace(config.jobs[0], name="CONFIG"))).validate()
     with pytest.raises(ValueError):
         validate_run_id("../../outside")
+
+
+@pytest.mark.parametrize(
+    "destination,expected",
+    [
+        ("archive:", "archive:sample.zip"),
+        ("archive:/", "archive:/sample.zip"),
+        ("archive:/backups", "archive:/backups/sample.zip"),
+        ("archive:/backups/", "archive:/backups/sample.zip"),
+        ("archive:backups", "archive:backups/sample.zip"),
+        ("archive:backups/", "archive:backups/sample.zip"),
+        ("archive:backups//", "archive:backups//sample.zip"),
+    ],
+)
+def test_cloud_target_preserves_remote_path(destination, expected):
+    assert CloudConfig(True, destination).target("sample.zip") == expected
+
+
+@pytest.mark.parametrize("fail", [False, True])
+def test_cli_restores_previous_sigterm_handler(fail):
+    original = signal.getsignal(signal.SIGTERM)
+
+    def previous(*args):
+        pytest.fail("previous signal handler should not be called")
+
+    async def operation():
+        if fail:
+            raise ValueError("fake failure")
+        return "finished"
+
+    signal.signal(signal.SIGTERM, previous)
+    try:
+        if fail:
+            with pytest.raises(ValueError, match="fake failure"):
+                run_async(operation())
+        else:
+            assert run_async(operation()) == "finished"
+        assert signal.getsignal(signal.SIGTERM) is previous
+    finally:
+        signal.signal(signal.SIGTERM, original)
 
 
 def test_cli_demo_no_processes_or_network(tmp_path, monkeypatch):

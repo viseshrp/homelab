@@ -35,7 +35,7 @@ class ZipArchiver:
         method, level = config.options()
         files = []
         total = 0
-        for directory, dirs, names in os.walk(source, followlinks=False):
+        for directory, dirs, names in os.walk(source, followlinks=False, onerror=_walk_error):
             _cancelled(stop)
             for name in sorted(dirs + names):
                 path = Path(directory) / name
@@ -82,6 +82,10 @@ class ZipArchiver:
             return digest
         finally:
             partial.unlink(missing_ok=True)
+
+
+def _walk_error(error: OSError) -> None:
+    raise error
 
 
 def _cancelled(stop: threading.Event) -> None:

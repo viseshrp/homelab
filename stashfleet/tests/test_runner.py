@@ -1,12 +1,26 @@
 import asyncio
 import json
+import os
+import stat
+import sys
 import threading
 import zipfile
 from dataclasses import replace
 
 import pytest
 
-from stashfleet import ArchiveConfig, CloudConfig, Config, Host, Job, Runner, ZipArchiver, state
+from stashfleet import (
+    ArchiveConfig,
+    CloudConfig,
+    Config,
+    Host,
+    Job,
+    RcloneBackend,
+    Runner,
+    TransferError,
+    ZipArchiver,
+    state,
+)
 from stashfleet.demo import FakeBackend
 
 
@@ -70,6 +84,50 @@ def test_host_parallelism_and_sequential_folders(tmp_path):
     assert backend.peak == config.parallel_hosts
 
 
+def test_run_directory_protects_zip_in_existing_shared_destination(tmp_path):
+    config, backend = setup(tmp_path)
+    config.destination.mkdir()
+    config.destination.chmod(0o755)
+    previous_umask = os.umask(0o022)
+    try:
+        result = asyncio.run(Runner(config, backend=backend).run())
+    finally:
+        os.umask(previous_umask)
+    assert result.success
+    assert stat.S_IMODE(config.destination.stat().st_mode) == 0o755
+    assert stat.S_IMODE(result.archive.parent.stat().st_mode) == 0o700
+    assert stat.S_IMODE((result.archive.parent / "data").stat().st_mode) == 0o700
+
+
+@pytest.mark.parametrize("error_type", [PermissionError, FileNotFoundError])
+def test_directory_scan_failure_skips_zip_upload_and_retention(tmp_path, monkeypatch, error_type):
+    config, backend = setup(tmp_path, keep_local=1, keep_cloud=1)
+    nested = tmp_path / "source" / "alpha" / "secrets"
+    nested.mkdir()
+    (nested / "important.txt").write_text("must be included")
+    first = asyncio.run(Runner(config, backend=backend).run())
+    assert first.success
+    scandir = os.scandir
+    failures = []
+
+    def fail_nested_scan(path):
+        if str(path).endswith("/data/alpha/config/secrets"):
+            failures.append(path)
+            raise error_type(f"cannot scan {path}")
+        return scandir(path)
+
+    monkeypatch.setattr(os, "scandir", fail_nested_scan)
+    result = asyncio.run(Runner(config, backend=backend).run())
+    assert failures
+    assert result.status == "failed"
+    assert result.archive is None
+    assert any("cannot scan" in error for error in result.errors)
+    assert not list((config.destination / "runs" / result.run_id).glob("*.zip*"))
+    assert first.archive.exists()
+    assert [p.name for p in backend.cloud.iterdir()] == [first.archive.name]
+    assert not state.read(config.destination, first.run_id).get("local_deleted")
+
+
 def test_exhausted_pull_continues_other_hosts_and_skips_archive(tmp_path):
     config, _ = setup(tmp_path)
 
@@ -117,6 +175,48 @@ def test_upload_retry_reuses_zip_without_pulls_and_rejects_tampering(tmp_path):
     uploaded = asyncio.run(runner.retry_upload(result.run_id))
     assert uploaded.success
     assert uploaded.archive.read_bytes() == original
+
+
+def test_upload_retry_survives_removed_ssh_credentials_and_binary(tmp_path, monkeypatch):
+    config, cloud = setup(tmp_path)
+    key = tmp_path / "identity"
+    ssh_config = tmp_path / "ssh-config"
+    for path in (key, ssh_config):
+        path.write_text("fake SSH fixture")
+    config = replace(
+        config,
+        rclone_binary=sys.executable,
+        ssh_binary=sys.executable,
+        hosts={
+            name: replace(host, identity_file=key, ssh_config=ssh_config)
+            for name, host in config.hosts.items()
+        },
+    )
+
+    class UploadFails(FakeBackend):
+        async def upload(self, *args):
+            raise RuntimeError("fake cloud offline")
+
+    pending = asyncio.run(Runner(config, backend=UploadFails(cloud.cloud)).run())
+    assert pending.status == "cloud_pending"
+    original = pending.archive.read_bytes()
+    key.unlink()
+    ssh_config.unlink()
+    with pytest.raises(TransferError, match="configuration/key file not found"):
+        RcloneBackend(config).validate()
+    config = replace(config, ssh_binary=str(tmp_path / "missing-ssh"))
+    backend = RcloneBackend(config)
+    with pytest.raises(TransferError, match="executable not found"):
+        backend.validate()
+
+    async def forbidden(*args):
+        pytest.fail("upload retry must not pull from a source server")
+
+    monkeypatch.setattr(backend, "pull", forbidden)
+    monkeypatch.setattr(backend, "upload", cloud.upload)
+    result = asyncio.run(Runner(config, backend=backend).retry_upload(pending.run_id))
+    assert result.success
+    assert (cloud.cloud / result.archive.name).read_bytes() == original
 
 
 def test_retention_only_prunes_managed_complete_backups(tmp_path):
@@ -233,6 +333,16 @@ def test_archive_rejects_symlinks_and_does_not_publish_partial(tmp_path):
     target = tmp_path / "output.zip"
     with pytest.raises(ValueError, match="regular files"):
         ZipArchiver().build(source, target, ArchiveConfig(), lambda _: None, threading.Event())
+    assert not target.exists()
+    assert not target.with_suffix(".zip.partial").exists()
+
+
+def test_archive_rejects_missing_source_directory(tmp_path):
+    target = tmp_path / "output.zip"
+    with pytest.raises(FileNotFoundError):
+        ZipArchiver().build(
+            tmp_path / "missing", target, ArchiveConfig(), lambda _: None, threading.Event()
+        )
     assert not target.exists()
     assert not target.with_suffix(".zip.partial").exists()
 
