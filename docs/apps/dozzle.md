@@ -16,7 +16,7 @@ The server and agents restart automatically. Authentication details, host addres
 
 ## Verify and recover
 
-Confirm that authentication works, eight hosts appear, and the container inventory matches Docker on each host. Open a representative log stream from every non-empty host. The default running count does not include a container while it is restarting; use **Show All** to inspect it.
+Confirm that authentication works, eight hosts appear, and the container inventory matches Docker on each host. Open a representative log stream from every non-empty host. The default running count does not include a container while it is restarting; enable **Show stopped containers** in Settings to inspect it.
 
 Preserve `data/` and the private users/source configuration. Agent port 7007 is a LAN-only management interface and must not be forwarded through NPM or the router.
 
