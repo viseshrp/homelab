@@ -20,4 +20,10 @@ Confirm that authentication works, eight hosts appear, and the container invento
 
 Preserve `data/` and the private users/source configuration. Agent port 7007 is a LAN-only management interface and must not be forwarded through NPM or the router.
 
+## Verified state
+
+The September 9, 2026 cutover showed eight hosts and 49 containers in Dozzle. The per-host total matched the aggregate Docker inventory: `optiplex` 6, `rpiblog` 11, `rpihass` 14, `rpihole` 2, `rpimon` 4, `rpinfs` 1, `rpiproxy` 8, and `rpivpn` 3. The host cards showed 38 running containers; Docker also reported `gh-runner-worker-1` in its existing restarting state, and it appeared when stopped containers were enabled.
+
+All seven remote agents accepted TLS connections on port 7007, and every former port-2375 endpoint refused connections. A log stream was opened from a container on every host, including Firezone and Home Assistant Supervisor.
+
 [Server Compose](../../docker-compose/dozzle/docker-compose.yml) · [Agent Compose](../../docker-compose/dozzle-agent/docker-compose.yml) · [Home Assistant app](../../home-assistant-dozzle-agent/README.md) · [Operations](../operations.md) · [Application index](README.md)

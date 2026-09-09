@@ -11,6 +11,7 @@ This page answers four operational questions: which host owns a project, where i
 | Mac `/etc/hosts` | Local aliases used from the operator Mac | Read-only observation on September 9, 2026 |
 | Nginx Proxy Manager proxy-host page | Live hostname, backend, certificate, access-list, and enabled status | Read-only observation on September 9, 2026 |
 | Direct host/port probe | Earlier point-in-time SSH and service reachability | September 9, 2026; not rerun during this edit |
+| Dozzle post-migration audit | Eight-host inventory, agent TLS, log streaming, and retired Docker API ports | Live verification on September 9, 2026 |
 
 The NPM status below is not an application health check. “Online” is the state NPM displayed for an enabled proxy entry. Direct-port results are also snapshots, not continuous monitoring.
 
