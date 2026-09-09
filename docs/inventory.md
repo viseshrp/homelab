@@ -23,7 +23,7 @@ rpiblog   rpihass   rpihole   rpimon   rpinfs   rpipass
 rpiproxy  rpivpn    rpizwcal  rpiz2w   optiplex
 ```
 
-Private addresses are intentionally omitted here. The aliases `rpiblog`, `rpihass`, `rpihole`, `rpimon`, `rpinfs`, `rpiproxy`, and `optiplex` match names used by this repository. `rpipass`, `rpivpn`, `rpizwcal`, and `rpiz2w` have no project assignment in [`deployments.json`](../deployments.json).
+Private addresses are intentionally omitted here. The aliases `rpiblog`, `rpihass`, `rpihole`, `rpimon`, `rpinfs`, `rpiproxy`, and `optiplex` match names used by this repository. `rpivpn` is the current host behind the repository's logical `vpn-edge` name. `rpipass`, `rpizwcal`, and `rpiz2w` have no project assignment in [`deployments.json`](../deployments.json).
 
 `vpn-edge` is a logical name in this repository for the machine hosting Firezone and WG-Easy. It was not present in the Mac's `/etc/hosts` file when checked. The live NPM Firezone route uses that machine's LAN address, while the sanitized route reference uses `vpn-edge`. Do not assume the logical name resolves until it is defined on the machine performing the lookup.
 
@@ -39,6 +39,8 @@ Private addresses are intentionally omitted here. The aliases `rpiblog`, `rpihas
 | `rpihass` | Home automation | [Home Assistant](apps/home-assistant.md); retained [`homebridge`](apps/homebridge.md) template with no asserted live project directory |
 | `rpinfs` | File transfer | [`ftp`](apps/ftp.md) → `/opt/ftp` |
 | `vpn-edge` | Remote access | [`firezone`](apps/firezone.md) → `/opt/firezone`; [`wg-easy`](apps/wg-easy.md) → `/opt/wg-easy` |
+
+The replicated [`dozzle-agent`](apps/dozzle.md) project runs from `/opt/dozzle-agent` on every normal Docker host except `rpimon`, where the central server uses the local socket. `rpihass` uses the equivalent Home Assistant OS app.
 
 ## HTTPS ingress
 
@@ -79,6 +81,7 @@ There is no observed NPM proxy entry for Home Assistant, Homebridge, Paperless, 
 | `rpihole:80` | Pi-hole administration | DNS service uses port 53 |
 | `rpihass:8123` / `rpihass:8581` | Home Assistant / Homebridge | Homarr direct links |
 | `vpn-edge:13000` / `vpn-edge:51821` | Firezone / WG-Easy administration | The Firezone port is also behind NPM |
+| Docker hosts `:7007` | Dozzle agents | TLS agent protocol; trusted LAN only, with no public forwarding |
 
 ## Non-HTTP ports
 

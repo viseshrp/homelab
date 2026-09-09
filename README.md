@@ -2,7 +2,7 @@
 
 This repository is the public, sanitized control plane for my homelab: Docker Compose templates, supporting configuration, deployment metadata, validation tools, and operating notes. Private `.env` files, credentials, live application databases, and host-specific state stay outside Git.
 
-The lab currently maps 22 Compose projects to eight deployment hosts. Public web traffic enters through Nginx Proxy Manager; storage-heavy media services live on the OptiPlex; web apps and automation share `rpiblog`; monitoring, archives, and document services share `rpimon`.
+The lab currently maps 23 Compose projects to eight deployment hosts. Public web traffic enters through Nginx Proxy Manager; storage-heavy media services live on the OptiPlex; web apps and automation share `rpiblog`; monitoring, archives, and document services share `rpimon`.
 
 ## System map
 
@@ -70,8 +70,9 @@ The Mac resolves the listed `rpi*` aliases and `optiplex` through `/etc/hosts`. 
 
 ## Repository contract
 
-- [`deployments.json`](deployments.json) maps each Compose project to its intended host, `/opt` directory, and copied assets.
+- [`deployments.json`](deployments.json) maps each Compose project to its intended host or hosts, `/opt` directory, and copied assets.
 - [`docker-compose/`](docker-compose) contains sanitized templates and `.env.example` files. These are starting points, not byte-for-byte mirrors of installed projects.
+- [`home-assistant-dozzle-agent/`](home-assistant-dozzle-agent) packages the Dozzle agent as a Home Assistant OS app.
 - [`configs/`](configs) contains checked-in supporting files. Secrets, personal allowlists, integration tokens, and live databases are excluded.
 - [`configs/nginx/routes.json`](configs/nginx/routes.json) records the proxy map with example domains and logical host names. It is documentation, not an Nginx Proxy Manager import.
 - Installed state wins during recovery. Never replace a live `.env`, named volume, bind mount, certificate directory, or database with a freshly prepared example.
@@ -108,7 +109,9 @@ Fill required values in the staged `.env` before the final command. `prepare.py`
 configs/           Sanitized application and integration configuration
 docker-compose/    One reusable Compose template per deployable project
 docs/              Architecture, inventory, configuration, and runbooks
-deployments.json   Project-to-host and project-to-directory map
+deployments.json   Project-to-host(s) and project-to-directory map
+home-assistant-dozzle-agent/  Home Assistant OS packaging for the Dozzle agent
+repository.yaml    Home Assistant app repository metadata
 scripts/           Project preparation, validation, and kiosk helpers
 stashfleet/        Standalone backup package, tests, and scheduler examples
 tests/             Offline repository checks

@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
 sys.path.insert(0, str(ROOT / 'configs/fail2ban/data/scripts'))
 import prepare
+import check
 import integration
 import source_firewall
 
@@ -37,6 +38,25 @@ class PreparationTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 prepare.prepare('../escape', Path(tmp) / 'new')
             self.assertEqual(list(Path(tmp).iterdir()), [])
+
+
+class DeploymentManifestTests(unittest.TestCase):
+    def test_single_and_replicated_hosts_are_valid(self):
+        manifest = {
+            'single': {'host': 'rpimon'},
+            'replicated': {'hosts': ['rpiblog', 'rpihole']},
+        }
+        check.validate_manifest(manifest, set(manifest))
+
+    def test_host_and_hosts_are_mutually_exclusive(self):
+        manifest = {'broken': {'host': 'rpimon', 'hosts': ['rpimon']}}
+        with self.assertRaises(AssertionError):
+            check.validate_manifest(manifest, set(manifest))
+
+    def test_replicated_hosts_must_be_unique(self):
+        manifest = {'broken': {'hosts': ['rpimon', 'rpimon']}}
+        with self.assertRaises(AssertionError):
+            check.validate_manifest(manifest, set(manifest))
 
 
 class FirewallTests(unittest.TestCase):

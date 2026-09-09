@@ -1,0 +1,17 @@
+services:
+  dozzle-agent:
+    image: "${DOZZLE_IMAGE:-amir20/dozzle:v10.10.0}"
+    command: agent
+    environment:
+      DOZZLE_HOSTNAME: "${DOZZLE_HOSTNAME}"
+    ports:
+      - "${DOZZLE_AGENT_BIND_IP}:7007:7007"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "/dozzle", "healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

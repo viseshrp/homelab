@@ -21,7 +21,7 @@ project_name=paperless
 jq --arg project "$project_name" '.[$project]' deployments.json
 ```
 
-This returns the intended host, directory, Compose filename, and supporting assets. A missing or `null` directory means the repository does not assert a normal installed path.
+This returns the intended `host` or replicated `hosts`, directory, Compose filename, and supporting assets. A missing or `null` directory means the repository does not assert a normal installed path.
 
 ## Validate before host work
 

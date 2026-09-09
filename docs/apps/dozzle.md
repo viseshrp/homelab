@@ -4,20 +4,20 @@ Dozzle provides a browser interface for container logs.
 
 ## My setup
 
-Dozzle runs on `rpimon` from `/opt/dozzle`, using `amir20/dozzle`. It publishes port 8080, which Homarr opens through a direct LAN shortcut.
+Dozzle runs on `rpimon` from `/opt/dozzle`, using a pinned `amir20/dozzle` image. It publishes port 8080, which Homarr opens through a direct LAN shortcut.
 
-The local Docker socket gives it access to containers on the host. Environment settings also provide remote Docker-source and container-filter configuration.
+The local Docker socket gives it access to containers on `rpimon`. TLS-enabled Dozzle agents on the other Docker hosts publish port 7007 to the trusted LAN and are listed in `DOZZLE_REMOTE_AGENT`.
 
 ## Settings
 
 The service uses the `simple` authentication provider and disables analytics. `/opt/dozzle/data` is mounted at `/data` for persistent settings.
 
-The container restarts automatically. Authentication details and remote-source addresses stay in private configuration.
+The server and agents restart automatically. Authentication details, host addresses, and agent bind addresses stay in private configuration. Dozzle actions and shell access remain disabled.
 
 ## Verify and recover
 
-Confirm that authentication works and that expected local and remote Docker sources appear. Opening the UI without a source list does not prove that socket permissions, remote endpoints, or filters are correct.
+Confirm that authentication works, eight hosts appear, and the container inventory matches Docker on each host. Open a representative log stream from every non-empty host. The default running count does not include a container while it is restarting; use **Show All** to inspect it.
 
-Preserve `data/` and the private users/source configuration. The Docker socket and remote API endpoints grant broad container access, so keep the LAN interface and credentials restricted.
+Preserve `data/` and the private users/source configuration. Agent port 7007 is a LAN-only management interface and must not be forwarded through NPM or the router.
 
-[Compose](../../docker-compose/dozzle/docker-compose.yml) · [Operations](../operations.md) · [Application index](README.md)
+[Server Compose](../../docker-compose/dozzle/docker-compose.yml) · [Agent Compose](../../docker-compose/dozzle-agent/docker-compose.yml) · [Home Assistant app](../../home-assistant-dozzle-agent/README.md) · [Operations](../operations.md) · [Application index](README.md)

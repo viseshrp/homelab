@@ -20,10 +20,27 @@ def run(args, **kwargs):
     return result.stdout
 
 
+def validate_manifest(manifest, projects):
+    assert projects == set(manifest), 'Compose projects and deployments.json differ'
+    for name, deployment in manifest.items():
+        has_host = 'host' in deployment
+        has_hosts = 'hosts' in deployment
+        assert has_host != has_hosts, f'{name} must define exactly one of host or hosts'
+        if has_host:
+            assert isinstance(deployment['host'], str) and deployment['host'], \
+                f'{name} host must be a non-empty string'
+        else:
+            hosts = deployment['hosts']
+            assert isinstance(hosts, list) and hosts, f'{name} hosts must be a non-empty list'
+            assert all(isinstance(host, str) and host for host in hosts), \
+                f'{name} hosts must contain non-empty strings'
+            assert len(hosts) == len(set(hosts)), f'{name} hosts must be unique'
+
+
 def main():
     manifest = json.loads((ROOT / 'deployments.json').read_text())
     projects = {p.parent.name for p in (ROOT / 'docker-compose').glob('*/docker-compose.yml')}
-    assert projects == set(manifest), 'Compose projects and deployments.json differ'
+    validate_manifest(manifest, projects)
     docker = shutil.which('docker')
     if not docker:
         raise RuntimeError('Docker Compose CLI is required; a running daemon is not needed')

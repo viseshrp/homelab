@@ -58,7 +58,7 @@ flowchart LR
         paperless --> gotenberg["Gotenberg"]
         archivebox["ArchiveBox"] -->|"WARC files"| pywb["pywb replay"]
         kuma["Uptime Kuma"]
-        dozzle["Dozzle"] -->|"Docker socket / remote APIs"| dockerHosts["Docker engines"]
+        dozzle["Dozzle"] -->|"local socket / TLS agents :7007"| dockerHosts["Docker engines"]
     end
 
     subgraph media["optiplex"]

@@ -1,0 +1,21 @@
+name: Dozzle Agent
+version: "10.10.0"
+slug: dozzle_agent
+description: Expose this Home Assistant OS Docker host to the central Dozzle server.
+url: https://github.com/viseshrp/homelab/tree/main/home-assistant-dozzle-agent
+arch:
+  - aarch64
+  - amd64
+startup: services
+boot: auto
+init: false
+docker_api: true
+ports:
+  7007/tcp: 7007
+ports_description:
+  7007/tcp: Dozzle agent connection from the central Dozzle server
+environment:
+  DOZZLE_HOSTNAME: rpihass
+options: {}
+schema: false
+stage: stable

@@ -1,6 +1,6 @@
 services:
   dozzle:
-    image: "${DOZZLE_IMAGE:-amir20/dozzle:latest}"
+    image: "${DOZZLE_IMAGE:-amir20/dozzle:v10.10.0}"
     ports:
     - 8080:8080
     volumes:
@@ -8,7 +8,7 @@ services:
     - "/var/run/docker.sock:/var/run/docker.sock"
     restart: always
     environment:
-      CONTAINERS: "${CONTAINERS:-}"
-      DOZZLE_REMOTE_HOST: "${DOZZLE_REMOTE_HOST:-}"
+      DOZZLE_HOSTNAME: "${DOZZLE_HOSTNAME:-rpimon}"
+      DOZZLE_REMOTE_AGENT: "${DOZZLE_REMOTE_AGENT:-}"
       DOZZLE_NO_ANALYTICS: 'true'
       DOZZLE_AUTH_PROVIDER: simple

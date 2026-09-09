@@ -6,6 +6,8 @@ Home Assistant is the home-automation interface for integrations, automations, s
 
 The web interface is on `rpihass:8123`, with a shortcut on the Homarr board.
 
+The repository also contains a Home Assistant OS Dozzle Agent app. It requires Protection mode to be disabled so Supervisor can grant read-only Docker API access, and it exposes agent port 7007 only to the trusted LAN.
+
 The local configuration includes default integrations, Google Translate text-to-speech, FFmpeg, Wake-on-LAN, sun information, and ping-based presence sensors.
 
 ## Configuration files
@@ -20,4 +22,4 @@ Validate configuration against the installed Home Assistant version before a res
 
 The checked-in YAML is only the sanitized configuration fragment. Preserve the host-managed Home Assistant state, secrets, included automation/script/scene files, and any supervisor-managed data through the platform's supported backup path.
 
-[Configuration](../configuration.md#home-assistant-and-kiosk) · [Operations](../operations.md) · [Application index](README.md)
+[Configuration](../configuration.md#home-assistant-and-kiosk) · [Dozzle Agent app](../../home-assistant-dozzle-agent/README.md) · [Operations](../operations.md) · [Application index](README.md)

@@ -8,7 +8,7 @@ The checked-in files are sanitized templates. They describe service shape, requi
 | --- | --- | --- |
 | `docker-compose/<project>/docker-compose.yml` | Reusable services, mounts, ports, and defaults | Template for that project |
 | `docker-compose/<project>/.env.example` | Required and optional substitution names | Input reference only |
-| `deployments.json` | Intended host, installed directory, and copied assets | Repository deployment map |
+| `deployments.json` | Intended host or hosts, installed directory, and copied assets | Repository deployment map |
 | `configs/` | Sanitized files assembled beside selected projects | Checked-in configuration |
 | Installed project directory | Private `.env`, application files, and runtime-compatible settings | Preserve during an update |
 | Named volumes and bind mounts | Durable application data | Preserve and back up separately |
@@ -68,7 +68,8 @@ Compose derives default named-volume names from the project name. Changing the d
 | Project | Required private or external inputs | State to preserve |
 | --- | --- | --- |
 | ArchiveBox | DNS server and chosen image versions | Shared `data/` tree used by ArchiveBox and pywb |
-| Dozzle | Remote Docker endpoints, container filters, generated users file | `data/` and private authentication configuration |
+| Dozzle | Remote agent endpoints and generated users file | `data/` and private authentication configuration |
+| Dozzle Agent | Per-host LAN bind address and display hostname | No application data; preserve installed Compose input for repeatable restarts |
 | Paperless | `docker-compose.env` with secret, URL, database/OCR/mail/consumer settings | `data`, `media`, `redisdata`, `consume`, and `export` |
 | Uptime Kuma | Installed image | `uptime-kuma-data/` |
 
@@ -104,7 +105,7 @@ Planka is pinned to 2.2.1 and an inspected digest. An older Planka database need
 
 ### Docker access
 
-Homarr, Dozzle, and the GitHub runner mount the Docker socket. Dozzle can also connect to remote Docker sources. These connections grant broad access to containers and often the host, so keep their credentials private and restrict web access.
+Homarr, Dozzle, the Dozzle agents, and the GitHub runner mount the Docker socket. Remote agents replace unauthenticated Docker TCP listeners and expose only Dozzle's TLS agent protocol on LAN port 7007. Keep the central UI authenticated, do not enable actions or shell access, and do not forward agent ports outside the LAN.
 
 ## Fail2ban and Nginx
 
@@ -126,7 +127,7 @@ NPM's `nginx.conf` includes `data/nginx/custom/cloudflare-trusted.conf` and acce
 
 ## Home Assistant and kiosk
 
-`configs/homeassistant` contains retained YAML with private addresses replaced by `!secret` references. Copy `secrets.yaml.example` to `secrets.yaml`, fill the actual values, and preserve the existing automations, scripts, scenes, and themes. The Home Assistant host was not inspected through SSH, so validate the retained configuration against its installed version before applying it.
+`configs/homeassistant` contains retained YAML with private addresses replaced by `!secret` references. Copy `secrets.yaml.example` to `secrets.yaml`, fill the actual values, and preserve the existing automations, scripts, scenes, and themes. The Home Assistant host runs Home Assistant OS with Supervisor. The Dozzle Agent is packaged as a custom app because normal host SSH and the Docker TCP API are unavailable. Validate retained Home Assistant configuration against its installed version before applying it.
 
 The kiosk reads a private URL file based on [`kiosk.urls.example`](../configs/kiosk.urls.example). It needs a dedicated desktop browser session plus `xset` and `xdotool` for automatic rotation. See [the kiosk notes](apps/kiosk.md).
 

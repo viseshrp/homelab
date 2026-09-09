@@ -35,6 +35,7 @@ The pages in this directory document how each service fits this lab: deployment 
 
 | Component | Parent stack | Job |
 | --- | --- | --- |
+| [Dozzle Agent](dozzle.md) | Docker hosts | Sends container metadata and logs to the central Dozzle server over TLS |
 | [GitHub Actions runner](github-runner.md) | Blog | Builds Hugo and writes generated output to `/opt/blog` |
 | [FBN](fbn.md) | Standalone on `rpiblog` | Monitors a Facebook group and queues Apprise deliveries |
 | [PostgreSQL](postgresql.md) | Planka and Firezone | Application databases on isolated Compose networks |

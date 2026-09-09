@@ -23,6 +23,19 @@
     "compose": "docker-compose.yml",
     "assets": {}
   },
+  "dozzle-agent": {
+    "hosts": [
+      "optiplex",
+      "rpiblog",
+      "rpihole",
+      "rpinfs",
+      "rpiproxy",
+      "vpn-edge"
+    ],
+    "directory": "/opt/dozzle-agent",
+    "compose": "docker-compose.yml",
+    "assets": {}
+  },
   "fail2ban": {
     "host": "rpiproxy",
     "directory": "/opt/fail2ban",
