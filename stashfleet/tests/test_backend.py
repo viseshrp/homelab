@@ -2,12 +2,14 @@ import asyncio
 import csv
 import json
 import os
+import shutil
 import signal
 import subprocess
 import sys
 import textwrap
 import time
 from dataclasses import replace
+from pathlib import Path
 
 import pytest
 
@@ -91,6 +93,80 @@ def test_argument_quoting_matches_rclone_csv_parser(tmp_path, fake_rclone):
     assert "StrictHostKeyChecking=yes" in tokens
     assert "BatchMode=yes" in tokens
     assert tokens[-1] == host.address
+
+
+def test_custom_read_only_server_is_scoped_to_its_host(tmp_path, fake_rclone):
+    cfg = config(tmp_path, fake_rclone)
+    backend = RcloneBackend(cfg)
+    command = "sudo -n /usr/lib/openssh/sftp-server -R"
+    privileged = replace(cfg.hosts["alpha"], sftp_server_command=command)
+    args = backend.pull_arguments(privileged, cfg.jobs[0], tmp_path / "output")
+    ssh = next(csv.reader([args[args.index("--sftp-ssh") + 1]], delimiter=" "))
+    assert ssh[:4] == [sys.executable, "-m", "stashfleet.ssh_transport", command]
+    assert "--sftp-server-command" not in args
+    assert "--sftp-disable-hashcheck" in args
+    ordinary = backend.pull_arguments(cfg.hosts["alpha"], cfg.jobs[0], tmp_path / "other")
+    assert "--sftp-server-command" not in ordinary
+    assert "--sftp-disable-hashcheck" not in ordinary
+    assert args[args.index("--sftp-connections") + 1] == str(2 * cfg.transfers + 1)
+    assert args[args.index("--checkers") + 1] == str(cfg.transfers)
+    assert "--sftp-skip-links" in args
+    assert "--sftp-skip-links" in ordinary
+
+
+def test_case_sensitive_destination_is_reported_to_rclone(tmp_path, fake_rclone):
+    cfg = replace(config(tmp_path, fake_rclone), require_case_sensitive=True)
+    args = RcloneBackend(cfg).pull_arguments(cfg.hosts["alpha"], cfg.jobs[0], tmp_path / "copy")
+    assert "--local-case-sensitive" in args
+
+
+def test_real_rclone_reuses_custom_sftp_connections_without_network(tmp_path):
+    rclone = shutil.which("rclone")
+    server = next(
+        (
+            p
+            for p in ("/usr/libexec/sftp-server", "/usr/lib/openssh/sftp-server")
+            if Path(p).is_file()
+        ),
+        None,
+    )
+    if not rclone or not server:
+        pytest.skip("optional offline integration requires rclone and a local SFTP server")
+    source = tmp_path / "source"
+    source.mkdir()
+    for index in range(100):
+        (source / f"file-{index}.txt").write_text(f"fixture {index}")
+    (source / "broken-link").symlink_to(source / "missing")
+    (source / "file-link").symlink_to(source / "file-0.txt")
+    connections = tmp_path / "connections"
+    fake_ssh = tmp_path / "local-ssh"
+    fake_ssh.write_text(
+        f"#!{sys.executable}\n"
+        "import os,sys\n"
+        "assert sys.argv[-1] == 'local read-only SFTP'\n"
+        f"with open({str(connections)!r}, 'a') as log: log.write(str(os.getpid()) + '\\n')\n"
+        f"os.execv({server!r}, [{server!r}, '-R'])\n"
+    )
+    fake_ssh.chmod(0o700)
+    empty_config = tmp_path / "rclone.conf"
+    empty_config.write_text("")
+    cfg = replace(
+        config(tmp_path, rclone),
+        ssh_binary=str(fake_ssh),
+        rclone_config=empty_config,
+        hosts={"alpha": Host("fixture.invalid", sftp_server_command="local read-only SFTP")},
+        jobs=(Job("config", "alpha", str(source)),),
+        transfer_timeout=20,
+    )
+    target = tmp_path / "copied"
+    asyncio.run(RcloneBackend(cfg).pull(cfg.hosts["alpha"], cfg.jobs[0], target, lambda _: None))
+    assert len(list(target.iterdir())) == 100
+    for path in source.iterdir():
+        if path.is_symlink():
+            assert not (target / path.name).exists()
+            continue
+        assert (target / path.name).read_bytes() == path.read_bytes()
+    assert 1 <= len(connections.read_text().splitlines()) <= 2 * cfg.transfers + 1
 
 
 def test_fake_process_progress_and_nonzero_exit(tmp_path, fake_rclone, monkeypatch):

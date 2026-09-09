@@ -265,6 +265,34 @@ def test_local_only_and_lock(tmp_path):
     assert not backend.cloud.exists()
 
 
+def test_case_sensitive_storage_probe_and_cleanup(tmp_path):
+    (tmp_path / "lower").touch()
+    case_sensitive = not (tmp_path / "LOWER").exists()
+    if case_sensitive:
+        state.check_case_sensitive(tmp_path)
+    else:
+        with pytest.raises(ValueError, match="case-sensitive filesystem"):
+            state.check_case_sensitive(tmp_path)
+    assert not list(tmp_path.glob(".case-check-*"))
+
+
+def test_storage_requirement_fails_before_pulls(tmp_path, monkeypatch):
+    config, backend = setup(tmp_path)
+    config = replace(config, require_case_sensitive=True)
+
+    def unavailable(root):
+        raise ValueError("case-sensitive filesystem required")
+
+    async def forbidden(*args):
+        pytest.fail("storage must be checked before reading any server")
+
+    monkeypatch.setattr(state, "check_case_sensitive", unavailable)
+    monkeypatch.setattr(backend, "pull", forbidden)
+    with pytest.raises(ValueError, match="case-sensitive filesystem"):
+        asyncio.run(Runner(config, backend=backend).run())
+    assert not (config.destination / "runs").exists()
+
+
 def test_cancel_stops_workers_and_releases_lock(tmp_path):
     config, _ = setup(tmp_path)
 

@@ -25,6 +25,16 @@ source = "/srv/config"
     config = load_config(path)
     assert config.destination == tmp_path / "data"
     assert config.hosts["example"].user is None
+    path.write_text("require_case_sensitive = true\n" + path.read_text())
+    assert load_config(path).require_case_sensitive is True
+
+
+@pytest.mark.parametrize("command", ["", " ", "bad\ncommand", "bad\x00command", 42])
+def test_invalid_sftp_server_command(tmp_path, command):
+    config, _ = create_demo(tmp_path / "demo")
+    host = replace(config.hosts["alpha"], sftp_server_command=command)
+    with pytest.raises(ConfigError, match="SFTP server command"):
+        replace(config, hosts={**config.hosts, "alpha": host}).validate()
 
 
 @pytest.mark.parametrize(

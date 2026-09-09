@@ -20,6 +20,7 @@ class Host:
     port: int | None = None
     identity_file: Path | None = None
     ssh_config: Path | None = None
+    sftp_server_command: str | None = None
 
 
 @dataclass(frozen=True)
@@ -87,8 +88,11 @@ class Config:
     cloud: CloudConfig = field(default_factory=CloudConfig)
     keep_local: int = 0
     keep_cloud: int = 0
+    require_case_sensitive: bool = False
 
     def validate(self) -> None:
+        if type(self.require_case_sensitive) is not bool:
+            raise ConfigError("require_case_sensitive must be true or false")
         for name in ("parallel_hosts", "transfers", "attempts", "connect_timeout"):
             if type(getattr(self, name)) is not int or getattr(self, name) < 1:
                 raise ConfigError(f"{name} must be a positive integer")
@@ -108,6 +112,12 @@ class Config:
         seen = set()
         for name, host in self.hosts.items():
             _name(name)
+            if host.sftp_server_command is not None and (
+                not isinstance(host.sftp_server_command, str)
+                or not host.sftp_server_command.strip()
+                or any(c in host.sftp_server_command for c in "\x00\r\n")
+            ):
+                raise ConfigError(f"invalid SFTP server command for {name}")
             if host.address is None:
                 raise ConfigError(f"host {name} needs an address")
             for value in (host.address, host.user):
@@ -178,12 +188,26 @@ def load_config(path: str | Path) -> Config:
             raw = tomllib.load(stream)
         _table(
             raw,
-            {"destination", "hosts", "jobs", "runner", "rclone", "archive", "cloud", "retention"},
+            {
+                "destination",
+                "hosts",
+                "jobs",
+                "runner",
+                "rclone",
+                "archive",
+                "cloud",
+                "retention",
+                "require_case_sensitive",
+            },
             "top-level",
         )
         hosts = {}
         for name, value in raw.get("hosts", {}).items():
-            h = _table(value, {"address", "user", "port", "identity_file", "ssh_config"}, "host")
+            h = _table(
+                value,
+                {"address", "user", "port", "identity_file", "ssh_config", "sftp_server_command"},
+                "host",
+            )
             hosts[name] = Host(
                 **{
                     **h,
@@ -227,6 +251,7 @@ def load_config(path: str | Path) -> Config:
         retention = _table(raw.get("retention", {}), {"keep_local", "keep_cloud"}, "retention")
         config = Config(
             destination=local(raw["destination"]),
+            require_case_sensitive=raw.get("require_case_sensitive", False),
             hosts=hosts,
             jobs=tuple(jobs),
             **runner,

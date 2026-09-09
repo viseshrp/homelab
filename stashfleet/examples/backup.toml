@@ -1,6 +1,8 @@
 # Copy to backup.toml and edit. This file contains no real hosts or credentials.
 # Relative local paths resolve beside this file. Remote source folders must be absolute.
 destination = "./backups"
+# Use true for Linux case-distinct names. The destination must support them.
+require_case_sensitive = false
 
 [runner]
 parallel_hosts = 2
@@ -16,6 +18,9 @@ user = "backup"
 # port = 22
 # identity_file = "~/.ssh/id_ed25519"
 # ssh_config = "~/.ssh/config"
+# Optional trusted remote command; requires existing noninteractive sudo access.
+# -R makes OpenSSH's SFTP server read-only. Adjust its path for your server.
+# sftp_server_command = "sudo -n /usr/lib/openssh/sftp-server -R"
 
 [hosts.server_b]
 address = "server-b.example.invalid"

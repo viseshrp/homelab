@@ -3,12 +3,24 @@
 import fcntl
 import json
 import re
+import tempfile
 from contextlib import contextmanager
 from pathlib import Path
 
 
 class RunLocked(RuntimeError):
     pass
+
+
+def check_case_sensitive(root: Path) -> None:
+    """Refuse a filesystem that would merge Linux filenames differing by case."""
+    with tempfile.TemporaryDirectory(prefix=".case-check-", dir=root) as directory:
+        try:
+            for name in ("case", "CASE"):
+                with (Path(directory) / name).open("x"):
+                    pass
+        except FileExistsError as exc:
+            raise ValueError("backup destination must be a case-sensitive filesystem") from exc
 
 
 def validate_run_id(run_id: str) -> str:

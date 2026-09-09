@@ -67,6 +67,8 @@ class Runner:
     async def run(self) -> RunResult:
         self.backend.validate()
         with state.run_lock(self.root):
+            if self.config.require_case_sensitive:
+                state.check_case_sensitive(self.root)
             run_id = datetime.now(UTC).strftime("%Y%m%dT%H%M%S%fZ-") + uuid.uuid4().hex[:8]
             run_directory = self.root / "runs" / run_id
             run_directory.mkdir(parents=True, mode=0o700)

@@ -4,8 +4,8 @@ A pip-installable Python library and CLI for parallel server-to-client folder ba
 Each successful run produces **one ZIP** containing every configured folder. Google Drive
 (or another configured rclone remote) is an optional second destination.
 
-**Initial implementation. Real SSH and Google Drive transfers have not been validated.**
-Tests and the demo use local fixtures and fake processes only.
+**Initial implementation. Live SFTP transfers have been exercised; Google Drive remains
+unvalidated.** Automated tests and the demo use local fixtures only.
 
 ## Install and try without servers
 
@@ -63,6 +63,11 @@ Paths in TOML resolve relative to the config file; `~` expands for local paths. 
 source folders must be absolute. Host/job names become ZIP directory names and must be
 unique ignoring case. Invalid or unknown configuration fields fail before transfers.
 The example documents all options. No environment-specific hosts or credentials are bundled.
+Use a case-sensitive backup filesystem for Linux sources containing names that differ only
+by capitalization. A typical macOS filesystem cannot preserve both names; a case-sensitive
+APFS volume or disk image can.
+Set `require_case_sensitive = true` for such storage. This checks the destination before
+pulling and overrides rclone's platform-wide assumption that macOS is case-insensitive.
 
 ## Flow and recovery
 
@@ -152,6 +157,16 @@ apply). Batch mode and strict known-host checks are always enabled. Verify host 
 scheduling. Encrypted keys must be usable noninteractively (for example via an agent).
 Stashfleet never installs keys or disables host verification.
 
+For protected source files, an optional host `sftp_server_command` can launch a custom
+SFTP server, for example `sudo -n /usr/lib/openssh/sftp-server -R`. This requires existing
+passwordless sudo access; `-R` enforces read-only SFTP access. Treat the configured command
+as trusted code. Stashfleet does not change server permissions. Remote shell hash probes
+are disabled for custom servers because they may run with different permissions; the ZIP's
+local SHA-256 still protects upload retries.
+Custom commands use an internal SSH wrapper to preserve rclone's SFTP connection reuse.
+SFTP pools are capped at `2 * transfers + 1`, with `transfers` metadata checkers, following
+[rclone's connection-limit requirements](https://rclone.org/sftp/#sftp-connections).
+
 ## Retention
 
 Both retention counts default to **0 (keep everything)**. Setting a positive count explicitly
@@ -222,7 +237,9 @@ uv build
 
 Tests never contact real servers or cloud accounts. They inject fake backends and a fake
 rclone executable for process/progress/cancellation tests. The ZIP and filesystem operations
-are real, inside temporary directories. `uv.lock` pins the local development environment;
+are real, inside temporary directories. An optional integration test uses installed rclone
+and a local SFTP server over process pipes, without SSH connections or network access.
+`uv.lock` pins the local development environment;
 the distribution declares compatible Click/Rich ranges for downstream installs.
 
 This folder is self-contained: copy it to its own repository without its parent homelab

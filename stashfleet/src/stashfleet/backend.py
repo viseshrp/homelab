@@ -8,6 +8,7 @@ import os
 import shlex
 import shutil
 import signal
+import sys
 from collections import deque
 from pathlib import Path
 from typing import Protocol
@@ -71,6 +72,16 @@ class RcloneBackend:
         if host.identity_file:
             args += ["-i", str(host.identity_file), "-o", "IdentitiesOnly=yes"]
         args.append(host.address)
+        if host.sftp_server_command:
+            # Keep rclone in subsystem mode so its external SSH connections are
+            # reusable; its server-command mode does not pool those connections.
+            args = [
+                sys.executable,
+                "-m",
+                "stashfleet.ssh_transport",
+                host.sftp_server_command,
+                *args,
+            ]
         # Rclone's SpaceSepList uses space-delimited CSV, not shell/JSON escaping.
         output = io.StringIO()
         csv.writer(output, delimiter=" ", lineterminator="\n").writerow(args)
@@ -95,6 +106,8 @@ class RcloneBackend:
             f"{self.config.connect_timeout}s",
             "--transfers",
             str(self.config.transfers),
+            "--checkers",
+            str(self.config.transfers),
             "--multi-thread-streams",
             "0",
         ]
@@ -106,13 +119,22 @@ class RcloneBackend:
 
     def pull_arguments(self, host: Host, job: Job, destination: Path) -> list[str]:
         args = self.arguments("copy", f":sftp:{job.source}", str(destination))
+        if self.config.require_case_sensitive:
+            args += ["--local-case-sensitive"]
         args += [
             "--sftp-host",
             host.address,
             "--sftp-ssh",
             self.ssh_command(host),
             "--create-empty-src-dirs",
+            "--sftp-skip-links",
+            "--sftp-connections",
+            str(2 * self.config.transfers + 1),
         ]
+        if host.sftp_server_command:
+            # Hash commands run separately from the custom SFTP server, potentially
+            # with different permissions. Keep this transfer inside SFTP instead.
+            args += ["--sftp-disable-hashcheck"]
         for pattern in job.excludes:
             args += ["--exclude", pattern]
         return args
