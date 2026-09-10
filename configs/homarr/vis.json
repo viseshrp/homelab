@@ -660,7 +660,7 @@
         "lineClampAppName": 1
       },
       "network": {
-        "enabledStatusChecker": true,
+        "enabledStatusChecker": false,
         "statusCodes": [
           "200",
           "301",
@@ -892,7 +892,7 @@
         "lineClampAppName": 1
       },
       "network": {
-        "enabledStatusChecker": true,
+        "enabledStatusChecker": false,
         "statusCodes": [
           "200",
           "301",

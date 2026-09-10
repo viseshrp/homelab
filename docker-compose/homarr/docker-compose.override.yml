@@ -1,3 +1,6 @@
+# The live host keeps its private environment in the existing Compose file.
+# This override lets an in-place deployment add the compatibility image and
+# healthcheck without rewriting that private configuration.
 services:
   homarr:
     build:
@@ -5,19 +8,10 @@ services:
       args:
         HOMARR_BASE_IMAGE: "${HOMARR_BASE_IMAGE:-ghcr.io/ajnart/homarr@sha256:e103abadfb527186af5b4bd43df4eff7c67afa5cd4df8e65fa97910c8840b2a9}"
     image: "${HOMARR_IMAGE:-homelab/homarr:0.16.1-qbittorrent-5.2}"
-    container_name: homarr
-    ports:
-    - 7575:7575
-    volumes:
-    - "./homarr/configs:/app/data/configs"
-    - "./homarr/icons:/app/public/icons"
-    - "/var/run/docker.sock:/var/run/docker.sock"
-    - "./homarr/data:/data"
     extra_hosts:
     - "optiplex:${OPTIPLEX_IP:-192.168.68.132}"
     - "rpihass:${RPIHASS_IP:-192.168.68.103}"
     - "rpimon:${RPIMON_IP:-192.168.68.124}"
-    restart: always
     healthcheck:
       test:
       - CMD-SHELL
@@ -26,7 +20,3 @@ services:
       timeout: 5s
       retries: 3
       start_period: 30s
-    environment:
-      TZ: America/New_York
-      BASE_URL: "${BASE_URL:-https://home.example.com}"
-      PASSWORD: "${PASSWORD:?Set PASSWORD}"
