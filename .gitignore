@@ -1,10 +1,15 @@
+# Editor and operating-system files
 .idea/
 .DS_Store
+
+# Python environments and generated caches
 __pycache__/
 *.py[cod]
 .pytest_cache/
 .ruff_cache/
 .venv/
+
+# Private inputs. Commit the matching example or sanitized schema instead.
 .env
 .env.*
 !.env.example
@@ -14,15 +19,36 @@ __pycache__/
 **/cloudflare-credentials.ini
 **/f2b-integration.json
 **/*.private.*
-local/
-build/
-docker-compose/*/data/
-docker-compose/*/public/
-docker-compose/*/letsencrypt/
-docker-compose/*/*-data/
-docker-compose/*/homarr/
-docker-compose/*/config/
-docker-compose/*/etc-pihole/
-docker-compose/*/etc-dnsmasq.d/
-**/cloudflare-ownership.jsonl*
-configs/fail2ban/data/db/
+
+# Local repository output
+/local/
+/build/
+
+# Exact bind-mounted runtime paths. Keep these project-specific so a new
+# service's declarative data/, config/, or public/ files remain visible to Git.
+/docker-compose/anki/data/
+/docker-compose/archivebox/data/
+/docker-compose/blog/public/
+/docker-compose/dozzle/data/
+/docker-compose/fail2ban/data/
+/docker-compose/filebrowser/filebrowser2-data/
+/docker-compose/filebrowser/filebrowser3-data/
+/docker-compose/homarr/homarr/
+/docker-compose/linkding/data/
+/docker-compose/npm/data/
+/docker-compose/npm/letsencrypt/
+/docker-compose/paperless/consume/
+/docker-compose/paperless/export/
+/docker-compose/pihole/etc-pihole/
+/docker-compose/pihole/etc-dnsmasq.d/
+/docker-compose/plex/config/
+/docker-compose/plex/movies/
+/docker-compose/plex/tv/
+/docker-compose/qbit/gluetun-data/
+/docker-compose/qbit/qbit-data/
+/docker-compose/uptime-kuma/uptime-kuma-data/
+/docker-compose/vaultwarden/vw-data/
+
+# Fail2ban runtime database and external-rule ownership journal
+/configs/fail2ban/data/cloudflare-ownership.jsonl*
+/configs/fail2ban/data/db/

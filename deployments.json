@@ -96,7 +96,7 @@
     "directory": null,
     "compose": "docker-compose.yml",
     "assets": {},
-    "status": "Retained template; SSH unavailable"
+    "status": "Retained standalone Compose fallback; the managed deployment is a Home Assistant OS app"
   },
   "linkding": {
     "host": "rpiblog",

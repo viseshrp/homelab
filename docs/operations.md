@@ -197,6 +197,7 @@ For media failures, confirm that `/mnt/media2` and `/mnt/media3` are the intende
 | FBN | External `FBN_DATA_VOLUME`, source version, and private auth/config | Protect the browser profile and SQLite state; test that pending delivery state survives |
 | GitHub runner | `/opt/gh-runner/runner-config`, installed Compose/env, and labels | Protect the stored runner credentials; if they are unusable, register once with a new one-hour token and then remove it from the container configuration |
 | Home Assistant | Encrypted full backup containing configuration, apps, custom integrations, and Supervisor-managed state, plus the emergency kit stored separately | Use the built-in backup inventory to confirm completion; a backup on the same host does not protect against host or storage loss |
+| Homebridge | Home Assistant backup entry for the Homebridge app; standalone fallback uses `HOMEBRIDGE_DATA_DIR` | Preserve bridge pairing, UI account, plugin configuration, and credentials; `node_modules` is intentionally excluded and rebuilt from configuration |
 | Media | `/mnt/media2`, `/mnt/media3`, Plex config, qBittorrent config, Gluetun state | Bulk media and app metadata are separate backup units; verify mounts before restore |
 | Pi-hole | `etc-pihole`, `etc-dnsmasq.d`, and private settings | Verify DNS resolution and custom records after restore |
 | WG-Easy | `/opt/wg-easy` project/state and private env | Contains WireGuard private keys and peer configuration; restrict backup access |

@@ -105,7 +105,7 @@ The OptiPlex media trees couple Plex, qBittorrent, File Browser, and Reelname. A
 | Cloudflare client headers are trusted selectively | Accepting forwarded client addresses from arbitrary peers would let a client forge the address evaluated by logs and bans. |
 | Homarr, Dozzle, and the GitHub runner mount the Docker socket | Docker-socket access is effectively host-level control. Treat their credentials and web access accordingly. |
 | Fail2ban uses host networking plus `NET_ADMIN`/`NET_RAW` | A bad rule can affect host and container traffic. Its Cloudflare cleanup is limited by an ownership journal. |
-| Plex, Pi-hole, and Homebridge use host networking | Port collisions and host firewall rules apply directly to these containers. |
+| Plex, Pi-hole, and the Homebridge HAOS app use host networking | Port collisions and host firewall rules apply directly to these containers. |
 | Gluetun, Firezone, and WG-Easy receive network capabilities | Their private keys and state are security-sensitive. Firezone and WG-Easy both default to UDP 51820 on `vpn-edge`, so they cannot bind that port at the same time. |
 | Secrets live outside Git | Fresh `.env.example` files are incomplete by design and must never replace an installed environment during an update. |
 

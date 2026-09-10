@@ -157,6 +157,7 @@ For supporting assets:
 - add them to the relevant `assets` map when `prepare.py` must copy them;
 - update `prepare.py` and tests if their file type is not included by its copy rules;
 - keep generated files out of Git unless they are intentional deployment inputs.
+- keep `.gitignore` runtime-directory rules project-specific; never hide every future project's `data/`, `config/`, or `public/` directory with a wildcard.
 
 ### 6. Run repository validation
 

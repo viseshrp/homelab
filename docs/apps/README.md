@@ -27,7 +27,7 @@ The pages in this directory document how each service fits this lab: deployment 
 | [qBittorrent](qbittorrent.md) through [Gluetun](gluetun.md) | `optiplex` | LAN port 8085 | Client config, VPN state, download trees |
 | [Pi-hole](pihole.md) | `rpihole` | DNS 53 and LAN web UI | `etc-pihole`, `etc-dnsmasq.d` |
 | [Home Assistant](home-assistant.md) | `rpihass` | LAN port 8123 and `hass` tunnel route | Host-managed Home Assistant configuration/state |
-| [Homebridge](homebridge.md) | `rpihass` | LAN port 8581 | Configured `/homebridge` source directory |
+| [Homebridge](homebridge.md) | `rpihass` | LAN port 8581 | Supervisor-managed app configuration mapped to `/homebridge` |
 | [WG-Easy](wg-easy.md) | `vpn-edge` | UDP 51820, LAN admin 51821 | WireGuard project directory |
 | [FTP server](ftp.md) | `rpinfs` | FTP and passive port range | External media directory plus private account settings |
 

@@ -1,0 +1,29 @@
+{
+  "installation_type": "Home Assistant OS app",
+  "app_repository": "https://github.com/tronikos/home-assistant-addons",
+  "repository_slug": "0656e7b8",
+  "app": {
+    "name": "Homebridge",
+    "slug": "0656e7b8_homebridge",
+    "source_image": "homebridge/homebridge",
+    "version": "2026-09-02",
+    "architecture": "aarch64",
+    "start_on_boot": true,
+    "watchdog": true,
+    "auto_update": false,
+    "observed_at": "2026-09-10"
+  },
+  "network": {
+    "mode": "host",
+    "ui_port": 8581,
+    "public_route": false
+  },
+  "storage": {
+    "container_path": "/homebridge",
+    "host_path": "/addon_configs/0656e7b8_homebridge",
+    "supervisor_managed_app_config": true,
+    "backup_excludes": [
+      "node_modules"
+    ]
+  }
+}

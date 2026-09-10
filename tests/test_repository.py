@@ -59,6 +59,48 @@ class DeploymentManifestTests(unittest.TestCase):
             check.validate_manifest(manifest, set(manifest))
 
 
+class IgnorePolicyTests(unittest.TestCase):
+    def ignored(self, path):
+        result = subprocess.run(
+            ['git', 'check-ignore', '--no-index', '-q', '--', path],
+            cwd=ROOT, capture_output=True, text=True)
+        self.assertIn(result.returncode, (0, 1), result.stderr)
+        return result.returncode == 0
+
+    def test_future_project_configuration_remains_visible(self):
+        for path in [
+            'docker-compose/future/config/settings.yml',
+            'docker-compose/future/data/defaults.yaml',
+            'docker-compose/future/public/index.html',
+            'docker-compose/future/service-data/defaults.json',
+            'docker-compose/future/etc-dnsmasq.d/custom.conf',
+            'docker-compose/future/local/settings.yml',
+        ]:
+            with self.subTest(path=path):
+                self.assertFalse(self.ignored(path))
+
+    def test_known_private_and_runtime_files_stay_ignored(self):
+        for path in [
+            'docker-compose/future/.env',
+            'docker-compose/future/docker-compose.env',
+            'docker-compose/anki/data/state.db',
+            'docker-compose/npm/letsencrypt/live/cert.pem',
+            'docker-compose/plex/movies/private-video.mkv',
+            'local/staged-project/docker-compose.yml',
+        ]:
+            with self.subTest(path=path):
+                self.assertTrue(self.ignored(path))
+
+    def test_sanitized_examples_remain_visible(self):
+        for path in [
+            'docker-compose/future/.env.example',
+            'docker-compose/paperless/docker-compose.env.example',
+            'configs/homeassistant/secrets.yaml.example',
+        ]:
+            with self.subTest(path=path):
+                self.assertFalse(self.ignored(path))
+
+
 class FirewallTests(unittest.TestCase):
     def test_private_and_owner_addresses_are_protected(self):
         config = {'protected_networks': ['8.8.8.0/24']}

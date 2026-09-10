@@ -36,7 +36,7 @@ Private addresses are intentionally omitted here. The aliases `rpiblog`, `rpihas
 | `rpimon` | Monitoring, documents, and archives | [`uptime-kuma`](apps/uptime-kuma.md) → `/opt/kuma`; [`dozzle`](apps/dozzle.md) → `/opt/dozzle`; [`archivebox`](apps/archivebox.md) → `/opt/archivebox`; [`paperless`](apps/paperless.md) → `/opt/paperless` |
 | `optiplex` | Media and downloads | [`plex`](apps/plex.md) → `/opt/plex`; [`qbit`](apps/qbittorrent.md) → `/opt/qbit`; [`filebrowser`](apps/filebrowser.md) → `/opt/filebrowser`; [Reelname](apps/reelname.md) is a host-installed CLI under `/opt/reelname` |
 | `rpihole` | DNS | [`pihole`](apps/pihole.md) → `/opt/pihole-docker` |
-| `rpihass` | Home automation | [Home Assistant](apps/home-assistant.md); retained [`homebridge`](apps/homebridge.md) template with no asserted live project directory |
+| `rpihass` | Home automation | [Home Assistant](apps/home-assistant.md); [Homebridge](apps/homebridge.md) as a Supervisor-managed HAOS app, plus a retained standalone Compose fallback with no live project directory |
 | `rpinfs` | File transfer | [`ftp`](apps/ftp.md) → `/opt/ftp` |
 | `vpn-edge` | Remote access | [`firezone`](apps/firezone.md) → `/opt/firezone`; [`wg-easy`](apps/wg-easy.md) → `/opt/wg-easy` |
 

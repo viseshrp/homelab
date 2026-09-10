@@ -1,10 +1,13 @@
 services:
   homebridge:
-    image: oznu/homebridge:latest
+    image: "${HOMEBRIDGE_IMAGE:-homebridge/homebridge:latest}"
     restart: always
     network_mode: host
     volumes:
     - "${HOMEBRIDGE_DATA_DIR:?Set HOMEBRIDGE_DATA_DIR}:/homebridge"
+    environment:
+      TZ: "${TZ:-America/New_York}"
+      ENABLE_AVAHI: "${ENABLE_AVAHI:-1}"
     logging:
       driver: json-file
       options:
