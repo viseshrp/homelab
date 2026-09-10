@@ -10,7 +10,8 @@ This page answers four operational questions: which host owns a project, where i
 | [`configs/nginx/routes.json`](../configs/nginx/routes.json) | Sanitized reference for proxy destinations | Current checkout |
 | Mac `/etc/hosts` | Local aliases used from the operator Mac | Read-only observation on September 9, 2026 |
 | Nginx Proxy Manager proxy-host page | Live hostname, backend, certificate, access-list, and enabled status | Read-only observation on September 9, 2026 |
-| Direct host/port probe | Earlier point-in-time SSH and service reachability | September 9, 2026; not rerun during this edit |
+| Cloudflare API | Home Assistant tunnel, connector state, and DNS target | Live verification on September 10, 2026 |
+| Direct host/port probe | SSH and service reachability | Live verification on September 10, 2026 for `rpiproxy` to Home Assistant; other rows remain earlier snapshots |
 | Dozzle post-migration audit | Eight-host inventory, agent TLS, log streaming, and retired Docker API ports | Live verification on September 9, 2026 |
 
 The NPM status below is not an application health check. “Online” is the state NPM displayed for an enabled proxy entry. Direct-port results are also snapshots, not continuous monitoring.
@@ -30,7 +31,7 @@ Private addresses are intentionally omitted here. The aliases `rpiblog`, `rpihas
 
 | Host | Role | Project → installed directory |
 | --- | --- | --- |
-| `rpiproxy` | Ingress and blocking | [`npm`](apps/nginx-proxy-manager.md) → `/opt/nginx`; [`fail2ban`](apps/fail2ban.md) → `/opt/fail2ban` |
+| `rpiproxy` | Ingress and blocking | [`npm`](apps/nginx-proxy-manager.md) → `/opt/nginx`; [`fail2ban`](apps/fail2ban.md) → `/opt/fail2ban`; [`cloudflared`](apps/cloudflare.md) → `/opt/cloudflared` |
 | `rpiblog` | Web apps and automation | [`blog`](apps/blog.md) → `/opt/blog`; [`gh-runner`](apps/github-runner.md) → `/opt/gh-runner`; [`anki`](apps/anki.md) → `/opt/anki`; [`planka`](apps/planka.md) → `/opt/planka`; [`linkding`](apps/linkding.md) → `/opt/linkding`; [`homarr`](apps/homarr.md) → `/opt/homarr`; [`vaultwarden`](apps/vaultwarden.md) → `/opt/vw`; [`fbn`](apps/fbn.md) → `/opt/fbn-compose` |
 | `rpimon` | Monitoring, documents, and archives | [`uptime-kuma`](apps/uptime-kuma.md) → `/opt/kuma`; [`dozzle`](apps/dozzle.md) → `/opt/dozzle`; [`archivebox`](apps/archivebox.md) → `/opt/archivebox`; [`paperless`](apps/paperless.md) → `/opt/paperless` |
 | `optiplex` | Media and downloads | [`plex`](apps/plex.md) → `/opt/plex`; [`qbit`](apps/qbittorrent.md) → `/opt/qbit`; [`filebrowser`](apps/filebrowser.md) → `/opt/filebrowser`; [Reelname](apps/reelname.md) is a host-installed CLI under `/opt/reelname` |
@@ -57,7 +58,7 @@ The domain is shown as `<domain>` to keep the checked-in documentation reusable.
 | `status.<domain>` | `rpimon:3001` | Uptime Kuma | Online |
 | `<domain>`, `www.<domain>` | `rpiblog:80` | Hugo site | Online |
 
-There is no observed NPM proxy entry for Home Assistant, Homebridge, Paperless, ArchiveBox, Dozzle, File Browser, qBittorrent, Pi-hole administration, pywb, or WG-Easy administration. Those interfaces use direct LAN access unless another layer not represented here publishes them.
+Cloudflare Tunnel publishes `hass.<domain>` directly to `rpihass:8123` through the connector on `rpiproxy`; it does not use an NPM proxy entry. There is no observed NPM proxy entry for Home Assistant, Homebridge, Paperless, ArchiveBox, Dozzle, File Browser, qBittorrent, Pi-hole administration, pywb, or WG-Easy administration. The remaining interfaces use direct LAN access unless another layer not represented here publishes them.
 
 ## Direct LAN interfaces
 

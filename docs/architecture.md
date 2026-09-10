@@ -6,8 +6,10 @@ The homelab is split by workload instead of running every service on one machine
 
 ```mermaid
 flowchart TB
-    public["Public client"] --> dns["Public DNS / Cloudflare when enabled"]
-    dns -->|"HTTP 80 / HTTPS 443"| npm["rpiproxy<br/>Nginx Proxy Manager"]
+    public["Public client"] --> cloudflare["Cloudflare DNS / edge"]
+    cloudflare -->|"HTTP 80 / HTTPS 443"| npm["rpiproxy<br/>Nginx Proxy Manager"]
+    cloudflare -->|"Cloudflare Tunnel"| tunnel["rpiproxy<br/>cloudflared"]
+    tunnel -->|"HTTP :8123"| rpihass["rpihass<br/>Home Assistant"]
     npm -->|"HTTP :80, :8080, :3001,<br/>:7575, :9090, :8089"| rpiblog
     npm -->|"HTTP :3001"| rpimon
     npm -->|"HTTP :32400"| optiplex
@@ -23,14 +25,16 @@ flowchart TB
 
     fail2ban["Fail2ban"] -->|"reads NPM access logs"| npm
     fail2ban -->|"source-IP blocks"| firewall["rpiproxy firewall"]
-    fail2ban -->|"owned block rules"| cloudflare["Cloudflare API"]
+    fail2ban -->|"owned block rules"| cloudflare
 ```
 
-The proxy terminates public HTTPS and forwards plain HTTP across the LAN. Some administrative and internal applications are available only through direct LAN ports. The [inventory](inventory.md) separates those access paths and records the current proxy entries.
+Nginx Proxy Manager terminates HTTPS for the shared proxy routes. The dedicated cloudflared connector on `rpiproxy` publishes Home Assistant directly through an outbound-only tunnel and forwards plain HTTP across the LAN. Some administrative and internal applications are available only through direct LAN ports. The [inventory](inventory.md) separates those access paths and records the current ingress entries.
 
 ### Public ingress
 
 Nginx Proxy Manager publishes ports 80 and 443 and keeps its administration interface on port 81. Its persisted `data/` directory contains configuration and access logs; `letsencrypt/` contains certificate state. The nine observed entries use Let's Encrypt certificates and the Public access-list setting.
+
+The Home Assistant route bypasses NPM. Cloudflare stores the remotely managed public-hostname rule, while `/opt/cloudflared` on `rpiproxy` runs the connector with a host-only tunnel token. The checked-in reference uses example names and contains no account ID, tunnel ID, or token.
 
 Nginx accepts `CF-Connecting-IP` only when the connecting peer belongs to the checked-in Cloudflare ranges. Fail2ban reads NPM logs, blocks source addresses at the proxy host, and can create owned Cloudflare block rules. An NPM “Online” row means the proxy entry is enabled in NPM; it does not prove that the target application, its database, or its storage is healthy.
 

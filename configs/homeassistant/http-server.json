@@ -1,0 +1,10 @@
+{
+  "managed_in": "Settings > System > Network > HTTP server",
+  "trust_x_forwarded_for": true,
+  "trusted_proxies": [
+    {
+      "role": "rpiproxy cloudflared connector",
+      "example_cidr": "192.0.2.10/32"
+    }
+  ]
+}

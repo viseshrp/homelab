@@ -107,7 +107,9 @@ Work from the client inward so each check rules out a layer.
 
 ```mermaid
 flowchart LR
-    client["Client"] --> dns["DNS / Cloudflare when enabled"] --> tls["TLS :443"] --> npm["NPM route"] --> backend["Backend host:port"] --> app["Container + dependencies"] --> state["Disk / database"]
+    client["Client"] --> edge["DNS / Cloudflare edge"]
+    edge -->|"Shared routes"| npm["NPM route"] --> backend["Backend host:port"] --> app["Container + dependencies"] --> state["Disk / database"]
+    edge -->|"Home Assistant tunnel"| tunnel["cloudflared on rpiproxy"] --> hass["Home Assistant :8123"]
 ```
 
 ### 1. Check DNS and HTTPS
@@ -120,9 +122,11 @@ curl --head --show-error --connect-timeout 5 "https://$route_name/"
 
 An HTTP 3xx or authentication response can still prove the route is reachable. Record the status and `Location` header instead of using `--fail` when the application normally redirects or returns 401/403.
 
-### 2. Check NPM
+### 2. Check the ingress route
 
 Confirm that the proxy row is enabled, has the intended domain, uses the expected certificate, and targets the host/port in [the route inventory](inventory.md#https-ingress). Then inspect NPM logs around the request time. A 502 or 504 usually moves the investigation to backend reachability; a certificate or DNS error stays at the ingress layer.
+
+For Home Assistant, verify the Cloudflare Tunnel and DNS record through the Cloudflare API, the `cloudflared` container health and logs on `rpiproxy`, and the remote hostname rule. Home Assistant 2026.8 and later also require the connector address under **Settings > System > Network > HTTP server > Reverse proxy**. Confirm any changed HTTP-server settings within five minutes after the automatic restart.
 
 ### 3. Check the backend directly
 
@@ -134,7 +138,7 @@ backend_port=3001
 curl --head --show-error --connect-timeout 5 "http://$backend_host:$backend_port/"
 ```
 
-If the backend works directly but the public route fails, inspect NPM destination settings, name resolution on `rpiproxy`, Cloudflare mode, certificate state, and proxy logs. If the direct backend fails, inspect the target host, Compose project, dependencies, and storage.
+If the backend works directly but the public route fails, inspect its NPM or Cloudflare Tunnel destination, name resolution on `rpiproxy`, Cloudflare state, certificate state, and ingress logs. If the direct backend fails, inspect the target host, Compose project, dependencies, and storage.
 
 ### 4. Check application state
 
@@ -153,6 +157,8 @@ For media failures, confirm that `/mnt/media2` and `/mnt/media3` are the intende
 | --- | --- | --- |
 | Every public hostname fails, direct ports work | DNS, Cloudflare, NPM, or `rpiproxy` | NPM container/logs, ports 80/443, certificate state |
 | One public hostname returns 502/504 | Route destination or backend | NPM target, then direct backend port from `rpiproxy` |
+| Home Assistant returns Cloudflare 1033 | Tunnel connector | Tunnel status, `cloudflared` health/logs, connector token |
+| Home Assistant returns 400 through the tunnel | Home Assistant reverse-proxy trust | HTTP-server Trust X-Forwarded-For and the connector `/32` |
 | NPM says Online but page fails | Backend app, dependency, or state | Direct port, Compose logs, database/storage |
 | Paperless loads but jobs stall | Redis, Tika, Gotenberg, or worker path | All four services and webserver logs |
 | qBittorrent UI or traffic disappears | Gluetun namespace/VPN | Gluetun health/logs, tunnel state, published ports |
@@ -177,6 +183,7 @@ For media failures, confirm that `/mnt/media2` and `/mnt/media3` are the intende
 | Vaultwarden | `/opt/vw/vw-data` plus private SMTP/domain settings | Quiesce writes or use a supported SQLite/database backup path |
 | Uptime Kuma | `/opt/kuma/uptime-kuma-data` | Quiesce or use a consistent SQLite copy; verify monitors and notification settings |
 | FBN | External `FBN_DATA_VOLUME`, source version, and private auth/config | Protect the browser profile and SQLite state; test that pending delivery state survives |
+| Home Assistant | Encrypted full backup containing configuration, apps, custom integrations, and Supervisor-managed state, plus the emergency kit stored separately | Use the built-in backup inventory to confirm completion; a backup on the same host does not protect against host or storage loss |
 | Media | `/mnt/media2`, `/mnt/media3`, Plex config, qBittorrent config, Gluetun state | Bulk media and app metadata are separate backup units; verify mounts before restore |
 | Pi-hole | `etc-pihole`, `etc-dnsmasq.d`, and private settings | Verify DNS resolution and custom records after restore |
 | WG-Easy | `/opt/wg-easy` project/state and private env | Contains WireGuard private keys and peer configuration; restrict backup access |

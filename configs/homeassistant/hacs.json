@@ -1,0 +1,25 @@
+{
+  "installation_type": "Home Assistant OS",
+  "app_repository": "https://github.com/hacs/addons",
+  "installer_app": {
+    "name": "Get HACS",
+    "version": "1.3.1",
+    "purpose": "One-shot downloader for the HACS custom integration",
+    "start_on_boot": false,
+    "auto_update": false,
+    "expected_state_after_success": "stopped"
+  },
+  "integration": {
+    "name": "HACS",
+    "requires_home_assistant_restart_after_download": true,
+    "device_name": "HACS",
+    "area": null,
+    "github_authorization": {
+      "method": "device OAuth",
+      "access": "public account information (read-only)",
+      "account_identity_and_token": "private; never commit"
+    },
+    "observed_version": "2.0.5",
+    "observed_at": "2026-09-10"
+  }
+}

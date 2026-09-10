@@ -26,7 +26,7 @@ The pages in this directory document how each service fits this lab: deployment 
 | [File Browser](filebrowser.md) | `optiplex` | LAN ports 8080/8081 | Separate databases/settings plus media trees |
 | [qBittorrent](qbittorrent.md) through [Gluetun](gluetun.md) | `optiplex` | LAN port 8085 | Client config, VPN state, download trees |
 | [Pi-hole](pihole.md) | `rpihole` | DNS 53 and LAN web UI | `etc-pihole`, `etc-dnsmasq.d` |
-| [Home Assistant](home-assistant.md) | `rpihass` | LAN port 8123 | Host-managed Home Assistant configuration/state |
+| [Home Assistant](home-assistant.md) | `rpihass` | LAN port 8123 and `hass` tunnel route | Host-managed Home Assistant configuration/state |
 | [Homebridge](homebridge.md) | `rpihass` | LAN port 8581 | Configured `/homebridge` source directory |
 | [WG-Easy](wg-easy.md) | `vpn-edge` | UDP 51820, LAN admin 51821 | WireGuard project directory |
 | [FTP server](ftp.md) | `rpinfs` | FTP and passive port range | External media directory plus private account settings |
@@ -51,6 +51,6 @@ The pages in this directory document how each service fits this lab: deployment 
 | --- | --- | --- |
 | [Nginx Proxy Manager](nginx-proxy-manager.md) | `rpiproxy` | TLS termination and HTTP routing |
 | [Fail2ban](fail2ban.md) | `rpiproxy` | Detects hostile paths in NPM logs and applies source-IP bans |
-| [Cloudflare](cloudflare.md) | External edge/API | DNS/edge path where enabled and owned block rules |
+| [Cloudflare](cloudflare.md) | External edge/API and `rpiproxy` connector | DNS, Home Assistant tunnel, and owned block rules |
 
 [Back to homelab](../../README.md)

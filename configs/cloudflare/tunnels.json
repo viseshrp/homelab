@@ -1,0 +1,17 @@
+{
+  "description": "Sanitized reference for remotely managed Cloudflare Tunnel routes. Tunnel tokens and account-specific IDs stay outside Git.",
+  "tunnels": [
+    {
+      "name": "homeassistant-rpiproxy",
+      "config_source": "cloudflare",
+      "connector_host": "rpiproxy",
+      "public_hostnames": [
+        {
+          "hostname": "hass.example.com",
+          "service": "http://rpihass:8123"
+        }
+      ],
+      "catch_all": "http_status:404"
+    }
+  ]
+}

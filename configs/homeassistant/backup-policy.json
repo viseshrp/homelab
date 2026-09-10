@@ -1,0 +1,16 @@
+{
+  "managed_in": "Settings > System > Backups",
+  "automatic_backups": {
+    "preset": "recommended",
+    "schedule": "daily",
+    "retained_backups": 3,
+    "scope": "everything",
+    "locations": [
+      "local"
+    ],
+    "encrypted": true
+  },
+  "recovery": {
+    "emergency_kit": "Store outside the Home Assistant host; never commit it"
+  }
+}

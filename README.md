@@ -2,7 +2,7 @@
 
 This repository is the public, sanitized control plane for my homelab: Docker Compose templates, supporting configuration, deployment metadata, validation tools, and operating notes. Private `.env` files, credentials, live application databases, and host-specific state stay outside Git.
 
-The lab currently maps 23 Compose projects to eight deployment hosts. Public web traffic enters through Nginx Proxy Manager; storage-heavy media services live on the OptiPlex; web apps and automation share `rpiblog`; monitoring, archives, and document services share `rpimon`.
+The lab currently maps 24 Compose projects to eight deployment hosts. Public web traffic enters through Nginx Proxy Manager or the dedicated Home Assistant Cloudflare Tunnel; storage-heavy media services live on the OptiPlex; web apps and automation share `rpiblog`; monitoring, archives, and document services share `rpimon`.
 
 ## System map
 
@@ -24,7 +24,8 @@ flowchart LR
         ftp["rpinfs<br/>FTP server"]
     end
 
-    cloudflare["Cloudflare<br/>Ban API"]
+    cloudflare["Cloudflare<br/>DNS · Tunnel · Ban API"]
+    tunnel["rpiproxy<br/>cloudflared"]
     airvpn["AirVPN"]
     tools["Kiosk display<br/>Monitoring pages / HTTP"]
 
@@ -34,6 +35,9 @@ flowchart LR
     proxy -->|"HTTP - Kuma 3001"| monitor
     proxy -->|"HTTP - Firezone 13000"| vpn
     proxy -->|"HTTPS API"| cloudflare
+    clients -->|"HTTPS tunnel"| cloudflare
+    cloudflare -->|"Tunnel"| tunnel
+    tunnel -->|"HTTP 8123"| home
     media -->|"WireGuard / UDP"| airvpn
     clients -->|"DNS / UDP + TCP 53"| dns
     clients -->|"HTTP 8123 / 8581"| home
@@ -46,7 +50,7 @@ Nginx Proxy Manager currently lists nine enabled HTTPS proxy entries: eight subd
 
 | Host | Responsibility | Projects and components |
 | --- | --- | --- |
-| `rpiproxy` | Public ingress and request blocking | Nginx Proxy Manager, Fail2ban, Cloudflare ban integration |
+| `rpiproxy` | Public ingress and request blocking | Nginx Proxy Manager, cloudflared, Fail2ban, Cloudflare ban integration |
 | `rpiblog` | Public web apps and automation | Blog, Homarr, Anki, Planka/PostgreSQL, Linkding, Vaultwarden, FBN, GitHub runner |
 | `rpimon` | Monitoring, documents, and web archives | Uptime Kuma, Dozzle, Paperless/Redis/Tika/Gotenberg, ArchiveBox/pywb |
 | `optiplex` | Media storage and download traffic | Plex, qBittorrent/Gluetun, two File Browser instances, Reelname |

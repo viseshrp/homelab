@@ -17,6 +17,12 @@
     "compose": "docker-compose.yml",
     "assets": {}
   },
+  "cloudflared": {
+    "host": "rpiproxy",
+    "directory": "/opt/cloudflared",
+    "compose": "docker-compose.yml",
+    "assets": {}
+  },
   "dozzle": {
     "host": "rpimon",
     "directory": "/opt/dozzle",

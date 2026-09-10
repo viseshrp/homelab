@@ -21,11 +21,6 @@ wake_on_lan:
 
 sun:
 
-http:
-  use_x_forwarded_for: true
-  trusted_proxies:
-    - !secret proxy_network
-
 binary_sensor:
   - platform: ping
     host: !secret presence_device_one
