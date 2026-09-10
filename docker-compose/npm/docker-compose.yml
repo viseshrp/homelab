@@ -11,6 +11,11 @@ services:
     - "./nginx.conf:/etc/nginx/nginx.conf:ro"
     - "./letsencrypt:/etc/letsencrypt"
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "${DOCKER_LOG_MAX_SIZE:-10m}"
+        max-file: "${DOCKER_LOG_MAX_FILES:-3}"
     environment:
       DISABLE_IPV6: 'true'
       X_FRAME_OPTIONS: "${X_FRAME_OPTIONS:-sameorigin}"

@@ -12,6 +12,8 @@ The local Docker socket gives it access to containers on `rpimon`. TLS-enabled D
 
 The service uses the `simple` authentication provider and disables analytics. `/opt/dozzle/data` is mounted at `/data` for persistent settings.
 
+The standard Compose agents retain three 10 MB Docker stdout/stderr log files each. Their optional inputs are `DOCKER_LOG_MAX_SIZE` and `DOCKER_LOG_MAX_FILES`. This limits the agents' own logs; it does not change retention for containers viewed in Dozzle, the central server, or the Home Assistant app. Apply this shared template to every `dozzle-agent` host in `deployments.json` using the [log-retention procedure](../operations.md#change-container-log-retention).
+
 The server and standard agents restart automatically. The Home Assistant OS app starts at boot and uses a TCP watchdog for agent port 7007. The server and every agent use `/dozzle healthcheck`; the server check covers its local Docker connection, while each agent checks its own Docker connection. Authentication details, host addresses, and agent bind addresses stay in private configuration. Dozzle actions and shell access remain disabled.
 
 ## Verify and recover
@@ -25,6 +27,8 @@ The default agent certificate encrypts traffic but does not restrict connections
 ## Verified state
 
 The September 9, 2026 cutover showed eight hosts and 49 containers in Dozzle. The per-host total matched the aggregate Docker inventory: `optiplex` 6, `rpiblog` 11, `rpihass` 14, `rpihole` 2, `rpimon` 4, `rpinfs` 1, `rpiproxy` 8, and `rpivpn` 3. The host cards showed 38 running containers; Docker also reported `gh-runner-worker-1` in its existing restarting state, and it appeared when stopped containers were enabled.
+
+A September 10 follow-up verified `gh-runner-worker-1` on `rpiblog` and `app_a0d7b954_ssh` on `rpihass` as running in Dozzle after their configuration repairs.
 
 All seven remote agents accepted TLS connections on port 7007, and every former port-2375 endpoint refused connections. A log stream was opened from a container on every host, including Firezone and Home Assistant Supervisor.
 

@@ -5,13 +5,17 @@ services:
     - "/var/run/docker.sock:/var/run/docker.sock"
     - "/tmp/runner:/tmp/runner"
     - "/opt/blog:/opt/blog"
+    - "${RUNNER_CONFIG_DIR:-./runner-config}:${RUNNER_CONFIG_CONTAINER_DIR:-/runner-config}"
     restart: always
     environment:
       REPO_URL: "${REPO_URL:-https://github.com/example/blog}"
       RUNNER_NAME: "${RUNNER_NAME:-homelab-blog}"
-      RUNNER_TOKEN: "${RUNNER_TOKEN:?Set RUNNER_TOKEN}"
+      RUNNER_TOKEN: "${RUNNER_TOKEN:-}"
       RUNNER_WORKDIR: "${RUNNER_WORKDIR:-/tmp/runner}"
       RUNNER_SCOPE: "${RUNNER_SCOPE:-repo}"
       LABELS: "${LABELS:-self-hosted,linux}"
+      CONFIGURED_ACTIONS_RUNNER_FILES_DIR: "${RUNNER_CONFIG_CONTAINER_DIR:-/runner-config}"
+      DISABLE_AUTOMATIC_DEREGISTRATION: "${DISABLE_AUTOMATIC_DEREGISTRATION:-true}"
+      UNSET_CONFIG_VARS: "${UNSET_CONFIG_VARS:-true}"
     security_opt:
     - label:disable

@@ -57,7 +57,7 @@ Compose derives default named-volume names from the project name. Changing the d
 | Anki | `SYNC_USER1`; client-facing `BASE_URL` | `data/` |
 | Blog | Generated Hugo output from the separate source repository | `public/` is replaceable output; preserve local build files |
 | FBN | Source checkout, auth export, group, Apprise URL, external volume name | External `FBN_DATA_VOLUME`, including browser profile and SQLite state |
-| GitHub runner | Repository URL, registration token, labels, work directory | Runner registration can be recreated; protect Docker-socket and blog write access |
+| GitHub runner | Repository URL, one-time registration token, labels, work directory | `runner-config/` identity; protect runner credentials, Docker-socket access, and blog write access |
 | Homarr | Base URL, password, integration credentials | `homarr/configs`, `homarr/icons`, `homarr/data` |
 | Linkding | Application settings in the private `.env` | Configured data directory |
 | Planka | `SECRET_KEY`, base URL, database URL | `data` and `db-data` volumes |
@@ -107,6 +107,10 @@ Planka is pinned to 2.2.1 and an inspected digest. An older Planka database need
 
 Homarr, Dozzle, the Dozzle agents, and the GitHub runner mount the Docker socket. Remote agents replace unauthenticated Docker TCP listeners and expose only Dozzle's TLS agent protocol on LAN port 7007. Keep the central UI authenticated, do not enable actions or shell access, and do not forward agent ports outside the LAN.
 
+### Container log retention
+
+NPM and the standard Dozzle agents use `json-file` with `DOCKER_LOG_MAX_SIZE=10m` and `DOCKER_LOG_MAX_FILES=3` as configurable defaults. Both inputs are optional and belong in each project's private `.env` when an override is needed. Docker removes older rotated files beyond the count. These limits cover Docker stdout/stderr only, not application files or backups. Existing containers need recreation to apply a changed logging configuration; follow the [retention procedure](operations.md#change-container-log-retention).
+
 ## Fail2ban and Nginx
 
 The Fail2ban project assembles the `data` tree from `configs/fail2ban`. Before using it:
@@ -127,7 +131,7 @@ NPM's `nginx.conf` includes `data/nginx/custom/cloudflare-trusted.conf` and acce
 
 ## Home Assistant and kiosk
 
-`configs/homeassistant` contains retained YAML with private addresses replaced by `!secret` references. Copy `secrets.yaml.example` to `secrets.yaml`, fill the actual values, and preserve the existing automations, scripts, scenes, themes, and custom integrations. Home Assistant 2026.8 and later manage reverse-proxy trust under **Settings > System > Network > HTTP server**; [`http-server.json`](../configs/homeassistant/http-server.json) is the sanitized reference, and the live tunnel connector address stays host-only. Confirm an HTTP-server change within five minutes after its automatic restart or Home Assistant rolls it back. [`backup-policy.json`](../configs/homeassistant/backup-policy.json) records the daily encrypted full-backup policy without its private recovery key. [`hacs.json`](../configs/homeassistant/hacs.json) records the official HACS app repository and pinned Get HACS installer version. The Home Assistant host runs Home Assistant OS with Supervisor. The Dozzle Agent is packaged as a custom app because normal host SSH and the Docker TCP API are unavailable. Validate retained Home Assistant configuration against its installed version before applying it.
+`configs/homeassistant` contains retained YAML with private addresses replaced by `!secret` references. Copy `secrets.yaml.example` to `secrets.yaml`, fill the actual values, and preserve the existing automations, scripts, scenes, themes, and custom integrations. Home Assistant 2026.8 and later manage reverse-proxy trust under **Settings > System > Network > HTTP server**; [`http-server.json`](../configs/homeassistant/http-server.json) is the sanitized reference, and the live tunnel connector address stays host-only. Confirm an HTTP-server change within five minutes after its automatic restart or Home Assistant rolls it back. [`backup-policy.json`](../configs/homeassistant/backup-policy.json) records the daily encrypted full-backup policy without its private recovery key. [`hacs.json`](../configs/homeassistant/hacs.json) records the official HACS app repository and pinned Get HACS installer version. [`google-integrations.json`](../configs/homeassistant/google-integrations.json) records the sanitized Google Calendar and Google Nest OAuth contract; both use dedicated **Web application** clients and keep client credentials, account tokens, project IDs, and Pub/Sub names private. The Home Assistant host runs Home Assistant OS with Supervisor. The Dozzle Agent is packaged as a custom app because normal host SSH and the Docker TCP API are unavailable. Validate retained Home Assistant configuration against its installed version before applying it.
 
 The kiosk reads a private URL file based on [`kiosk.urls.example`](../configs/kiosk.urls.example). It needs a dedicated desktop browser session plus `xset` and `xdotool` for automatic rotation. See [the kiosk notes](apps/kiosk.md).
 

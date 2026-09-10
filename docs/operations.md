@@ -101,6 +101,18 @@ For a monitoring service, confirm that a monitor executes and records a result. 
 
 Restore the previously recorded Compose file, environment, image reference, and project name, then render the configuration before starting it. Restore persistent state only from a verified backup that matches the application/schema version. Do not start an older database image against a volume already migrated by a newer release unless the application's rollback procedure explicitly supports it.
 
+## Change container log retention
+
+NPM and the standard Dozzle agents default to three 10 MB `json-file` logs per container. Optional `DOCKER_LOG_MAX_SIZE` and `DOCKER_LOG_MAX_FILES` inputs override those limits. Docker discards older rotated logs beyond the configured count; preserve needed history first. Application log files and backups have separate retention.
+
+1. Back up the installed Compose/input files and save the affected container's logs with `docker logs`. For NPM, also make the consistent recovery set described below. Record the running image ID, mounts, project name, and current logging settings.
+2. Validate and stage the repository change. Compare the effective configurations without printing private values; only the intended logging settings should change. Preserve host-specific input files and verify the current image tag still resolves to the running image ID.
+3. Copy only the changed Compose and example-input files. Recreate only the affected service with `docker compose up -d --no-deps --pull never --no-build SERVICE`, using its existing project directory and project name. Apply the shared Dozzle agent template to every mapped agent host.
+4. Verify the running container's `HostConfig.LogConfig`, image ID, mounts, health, and fresh logs. For NPM, verify Nginx syntax, database records, public routes, and Fail2ban log access. For Dozzle, verify the central server can read the remote inventory and a log stream.
+5. Compare installed non-secret files with the staged files. If verification fails, preserve failure logs, restore the saved Compose/input files, and recreate the same service with the recorded image. A logging-only change does not require restoring application data.
+
+[Docker's logging documentation](https://docs.docker.com/engine/logging/drivers/json-file/) describes the limits and why restarting an existing container does not apply new logging settings.
+
 ## Diagnose a public URL
 
 Work from the client inward so each check rules out a layer.
@@ -183,6 +195,7 @@ For media failures, confirm that `/mnt/media2` and `/mnt/media3` are the intende
 | Vaultwarden | `/opt/vw/vw-data` plus private SMTP/domain settings | Quiesce writes or use a supported SQLite/database backup path |
 | Uptime Kuma | `/opt/kuma/uptime-kuma-data` | Quiesce or use a consistent SQLite copy; verify monitors and notification settings |
 | FBN | External `FBN_DATA_VOLUME`, source version, and private auth/config | Protect the browser profile and SQLite state; test that pending delivery state survives |
+| GitHub runner | `/opt/gh-runner/runner-config`, installed Compose/env, and labels | Protect the stored runner credentials; if they are unusable, register once with a new one-hour token and then remove it from the container configuration |
 | Home Assistant | Encrypted full backup containing configuration, apps, custom integrations, and Supervisor-managed state, plus the emergency kit stored separately | Use the built-in backup inventory to confirm completion; a backup on the same host does not protect against host or storage loss |
 | Media | `/mnt/media2`, `/mnt/media3`, Plex config, qBittorrent config, Gluetun state | Bulk media and app metadata are separate backup units; verify mounts before restore |
 | Pi-hole | `etc-pihole`, `etc-dnsmasq.d`, and private settings | Verify DNS resolution and custom records after restore |

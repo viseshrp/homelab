@@ -1,0 +1,26 @@
+{
+  "managed_in_ui": true,
+  "oauth": {
+    "application_type": "Web application",
+    "authorized_redirect_uri": "https://my.home-assistant.io/redirect/oauth",
+    "credentials": "Home Assistant application credentials and Google Cloud only",
+    "client_secrets": "private"
+  },
+  "integrations": {
+    "google_calendar": {
+      "credential_strategy": "dedicated client",
+      "required_api": "Google Calendar API"
+    },
+    "google_nest": {
+      "credential_strategy": "dedicated client",
+      "required_apis": [
+        "Smart Device Management API",
+        "Cloud Pub/Sub API"
+      ],
+      "cloud_project_id": "host-only",
+      "device_access_project_id": "host-only",
+      "pubsub_topic": "host-only",
+      "pubsub_subscription": "host-only"
+    }
+  }
+}

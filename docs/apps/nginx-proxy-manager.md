@@ -17,6 +17,8 @@ Nginx Proxy Manager is the shared HTTPS entry point for the public web applicati
 
 The Compose template also publishes UDP 51820. That port is not an HTTP proxy-host entry; document and verify its forwarding purpose separately.
 
+Docker stdout/stderr logs use `json-file` rotation, retaining three files of 10 MB each by default. Set `DOCKER_LOG_MAX_SIZE` and `DOCKER_LOG_MAX_FILES` in the installed `.env` to override those limits. These settings do not rotate Nginx access/error files under `data/logs`, which Fail2ban reads. Apply log-limit changes with the [log-retention procedure](../operations.md#change-container-log-retention).
+
 ## Observed proxy map
 
 The NPM UI displayed version 2.15.1 and these nine enabled rows during a read-only check on September 9, 2026. All used Let's Encrypt, the Public access-list setting, and an Online row status.
