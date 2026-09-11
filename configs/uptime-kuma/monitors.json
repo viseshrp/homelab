@@ -1,0 +1,286 @@
+{
+  "schema_version": 1,
+  "uptime_kuma_major": 1,
+  "description": "Sanitized, declarative source for the live Uptime Kuma monitors and public status page. reconcile.py resolves private host and domain inputs before auditing or applying it.",
+  "inputs": {
+    "public_domain_env": "UPTIME_KUMA_PUBLIC_DOMAIN",
+    "host_env": {
+      "optiplex": "UPTIME_KUMA_HOST_OPTIPLEX",
+      "rpiblog": "UPTIME_KUMA_HOST_RPIBLOG",
+      "rpihass": "UPTIME_KUMA_HOST_RPIHASS",
+      "rpihole": "UPTIME_KUMA_HOST_RPIHOLE",
+      "rpimon": "UPTIME_KUMA_HOST_RPIMON",
+      "rpinfs": "UPTIME_KUMA_HOST_RPINFS",
+      "rpiproxy": "UPTIME_KUMA_HOST_RPIPROXY",
+      "vpn-edge": "UPTIME_KUMA_HOST_VPN_EDGE"
+    }
+  },
+  "defaults": {
+    "active": true,
+    "interval_seconds": 60,
+    "retries": 3,
+    "retry_interval_seconds": 60,
+    "resend_interval_seconds": 0,
+    "timeout_seconds": 48,
+    "max_redirects": 10,
+    "ping_packet_size": 56,
+    "accepted_status_codes": [
+      "200-299"
+    ],
+    "http_expiry_notification": true,
+    "notification": "existing private default"
+  },
+  "previous_names": {
+    "Anki": [
+      "anki"
+    ],
+    "ArchiveBox": [
+      "archivebox"
+    ],
+    "Blog": [
+      "blog"
+    ],
+    "Dozzle": [
+      "dozzle"
+    ],
+    "File Browser - media2": [
+      "filebrowser"
+    ],
+    "Home Assistant": [
+      "hass"
+    ],
+    "Homebridge": [
+      "homebridge"
+    ],
+    "Homarr": [
+      "home"
+    ],
+    "Linkding": [
+      "links"
+    ],
+    "Nginx Proxy Manager": [
+      "npm"
+    ],
+    "Pi-hole Blocking": [
+      "pihole_dns_check",
+      "Pi-hole DNS"
+    ],
+    "Pi-hole Web": [
+      "pihole"
+    ],
+    "Plex": [
+      "plex"
+    ],
+    "Planka": [
+      "boards"
+    ],
+    "qBittorrent": [
+      "qbit"
+    ],
+    "Uptime Kuma": [
+      "status"
+    ],
+    "Vaultwarden": [
+      "pass"
+    ]
+  },
+  "status_page": {
+    "slug": "all",
+    "title": "falling rock",
+    "groups": [
+      {
+        "name": "Public services",
+        "monitors": [
+          "Uptime Kuma",
+          "Homarr",
+          "Blog",
+          "Anki",
+          "Plex",
+          "Vaultwarden",
+          "Home Assistant",
+          "Linkding",
+          "Planka"
+        ]
+      },
+      {
+        "name": "Hosts",
+        "monitors": [
+          "rpiproxy",
+          "rpimon",
+          "rpihole",
+          "rpiblog",
+          "rpihass",
+          "rpinfs",
+          "optiplex",
+          "vpn-edge"
+        ]
+      },
+      {
+        "name": "LAN services",
+        "monitors": [
+          "File Browser - media2",
+          "File Browser - media3",
+          "qBittorrent",
+          "Homebridge",
+          "Nginx Proxy Manager",
+          "Pi-hole Web",
+          "ArchiveBox",
+          "pywb",
+          "Dozzle",
+          "Firezone"
+        ]
+      },
+      {
+        "name": "Infrastructure",
+        "monitors": [
+          "Pi-hole Blocking"
+        ]
+      }
+    ]
+  },
+  "monitors": [
+    {
+      "name": "Anki",
+      "type": "http",
+      "target": "https://anki.example.com/health"
+    },
+    {
+      "name": "ArchiveBox",
+      "type": "port",
+      "target": "rpimon:8002"
+    },
+    {
+      "name": "Blog",
+      "type": "http",
+      "target": "https://www.example.com"
+    },
+    {
+      "name": "Dozzle",
+      "type": "port",
+      "target": "rpimon:8080"
+    },
+    {
+      "name": "File Browser - media2",
+      "type": "port",
+      "target": "optiplex:8080"
+    },
+    {
+      "name": "File Browser - media3",
+      "type": "port",
+      "target": "optiplex:8081"
+    },
+    {
+      "name": "Firezone",
+      "type": "port",
+      "target": "vpn-edge:13000"
+    },
+    {
+      "name": "Home Assistant",
+      "type": "http",
+      "target": "https://hass.example.com"
+    },
+    {
+      "name": "Homebridge",
+      "type": "port",
+      "target": "rpihass:8581"
+    },
+    {
+      "name": "Homarr",
+      "type": "http",
+      "target": "https://home.example.com"
+    },
+    {
+      "name": "Linkding",
+      "type": "http",
+      "target": "https://links.example.com"
+    },
+    {
+      "name": "Nginx Proxy Manager",
+      "type": "port",
+      "target": "rpiproxy:81"
+    },
+    {
+      "name": "Pi-hole Blocking",
+      "type": "dns",
+      "target": "rpihole:53",
+      "query": "device-metrics-us.amazon.com",
+      "record_type": "CNAME",
+      "expected_failure": true
+    },
+    {
+      "name": "Pi-hole Web",
+      "type": "port",
+      "target": "rpihole:80"
+    },
+    {
+      "name": "Plex",
+      "type": "http",
+      "target": "https://plex.example.com/web/index.html"
+    },
+    {
+      "name": "Planka",
+      "type": "http",
+      "target": "https://boards.example.com"
+    },
+    {
+      "name": "qBittorrent",
+      "type": "port",
+      "target": "optiplex:8085"
+    },
+    {
+      "name": "Uptime Kuma",
+      "type": "http",
+      "target": "https://status.example.com"
+    },
+    {
+      "name": "Vaultwarden",
+      "type": "http",
+      "target": "https://pass.example.com"
+    },
+    {
+      "name": "optiplex",
+      "type": "ping",
+      "target": "optiplex"
+    },
+    {
+      "name": "rpiblog",
+      "type": "ping",
+      "target": "rpiblog"
+    },
+    {
+      "name": "rpihass",
+      "type": "ping",
+      "target": "rpihass"
+    },
+    {
+      "name": "rpihole",
+      "type": "ping",
+      "target": "rpihole"
+    },
+    {
+      "name": "rpimon",
+      "type": "ping",
+      "target": "rpimon"
+    },
+    {
+      "name": "rpinfs",
+      "type": "ping",
+      "target": "rpinfs"
+    },
+    {
+      "name": "rpiproxy",
+      "type": "ping",
+      "target": "rpiproxy"
+    },
+    {
+      "name": "vpn-edge",
+      "type": "ping",
+      "target": "vpn-edge"
+    },
+    {
+      "name": "pywb",
+      "type": "port",
+      "target": "rpimon:8082"
+    }
+  ]
+}

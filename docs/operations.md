@@ -101,6 +101,18 @@ For a monitoring service, confirm that a monitor executes and records a result. 
 
 Restore the previously recorded Compose file, environment, image reference, and project name, then render the configuration before starting it. Restore persistent state only from a verified backup that matches the application/schema version. Do not start an older database image against a volume already migrated by a newer release unless the application's rollback procedure explicitly supports it.
 
+## Reconcile Uptime Kuma monitors
+
+The installed `/opt/kuma/reconcile.py` treats `/opt/kuma/monitors.json` as the declared monitor and public status-page state. It resolves sanitized host aliases and `example.com` targets from private `UPTIME_KUMA_*` values in `/opt/kuma/.env`. It requires one active Kuma user and one active default notification; it never exports or prints their credentials.
+
+1. Run `sudo python3 /opt/kuma/reconcile.py` and review `would_add`, `would_update`, `would_prune`, and the status-page result.
+2. Confirm the application database and installed files are in the backup scope shown below.
+3. Run `sudo python3 /opt/kuma/reconcile.py --apply --prune` to make the live set exactly match the policy. The script creates a root-only, checksummed SQLite backup before writing and refuses if the database changes between its audit and apply phases.
+4. Run the audit again. Require `changes_required=false`, then check all monitors have fresh results and the public status page reports the expected groups.
+5. If application verification fails, stop Kuma before replacing `uptime-kuma-data/kuma.db` from the printed backup path. Preserve the failed database first, start the same image, and verify monitors, groups, history, and notifications.
+
+Kuma's native JSON import/export is not the repository workflow. On installed version 1.23.17 it includes private notification configuration, omits public status-page groups, and offers an overwrite mode that deletes existing monitor history and notifications.
+
 ## Change container log retention
 
 NPM and the standard Dozzle agents default to three 10 MB `json-file` logs per container. Optional `DOCKER_LOG_MAX_SIZE` and `DOCKER_LOG_MAX_FILES` inputs override those limits. Docker discards older rotated logs beyond the configured count; preserve needed history first. Application log files and backups have separate retention.

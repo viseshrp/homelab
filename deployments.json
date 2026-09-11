@@ -147,7 +147,10 @@
     "host": "rpimon",
     "directory": "/opt/kuma",
     "compose": "docker-compose.yml",
-    "assets": {}
+    "assets": {
+      "configs/uptime-kuma/monitors.json": "monitors.json",
+      "configs/uptime-kuma/reconcile.py": "reconcile.py"
+    }
   },
   "vaultwarden": {
     "host": "rpiblog",

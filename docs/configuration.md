@@ -71,7 +71,7 @@ Compose derives default named-volume names from the project name. Changing the d
 | Dozzle | Remote agent endpoints and generated users file | `data/` and private authentication configuration |
 | Dozzle Agent | Per-host LAN bind address and display hostname | No application data; preserve installed Compose input for repeatable restarts |
 | Paperless | `docker-compose.env` with secret, URL, database/OCR/mail/consumer settings | `data`, `media`, `redisdata`, `consume`, and `export` |
-| Uptime Kuma | Installed image | `uptime-kuma-data/` |
+| Uptime Kuma | Installed image; declarative monitor policy and reconciler in `configs/uptime-kuma/` | `uptime-kuma-data/`; private notification details, public domain, and live addresses |
 
 ### Media, network, and home services
 
