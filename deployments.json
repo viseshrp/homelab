@@ -85,7 +85,8 @@
     "directory": "/opt/homarr",
     "compose": "docker-compose.yml",
     "assets": {
-      "configs/homarr/vis.json": "homarr/configs/vis.json",
+      "configs/homarr/vis.json": "homarr/templates/vis.json",
+      "configs/homarr/reconcile-board.py": "reconcile-board.py",
       "docker-compose/homarr/Dockerfile": "Dockerfile",
       "docker-compose/homarr/docker-compose.override.yml": "docker-compose.override.yml",
       "docker-compose/homarr/patch-qbittorrent-cookie.mjs": "patch-qbittorrent-cookie.mjs"

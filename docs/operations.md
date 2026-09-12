@@ -101,6 +101,12 @@ For a monitoring service, confirm that a monitor executes and records a result. 
 
 Restore the previously recorded Compose file, environment, image reference, and project name, then render the configuration before starting it. Restore persistent state only from a verified backup that matches the application/schema version. Do not start an older database image against a volume already migrated by a newer release unless the application's rollback procedure explicitly supports it.
 
+## Reconcile Falling Rock app tiles
+
+The sanitized Homarr board policy is installed as `/opt/homarr/homarr/templates/vis.json`; the private live board remains `/opt/homarr/homarr/configs/vis.json`. Before changing it, stop only Homarr and copy `homarr/configs`, `homarr/icons`, `homarr/data`, and the installed project files as one recovery unit. Validate the copied JSON and run SQLite `quick_check` against the copied database.
+
+While Homarr remains stopped, run `/opt/homarr/reconcile-board.py` with `--desired`, `--live`, and `--output` to create a candidate. The reconciler preserves existing URLs, integrations, widgets, and layout; compare those sections before atomically replacing the live board. Start Homarr, wait for a healthy container, and run the reconciler again with `--check`. Finally, load the public Falling Rock board and exercise every newly added public and LAN shortcut from inside the Homarr container.
+
 ## Migrate Uptime Kuma v1 to v2
 
 Uptime Kuma v2 rewrites and aggregates heartbeat history during its first start. Do not interrupt that migration. The official full image tag is `louislam/uptime-kuma:2`; the deprecated `latest` tag stays on v1, and the rootless variants are not recommended for an in-place v1 migration.
@@ -280,6 +286,7 @@ Application-level hardening is managed by `/opt/media-automation/manage_safety.p
 | Paperless | `data`, `media`, `redisdata`, `consume`, `export`, and private env | Use Paperless export tooling for a portable restore; Redis alone is not the document archive |
 | ArchiveBox | `/opt/archivebox/data` | Preserve snapshots, WARC files, and pywb indexes; verify replay after restore |
 | Vaultwarden | `/opt/vw/vw-data` plus private SMTP/domain settings | Quiesce writes or use a supported SQLite/database backup path |
+| Homarr | `/opt/homarr/homarr/configs`, `homarr/icons`, `homarr/data`, and installed project inputs | Stop Homarr; preserve private board URLs, widgets, integrations, credentials, and SQLite state together |
 | Uptime Kuma | `/opt/kuma/uptime-kuma-data` | Quiesce or use a consistent SQLite copy; verify monitors and notification settings |
 | ntfy | `/opt/ntfy/data`, private `.env`, and `mobile-subscription.txt` | Stop ntfy for a consistent copy; verify both SQLite databases, ACLs, public subscriptions, and Kuma delivery |
 | Scrutiny | `/opt/scrutiny/config`, `influxdb`, `influxdb-config`, and private `.env` | Quiesce web and InfluxDB together; collector state is replaceable, but its private device map and Kuma token must be preserved |

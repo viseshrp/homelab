@@ -58,7 +58,7 @@ Compose derives default named-volume names from the project name. Changing the d
 | Blog | Generated Hugo output from the separate source repository | `public/` is replaceable output; preserve local build files |
 | FBN | Source checkout, auth export, group, Apprise URL, external volume name | External `FBN_DATA_VOLUME`, including browser profile and SQLite state |
 | GitHub runner | Repository URL, one-time registration token, labels, work directory | `runner-config/` identity; protect runner credentials, Docker-socket access, and blog write access |
-| Homarr | Base URL, password, integration credentials | `homarr/configs`, `homarr/icons`, `homarr/data` |
+| Homarr | Base URL, password, integration credentials, live board URLs and layout | `homarr/configs`, `homarr/icons`, `homarr/data`; the sanitized board policy is installed separately under `homarr/templates` |
 | Linkding | Application settings in the private `.env` | Configured data directory |
 | Planka | `SECRET_KEY`, base URL, database URL | `data` and `db-data` volumes |
 | Vaultwarden | Domain, SMTP settings, installed image | `vw-data/` |
