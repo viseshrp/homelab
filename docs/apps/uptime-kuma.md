@@ -20,11 +20,13 @@ The container restarts automatically. Notification destinations remain private.
 
 The former Uptime Kuma 1.23.17 native JSON export was unsuitable for source control: it included private notification configuration and omitted status-page groups. Uptime Kuma v2 removes that deprecated backup/restore feature. The monitor and notification reconcilers commit only sanitized policy and resolve private inputs at runtime.
 
-All intended monitors are active. Public HTTP monitors cover the external route, while LAN port and ping monitors cover services and hosts that are not publicly routed. The inverted `Pi-hole Blocking` DNS monitor stays up only while Pi-hole rejects the documented telemetry hostname. Services without a running endpoint are omitted instead of remaining as disabled monitors.
+All intended monitors are active. Public HTTP monitors cover the external route, while LAN port and ping monitors cover services and hosts that are not publicly routed. The inverted `Pi-hole Blocking` DNS monitor stays up only while Pi-hole rejects the documented telemetry hostname. The Scrutiny collector uses a private push token and must report a successful scan within 25 hours. Services without a running endpoint are omitted instead of remaining as disabled monitors.
 
 The `:2` tag moves within the stable v2 release line. Record its platform-specific digest and application version before every pull. Major-version rollback requires restoring the entire quiesced pre-migration data directory before starting the recorded v1 image; never start v1 against a database migrated by v2.
 
 On September 11, 2026, `:2` resolved to Uptime Kuma 2.5.4 on ARM64. Before the v1-to-v2 cutover, the complete stopped v1 data directory and project inputs were copied to `/opt/kuma/backups/pre-v2-migration-20260912T022729Z` and verified with SQLite and SHA-256 checks. At the operator's direction, the working copy's heartbeat rows were removed before v2's first start; monitor, group, status-page, user, and notification records were retained. The v2 migration then reported no history to aggregate. All 29 monitors produced fresh successful results, both reconciliation audits were idempotent, and the direct endpoint, public status page, public Socket.IO handshake, and Kuma-to-ntfy delivery/readback passed. The full pre-migration backup remains the recovery source for the discarded history.
+
+On September 12, 2026, the Scrutiny hub port monitor and OptiPlex collector push monitor were added. The reconciler was updated for Kuma v2's required empty `conditions` field and per-monitor interval handling. Its final audit was idempotent, all 31 active monitors had a latest up result, and the collector heartbeat used the intended 90,000-second interval.
 
 ## Verify and recover
 

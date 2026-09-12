@@ -63,6 +63,7 @@ flowchart LR
         archivebox["ArchiveBox"] -->|"WARC files"| pywb["pywb replay"]
         kuma["Uptime Kuma"] -->|"write-only token"| ntfy["ntfy"]
         dozzle["Dozzle"] -->|"local socket / TLS agents :7007"| dockerHosts["Docker engines"]
+        scrutiny["Scrutiny"] --> scrutinyDb["InfluxDB 2.8"]
     end
 
     subgraph media["optiplex"]
@@ -73,6 +74,7 @@ flowchart LR
         reelname["Reelname"] --> mediaTrees
         mediaManagers["Radarr · Sonarr · Bazarr"] -->|"read-only binds"| mediaTrees
         seerr["Seerr<br/>request state only"]
+        scrutinyCollector["Scrutiny collector"] -->|"SMART + daily heartbeat"| scrutiny
         downloads --> mediaTrees
     end
 
@@ -97,7 +99,7 @@ State falls into four recovery classes.
 | --- | --- | --- |
 | Generated or replaceable | Blog `public/`, container images | Rebuild from source or pull the recorded image |
 | File-backed application state | Anki `data/`, Homarr `homarr/`, Linkding `data/`, Plex `config/`, media-automation app configs, Pi-hole directories | Preserve ownership and application compatibility; verify with the application after restore |
-| Live databases | Planka and Firezone PostgreSQL volumes; SQLite-backed NPM, ntfy, Vaultwarden, Uptime Kuma, File Browser, and FBN state | Use an application/database export or quiesce writes before copying; test a restore |
+| Live databases | Planka and Firezone PostgreSQL volumes; Scrutiny InfluxDB; SQLite-backed NPM, ntfy, Vaultwarden, Uptime Kuma, File Browser, and FBN state | Use an application/database export or quiesce writes before copying; test a restore |
 | Bulk user data | Paperless media, ArchiveBox captures, both media trees | Back up independently from container configuration; validate counts, hashes, and application indexing |
 
 Named Docker volumes depend on the Compose project name. Moving a project to a different directory or invoking Compose with a different project name can silently select a new empty volume. Bind-mounted directories depend on the same host paths remaining available.
@@ -115,6 +117,7 @@ The OptiPlex media trees couple Plex, qBittorrent, File Browser, Reelname, and t
 | Plex, Pi-hole, and the Homebridge HAOS app use host networking | Port collisions and host firewall rules apply directly to these containers. |
 | Gluetun, Firezone, and WG-Easy receive network capabilities | Their private keys and state are security-sensitive. Firezone and WG-Easy both default to UDP 51820 on `vpn-edge`, so they cannot bind that port at the same time. |
 | Media automation can normally modify or delete content | This deployment denies media writes with Docker read-only binds and omits qBittorrent, indexer, provider, and Seerr-to-Arr connections. Preserve that boundary while media changes are prohibited. |
+| The Scrutiny collector can issue raw disk commands | It receives only the required raw-I/O and NVMe capabilities and three explicit device mappings. Keep its UI private and do not add the Docker socket or filesystem mounts. |
 | Kuma and ntfy share one host and ingress path | An `rpimon`, NPM, Cloudflare, LAN, or power failure can stop both detection and delivery. Use an independent dead-man check when that failure class must page someone. |
 | Secrets live outside Git | Fresh `.env.example` files are incomplete by design and must never replace an installed environment during an update. |
 

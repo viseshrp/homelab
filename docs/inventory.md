@@ -13,6 +13,7 @@ This page answers four operational questions: which host owns a project, where i
 | Cloudflare API | Home Assistant tunnel, connector state, and DNS target | Live verification on September 10, 2026 |
 | Direct host/port probe | SSH and service reachability | Live verification on September 10, 2026 for `rpiproxy` to Home Assistant; other rows remain earlier snapshots |
 | Dozzle post-migration audit | Eight-host inventory, agent TLS, log streaming, and retired Docker API ports | Live verification on September 9, 2026 |
+| Scrutiny storage preflight | Block devices, mounts, SMART passthrough, health counters, and temperature | Live verification on September 12, 2026 |
 
 The NPM status below is not an application health check. “Online” is the state NPM displayed for an enabled proxy entry. Direct-port results are also snapshots, not continuous monitoring.
 
@@ -33,8 +34,8 @@ Private addresses are intentionally omitted here. The aliases `rpiblog`, `rpihas
 | --- | --- | --- |
 | `rpiproxy` | Ingress and blocking | [`npm`](apps/nginx-proxy-manager.md) → `/opt/nginx`; [`fail2ban`](apps/fail2ban.md) → `/opt/fail2ban`; [`cloudflared`](apps/cloudflare.md) → `/opt/cloudflared` |
 | `rpiblog` | Web apps and automation | [`blog`](apps/blog.md) → `/opt/blog`; [`gh-runner`](apps/github-runner.md) → `/opt/gh-runner`; [`anki`](apps/anki.md) → `/opt/anki`; [`planka`](apps/planka.md) → `/opt/planka`; [`linkding`](apps/linkding.md) → `/opt/linkding`; [`homarr`](apps/homarr.md) → `/opt/homarr`; [`vaultwarden`](apps/vaultwarden.md) → `/opt/vw`; [`fbn`](apps/fbn.md) → `/opt/fbn-compose` |
-| `rpimon` | Monitoring, notifications, documents, and archives | [`uptime-kuma`](apps/uptime-kuma.md) → `/opt/kuma`; [`ntfy`](apps/ntfy.md) → `/opt/ntfy`; [`dozzle`](apps/dozzle.md) → `/opt/dozzle`; [`archivebox`](apps/archivebox.md) → `/opt/archivebox`; [`paperless`](apps/paperless.md) → `/opt/paperless` |
-| `optiplex` | Media and downloads | [`plex`](apps/plex.md) → `/opt/plex`; [`qbit`](apps/qbittorrent.md) → `/opt/qbit`; [`media-automation`](apps/media-automation.md) → `/opt/media-automation`; [`filebrowser`](apps/filebrowser.md) → `/opt/filebrowser`; [Reelname](apps/reelname.md) is a host-installed CLI under `/opt/reelname` |
+| `rpimon` | Monitoring, notifications, documents, and archives | [`uptime-kuma`](apps/uptime-kuma.md) → `/opt/kuma`; [`ntfy`](apps/ntfy.md) → `/opt/ntfy`; [`dozzle`](apps/dozzle.md) → `/opt/dozzle`; [`scrutiny`](apps/scrutiny.md) → `/opt/scrutiny`; [`archivebox`](apps/archivebox.md) → `/opt/archivebox`; [`paperless`](apps/paperless.md) → `/opt/paperless` |
+| `optiplex` | Media and downloads | [`plex`](apps/plex.md) → `/opt/plex`; [`qbit`](apps/qbittorrent.md) → `/opt/qbit`; [`media-automation`](apps/media-automation.md) → `/opt/media-automation`; [`filebrowser`](apps/filebrowser.md) → `/opt/filebrowser`; [`scrutiny-collector`](apps/scrutiny.md) → `/opt/scrutiny-collector`; [Reelname](apps/reelname.md) is a host-installed CLI under `/opt/reelname` |
 | `rpihole` | DNS | [`pihole`](apps/pihole.md) → `/opt/pihole-docker` |
 | `rpihass` | Home automation | [Home Assistant](apps/home-assistant.md); [Homebridge](apps/homebridge.md) as a Supervisor-managed HAOS app, plus a retained standalone Compose fallback with no live project directory |
 | `rpinfs` | File transfer | [`ftp`](apps/ftp.md) → `/opt/ftp` |
@@ -75,6 +76,7 @@ Cloudflare Tunnel publishes `hass.<domain>` directly to `rpihass:8123` through t
 | `rpimon:3001` | Uptime Kuma | Also behind NPM |
 | `rpimon:2586` | ntfy | Private-LAN bind; also behind NPM |
 | `rpimon:8080` | Dozzle | Homarr direct link |
+| `rpimon:8083` | Scrutiny | Private SMART dashboard; no public proxy route |
 | `rpimon:8002` / `rpimon:8082` | ArchiveBox / pywb | Capture UI and WARC replay |
 | `rpimon:8000` | Paperless | Web interface |
 | `optiplex:32400` | Plex | Also behind NPM |

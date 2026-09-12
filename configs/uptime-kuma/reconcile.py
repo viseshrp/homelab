@@ -9,6 +9,7 @@ import ipaddress
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import sqlite3
 import subprocess
@@ -40,7 +41,7 @@ const CONFIG_COLUMNS = [
     "hostname", "port", "maxretries", "ignore_tls", "upside_down",
     "maxredirects", "accepted_statuscodes_json", "dns_resolve_type",
     "dns_resolve_server", "retry_interval", "method", "expiry_notification",
-    "resend_interval", "packet_size", "timeout"
+    "resend_interval", "packet_size", "timeout", "push_token"
 ];
 
 function stable(value) {
@@ -62,7 +63,7 @@ function desiredFields(monitor, defaults) {
         name: monitor.name,
         active: defaults.active ? 1 : 0,
         type,
-        interval: defaults.interval_seconds,
+        interval: monitor.interval_seconds ?? defaults.interval_seconds,
         maxretries: defaults.retries,
         retry_interval: defaults.retry_interval_seconds,
         resend_interval: defaults.resend_interval_seconds,
@@ -74,6 +75,7 @@ function desiredFields(monitor, defaults) {
         packet_size: defaults.ping_packet_size,
         maxredirects: defaults.max_redirects,
         accepted_statuscodes_json: JSON.stringify(defaults.accepted_status_codes),
+        push_token: type === "push" ? monitor.push_token : null,
     };
     if (type === "http") fields.url = monitor.url;
     if (["port", "ping"].includes(type)) fields.hostname = monitor.hostname;
@@ -205,7 +207,7 @@ function buildPlan(state) {
 function updateMonitorObject(current, desired, defaults, notificationID) {
     current.name = desired.name;
     current.type = desired.type;
-    current.interval = defaults.interval_seconds;
+    current.interval = desired.interval_seconds ?? defaults.interval_seconds;
     current.maxretries = defaults.retries;
     current.retryInterval = defaults.retry_interval_seconds;
     current.resendInterval = defaults.resend_interval_seconds;
@@ -218,6 +220,7 @@ function updateMonitorObject(current, desired, defaults, notificationID) {
     current.maxredirects = defaults.max_redirects;
     current.accepted_statuscodes = defaults.accepted_status_codes;
     current.notificationIDList = { [notificationID]: true };
+    current.pushToken = desired.type === "push" ? desired.push_token : null;
     current.url = desired.type === "http" ? desired.url : null;
     current.hostname = ["port", "ping"].includes(desired.type) ? desired.hostname : null;
     current.port = desired.type === "port" ? desired.port : null;
@@ -251,6 +254,8 @@ function newMonitor(desired, defaults, notificationID) {
         proxyId: null,
         kafkaProducerBrokers: [],
         kafkaProducerSaslOptions: {},
+        rabbitmqNodes: [],
+        conditions: [],
         active: true,
     }, desired, defaults, notificationID);
 }
@@ -402,12 +407,18 @@ def validate_policy(policy):
             if old in identities:
                 raise ValueError(f'duplicate current or previous monitor name: {old}')
             identities.add(old)
-    allowed_types = {'http', 'port', 'ping', 'dns'}
+    allowed_types = {'http', 'port', 'ping', 'dns', 'push'}
     for monitor in monitors:
         monitor_type = monitor.get('type')
         if monitor_type not in allowed_types:
             raise ValueError(f"{monitor['name']}: unsupported type {monitor_type!r}")
-        if not isinstance(monitor.get('target'), str) or not monitor['target']:
+        if monitor_type == 'push':
+            if not isinstance(monitor.get('push_token_env'), str) or not monitor['push_token_env']:
+                raise ValueError(f"{monitor['name']}: push_token_env is required")
+            interval = monitor.get('interval_seconds')
+            if not isinstance(interval, int) or interval < 60:
+                raise ValueError(f"{monitor['name']}: interval_seconds must be at least 60")
+        elif not isinstance(monitor.get('target'), str) or not monitor['target']:
             raise ValueError(f"{monitor['name']}: target is required")
         if monitor_type == 'dns':
             for field in ('query', 'record_type', 'expected_failure'):
@@ -462,6 +473,13 @@ def resolve_policy(policy, environment, allow_placeholders=False):
             raise ValueError(f'refusing placeholder {env_name}')
         hosts[logical] = value
     for monitor in resolved['monitors']:
+        if monitor['type'] == 'push':
+            env_name = monitor.pop('push_token_env')
+            token = require_env(environment, env_name)
+            if not re.fullmatch(r'[A-Za-z0-9_-]{32,128}', token):
+                raise ValueError(f'{env_name} must be a URL-safe token')
+            monitor['push_token'] = token
+            continue
         target = monitor.pop('target')
         if monitor['type'] == 'http':
             parts = urlsplit(target)
@@ -502,6 +520,10 @@ def redact(text, environment, policy):
     sensitive = []
     inputs = policy.get('inputs', {})
     keys = [inputs.get('public_domain_env')] + list(inputs.get('host_env', {}).values())
+    keys.extend(
+        monitor.get('push_token_env')
+        for monitor in policy.get('monitors', [])
+        if monitor.get('type') == 'push')
     for key in keys:
         if key and environment.get(key):
             sensitive.append(environment[key])

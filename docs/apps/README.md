@@ -22,6 +22,7 @@ The pages in this directory document how each service fits this lab: deployment 
 | Application | Host | Access | Durable state |
 | --- | --- | --- | --- |
 | [Dozzle](dozzle.md) | `rpimon` | LAN port 8080 | `data/`; private users and remote-source settings |
+| [Scrutiny](scrutiny.md) | `rpimon` hub; `optiplex` collector | LAN port 8083 | SQLite settings, InfluxDB metrics, private ntfy and Kuma tokens |
 | [Paperless-ngx](paperless.md) | `rpimon` | LAN port 8000 | Data/media volumes, consume/export directories |
 | [ArchiveBox](archivebox.md) and [pywb](pywb.md) | `rpimon` | LAN ports 8002/8082 | Shared `data/` capture tree |
 | [File Browser](filebrowser.md) | `optiplex` | LAN ports 8080/8081 | Separate databases/settings plus media trees |
@@ -38,6 +39,7 @@ The pages in this directory document how each service fits this lab: deployment 
 | Component | Parent stack | Job |
 | --- | --- | --- |
 | [Dozzle Agent](dozzle.md) | Docker hosts | Sends container metadata and logs to the central Dozzle server over TLS |
+| [Scrutiny collector](scrutiny.md) | OptiPlex storage host | Reads declared SMART devices and reports collection liveness to Kuma |
 | [GitHub Actions runner](github-runner.md) | Blog | Builds Hugo and writes generated output to `/opt/blog` |
 | [FBN](fbn.md) | Standalone on `rpiblog` | Monitors a Facebook group and queues Apprise deliveries |
 | [PostgreSQL](postgresql.md) | Planka and Firezone | Application databases on isolated Compose networks |

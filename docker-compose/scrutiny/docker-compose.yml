@@ -1,0 +1,74 @@
+services:
+  influxdb:
+    image: "${SCRUTINY_INFLUXDB_IMAGE:?Set SCRUTINY_INFLUXDB_IMAGE to the intended InfluxDB image}"
+    container_name: scrutiny-influxdb
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: "${SCRUTINY_INFLUXDB_USERNAME:?Set the private InfluxDB username}"
+      DOCKER_INFLUXDB_INIT_PASSWORD: "${SCRUTINY_INFLUXDB_PASSWORD:?Set the private InfluxDB password}"
+      DOCKER_INFLUXDB_INIT_ORG: "${SCRUTINY_INFLUXDB_ORG:-homelab}"
+      DOCKER_INFLUXDB_INIT_BUCKET: "${SCRUTINY_INFLUXDB_BUCKET:-scrutiny}"
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: "${SCRUTINY_INFLUXDB_TOKEN:?Set the private InfluxDB token}"
+      TZ: "${TZ:?Set TZ}"
+    volumes:
+      - ./influxdb:/var/lib/influxdb2
+      - ./influxdb-config:/etc/influxdb2
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - --fail
+        - --silent
+        - http://127.0.0.1:8086/health
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "${DOCKER_LOG_MAX_SIZE:-10m}"
+        max-file: "${DOCKER_LOG_MAX_FILES:-3}"
+    restart: unless-stopped
+
+  web:
+    image: "${SCRUTINY_WEB_IMAGE:?Set SCRUTINY_WEB_IMAGE to the intended Scrutiny web image}"
+    container_name: scrutiny-web
+    environment:
+      SCRUTINY_WEB_INFLUXDB_HOST: influxdb
+      SCRUTINY_WEB_INFLUXDB_PORT: "8086"
+      SCRUTINY_WEB_INFLUXDB_TOKEN: "${SCRUTINY_INFLUXDB_TOKEN:?Set the private InfluxDB token}"
+      SCRUTINY_WEB_INFLUXDB_ORG: "${SCRUTINY_INFLUXDB_ORG:-homelab}"
+      SCRUTINY_WEB_INFLUXDB_BUCKET: "${SCRUTINY_INFLUXDB_BUCKET:-scrutiny}"
+      SCRUTINY_NOTIFY_URLS: "${SCRUTINY_NTFY_URL:?Set the private ntfy Shoutrrr URL}"
+      TZ: "${TZ:?Set TZ}"
+    ports:
+      - "${SCRUTINY_BIND_IP:?Set the private LAN bind address}:${SCRUTINY_HTTP_PORT:-8083}:8080"
+    volumes:
+      - ./config:/opt/scrutiny/config
+    depends_on:
+      influxdb:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - --fail
+        - --silent
+        - http://127.0.0.1:8080/api/health
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "${DOCKER_LOG_MAX_SIZE:-10m}"
+        max-file: "${DOCKER_LOG_MAX_FILES:-3}"
+    restart: unless-stopped

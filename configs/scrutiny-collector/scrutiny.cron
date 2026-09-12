@@ -1,0 +1,5 @@
+MAILTO=""
+
+# The container entrypoint replaces the placeholder with the configured schedule.
+# Runtime variables are captured in /env.sh before cron starts.
+{COLLECTOR_CRON_SCHEDULE} root . /env.sh; /opt/scrutiny/bin/collector-run.sh >/proc/1/fd/1 2>/proc/1/fd/2

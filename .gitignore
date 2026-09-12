@@ -47,6 +47,9 @@ __pycache__/
 /docker-compose/plex/tv/
 /docker-compose/qbit/gluetun-data/
 /docker-compose/qbit/qbit-data/
+/docker-compose/scrutiny/config/
+/docker-compose/scrutiny/influxdb/
+/docker-compose/scrutiny/influxdb-config/
 /docker-compose/uptime-kuma/uptime-kuma-data/
 /docker-compose/vaultwarden/vw-data/
 

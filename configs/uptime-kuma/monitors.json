@@ -128,13 +128,15 @@
           "ArchiveBox",
           "pywb",
           "Dozzle",
+          "Scrutiny",
           "Firezone"
         ]
       },
       {
         "name": "Infrastructure",
         "monitors": [
-          "Pi-hole Blocking"
+          "Pi-hole Blocking",
+          "Scrutiny collector - optiplex"
         ]
       }
     ]
@@ -232,6 +234,17 @@
       "name": "qBittorrent",
       "type": "port",
       "target": "optiplex:8085"
+    },
+    {
+      "name": "Scrutiny",
+      "type": "port",
+      "target": "rpimon:8083"
+    },
+    {
+      "name": "Scrutiny collector - optiplex",
+      "type": "push",
+      "push_token_env": "UPTIME_KUMA_SCRUTINY_PUSH_TOKEN",
+      "interval_seconds": 90000
     },
     {
       "name": "Uptime Kuma",

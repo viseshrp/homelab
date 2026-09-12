@@ -186,6 +186,23 @@ class ScrutinyConfigurationTests(unittest.TestCase):
             self.assertIn('scrutiny-publisher:tk_', updated)
             self.assertIn('@ntfy.example.com/' + topic, output_path.read_text())
 
+    def test_collector_uses_explicit_devices_and_reports_to_kuma(self):
+        compose = (ROOT / 'docker-compose/scrutiny-collector/docker-compose.yml').read_text()
+        runner = (ROOT / 'configs/scrutiny-collector/collector-run.sh').read_text()
+        self.assertIn('SCRUTINY_DEVICE_MEDIA2', compose)
+        self.assertIn('SCRUTINY_DEVICE_MEDIA3', compose)
+        self.assertIn('SYS_RAWIO', compose)
+        self.assertIn('SYS_ADMIN', compose)
+        self.assertIn('/api/push/${KUMA_PUSH_TOKEN}', runner)
+        self.assertNotIn('printf \'%s\\n\' "$push_path"', runner)
+
+    def test_kuma_v2_push_monitor_uses_its_interval_and_required_defaults(self):
+        reconciler = (ROOT / 'configs/uptime-kuma/reconcile.py').read_text()
+        self.assertIn(
+            'current.interval = desired.interval_seconds ?? defaults.interval_seconds;',
+            reconciler)
+        self.assertIn('rabbitmqNodes: [],', reconciler)
+        self.assertIn('conditions: [],', reconciler)
 
 
 class FirewallTests(unittest.TestCase):

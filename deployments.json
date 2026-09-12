@@ -161,6 +161,21 @@
     "compose": "docker-compose.yml",
     "assets": {}
   },
+  "scrutiny": {
+    "host": "rpimon",
+    "directory": "/opt/scrutiny",
+    "compose": "docker-compose.yml",
+    "assets": {}
+  },
+  "scrutiny-collector": {
+    "host": "optiplex",
+    "directory": "/opt/scrutiny-collector",
+    "compose": "docker-compose.yml",
+    "assets": {
+      "configs/scrutiny-collector/collector-run.sh": "collector-run.sh",
+      "configs/scrutiny-collector/scrutiny.cron": "scrutiny.cron"
+    }
+  },
   "uptime-kuma": {
     "host": "rpimon",
     "directory": "/opt/kuma",

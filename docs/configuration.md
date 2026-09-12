@@ -71,6 +71,8 @@ Compose derives default named-volume names from the project name. Changing the d
 | Dozzle | Remote agent endpoints and generated users file | `data/` and private authentication configuration |
 | Dozzle Agent | Per-host LAN bind address and display hostname | No application data; preserve installed Compose input for repeatable restarts |
 | Paperless | `docker-compose.env` with secret, URL, database/OCR/mail/consumer settings | `data`, `media`, `redisdata`, `consume`, and `export` |
+| Scrutiny hub | Private LAN bind, InfluxDB credentials, pinned images, and token-only ntfy URL | `config/`, `influxdb/`, `influxdb-config/` |
+| Scrutiny collector | Hub endpoint, stable whole-device paths, host label, schedule, and Kuma push token | No application data; preserve the private device map and token |
 | Uptime Kuma | Moving `:2` image tag; declarative monitor policy and reconciler in `configs/uptime-kuma/` | `uptime-kuma-data/`; private notification details, public domain, and live addresses |
 | ntfy | Moving `latest` image tag, public base URL, LAN bind address, UID/GID, cache duration, bcrypt user hashes, ACLs, and separate Kuma/Scrutiny tokens | `data/`; mobile password, topic, auth database, and message cache |
 
@@ -154,6 +156,6 @@ python3 scripts/check.py
 python3 -m unittest discover -s tests
 ```
 
-The checker uses dummy values to render all 26 Compose projects in temporary directories. It checks shell/Python syntax, JSON, YAML, and local Markdown links. It does not contact hosts, start containers, build images, or inspect private installed configuration.
+The checker uses dummy values to render all 28 Compose projects in temporary directories. It checks shell/Python syntax, JSON, YAML, and local Markdown links. It does not contact hosts, start containers, build images, or inspect private installed configuration.
 
 [Back to homelab](../README.md)

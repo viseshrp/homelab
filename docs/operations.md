@@ -137,6 +137,18 @@ The installed `/opt/kuma/reconcile-notification.py` treats `/opt/kuma/notificati
 
 The provider test proves the complete Kuma-to-ntfy path. It does not prove delivery during an `rpimon`, NPM, Cloudflare, LAN, or power outage because both applications and the public route share those failure domains.
 
+## Monitor physical drives with Scrutiny
+
+Scrutiny is split between `/opt/scrutiny` on `rpimon` and `/opt/scrutiny-collector` on `optiplex`. The hub is private on port 8083. The collector has raw access only to the declared whole disks and reports one liveness heartbeat to Kuma after each successful collection.
+
+1. On the storage host, run `smartctl --scan-open` with the same container image, capabilities, and device mappings intended for the collector. Require every expected drive to appear and record only sanitized health, temperature, and critical-counter results.
+2. Prepare and validate both repository projects. Generate independent InfluxDB, ntfy, and Kuma values in private environments; map USB drives through stable `/dev/disk/by-id` paths rather than mutable `/dev/sdX` names.
+3. Start the hub first. Require healthy web and InfluxDB containers and a successful `/api/health` response before starting the collector.
+4. Start the collector and inspect its first scan. Require three registered OptiPlex drives, a recent `last-success` marker, healthy container state, and a fresh successful Kuma push heartbeat.
+5. Trigger Scrutiny's notification test, read it through the mobile subscriber, and verify the publisher ACL matrix. Re-run both Kuma reconciliation audits and verify the public status page includes the hub and collector monitors.
+
+Scrutiny collection does not start SMART self-tests or scrub a filesystem. Schedule active tests only after checking drive temperature and supported test types. The current NTFS media volumes have no Linux online scrub equivalent; use completed long SMART tests and an appropriate offline filesystem check after thermal remediation. Raspberry Pi microSD media has no standard SMART interface.
+
 ## Change container log retention
 
 NPM and the standard Dozzle agents default to three 10 MB `json-file` logs per container. Optional `DOCKER_LOG_MAX_SIZE` and `DOCKER_LOG_MAX_FILES` inputs override those limits. Docker discards older rotated logs beyond the configured count; preserve needed history first. Application log files and backups have separate retention.
@@ -270,6 +282,7 @@ Application-level hardening is managed by `/opt/media-automation/manage_safety.p
 | Vaultwarden | `/opt/vw/vw-data` plus private SMTP/domain settings | Quiesce writes or use a supported SQLite/database backup path |
 | Uptime Kuma | `/opt/kuma/uptime-kuma-data` | Quiesce or use a consistent SQLite copy; verify monitors and notification settings |
 | ntfy | `/opt/ntfy/data`, private `.env`, and `mobile-subscription.txt` | Stop ntfy for a consistent copy; verify both SQLite databases, ACLs, public subscriptions, and Kuma delivery |
+| Scrutiny | `/opt/scrutiny/config`, `influxdb`, `influxdb-config`, and private `.env` | Quiesce web and InfluxDB together; collector state is replaceable, but its private device map and Kuma token must be preserved |
 | FBN | External `FBN_DATA_VOLUME`, source version, and private auth/config | Protect the browser profile and SQLite state; test that pending delivery state survives |
 | GitHub runner | `/opt/gh-runner/runner-config`, installed Compose/env, and labels | Protect the stored runner credentials; if they are unusable, register once with a new one-hour token and then remove it from the container configuration |
 | Home Assistant | Encrypted full backup containing configuration, apps, custom integrations, and Supervisor-managed state, plus the emergency kit stored separately | Use the built-in backup inventory to confirm completion; a backup on the same host does not protect against host or storage loss |

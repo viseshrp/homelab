@@ -2,7 +2,7 @@
 
 This repository is the public, sanitized control plane for my homelab: Docker Compose templates, supporting configuration, deployment metadata, validation tools, and operating notes. Private `.env` files, credentials, live application databases, and host-specific state stay outside Git.
 
-The lab currently maps 26 Compose projects to eight deployment hosts. Public web traffic enters through Nginx Proxy Manager or the dedicated Home Assistant Cloudflare Tunnel; storage-heavy media services live on the OptiPlex; web apps and automation share `rpiblog`; monitoring, notifications, archives, and document services share `rpimon`.
+The lab currently maps 28 Compose projects to eight deployment hosts. Public web traffic enters through Nginx Proxy Manager or the dedicated Home Assistant Cloudflare Tunnel; storage-heavy media services live on the OptiPlex; web apps and automation share `rpiblog`; monitoring, notifications, archives, and document services share `rpimon`.
 
 ## System map
 
@@ -14,7 +14,7 @@ flowchart LR
     subgraph hosts["Application hosts"]
         web["rpiblog<br/>Hugo / Nginx · Homarr · Anki<br/>Vaultwarden · Linkding<br/>Planka + PostgreSQL (TCP)<br/>FBN · GitHub Actions runner (HTTPS)"]
         media["optiplex<br/>Plex · File Browser ×2<br/>qBittorrent + Gluetun<br/>Radarr · Sonarr · Seerr · Bazarr<br/>Reelname (CLI)"]
-        monitor["rpimon<br/>Uptime Kuma · ntfy · Dozzle<br/>ArchiveBox · pywb<br/>Paperless + Redis (TCP)<br/>Tika · Gotenberg (HTTP)"]
+        monitor["rpimon<br/>Uptime Kuma · ntfy · Dozzle · Scrutiny<br/>ArchiveBox · pywb<br/>Paperless + Redis (TCP)<br/>Tika · Gotenberg (HTTP)"]
         vpn["vpn-edge<br/>Firezone + PostgreSQL (TCP)<br/>WG-Easy<br/>WireGuard / UDP 51820"]
     end
 
@@ -52,8 +52,8 @@ Nginx Proxy Manager currently lists ten enabled HTTPS proxy entries: nine subdom
 | --- | --- | --- |
 | `rpiproxy` | Public ingress and request blocking | Nginx Proxy Manager, cloudflared, Fail2ban, Cloudflare ban integration |
 | `rpiblog` | Public web apps and automation | Blog, Homarr, Anki, Planka/PostgreSQL, Linkding, Vaultwarden, FBN, GitHub runner |
-| `rpimon` | Monitoring, notifications, documents, and web archives | Uptime Kuma, ntfy, Dozzle, Paperless/Redis/Tika/Gotenberg, ArchiveBox/pywb |
-| `optiplex` | Media storage and download traffic | Plex, qBittorrent/Gluetun, read-only Radarr/Sonarr/Seerr/Bazarr stack, two File Browser instances, Reelname |
+| `rpimon` | Monitoring, notifications, documents, and web archives | Uptime Kuma, ntfy, Dozzle, Scrutiny/InfluxDB, Paperless/Redis/Tika/Gotenberg, ArchiveBox/pywb |
+| `optiplex` | Media storage and download traffic | Plex, qBittorrent/Gluetun, Scrutiny collector, read-only Radarr/Sonarr/Seerr/Bazarr stack, two File Browser instances, Reelname |
 | `rpihole` | LAN DNS | Pi-hole |
 | `rpihass` | Home automation | Home Assistant, Homebridge |
 | `rpinfs` | File transfer | FTP service backed by a media mount |
