@@ -78,6 +78,11 @@ flowchart LR
         firezone["Firezone"] --> firezoneDb["PostgreSQL 15"]
         wgeasy["WG-Easy"]
     end
+
+    subgraph automation["rpihass"]
+        ringPlugin["Homebridge Ring child bridge"] -->|"local HAP / mDNS"| homeAssistant["Home Assistant HomeKit Device"]
+        homebridge["Homebridge main bridge"] -->|"local HAP / mDNS"| homeAssistant
+    end
 ```
 
 Compose networks keep both PostgreSQL containers, Redis, Tika, and Gotenberg off host ports. qBittorrent is different: it joins Gluetun's network namespace, so Gluetun publishes the qBittorrent web and torrent ports.

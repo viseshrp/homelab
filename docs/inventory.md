@@ -97,7 +97,7 @@ Cloudflare Tunnel publishes `hass.<domain>` directly to `rpihass:8123` through t
 
 ## Reachability snapshot
 
-The September 9 direct probe produced these results, with ntfy rechecked on September 11. “Refused” means the host answered but nothing accepted the connection on that port; “timeout” means the check received no answer within its bound.
+The September 9 direct probe produced these results, with the `rpihass` application ports rechecked on September 10 and ntfy rechecked on September 11. “Refused” means the host answered but nothing accepted the connection on that port; “timeout” means the check received no answer within its bound.
 
 | Host | SSH | Application result |
 | --- | --- | --- |
@@ -108,7 +108,7 @@ The September 9 direct probe produced these results, with ntfy rechecked on Sept
 | `rpihole` | Connected | DNS TCP 53 and web port 80 answered |
 | `rpinfs` | Connected | FTP 21 refused |
 | `vpn-edge` | Connected | Firezone 13000 returned HTTP 200; WG-Easy 51821 refused |
-| `rpihass` | Refused | Home Assistant 8123 answered; Homebridge 8581 refused |
+| `rpihass` | Connected | Home Assistant 8123 and Homebridge 8581 answered on 2026-09-10 |
 
 The [operations runbook](operations.md#diagnose-a-public-url) starts with the public route, then checks NPM, the backend port, the Compose project, and persistent storage in that order.
 

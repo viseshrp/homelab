@@ -15,8 +15,23 @@
   },
   "network": {
     "mode": "host",
+    "mdns_advertiser": "ciao",
     "ui_port": 8581,
     "public_route": false
+  },
+  "plugins": [
+    {
+      "name": "homebridge-ring",
+      "version": "14.3.0",
+      "bridge_mode": "child"
+    }
+  ],
+  "home_assistant_connection": {
+    "integration": "HomeKit Device",
+    "transport": "local HAP over the LAN",
+    "pair_main_bridge": true,
+    "pair_child_bridges_separately": true,
+    "pairing_credentials": "host-only"
   },
   "storage": {
     "container_path": "/homebridge",
