@@ -101,6 +101,18 @@ For a monitoring service, confirm that a monitor executes and records a result. 
 
 Restore the previously recorded Compose file, environment, image reference, and project name, then render the configuration before starting it. Restore persistent state only from a verified backup that matches the application/schema version. Do not start an older database image against a volume already migrated by a newer release unless the application's rollback procedure explicitly supports it.
 
+## Migrate Uptime Kuma v1 to v2
+
+Uptime Kuma v2 rewrites and aggregates heartbeat history during its first start. Do not interrupt that migration. The official full image tag is `louislam/uptime-kuma:2`; the deprecated `latest` tag stays on v1, and the rootless variants are not recommended for an in-place v1 migration.
+
+1. Confirm the target host is not Debian/Raspbian Buster, the `:2` manifest supports its architecture, the current monitor/notification audits are clean, and enough free space exists for two full copies of `uptime-kuma-data/` plus the new image.
+2. Record the v1 application version, immutable image ID/digest, Compose project name, file checksums, database counts, and latest heartbeat. Stop only Uptime Kuma, checkpoint and validate SQLite, then copy the complete project inputs and data directory to a timestamped root-only backup with a SHA-256 manifest.
+3. Update the installed private image input to `louislam/uptime-kuma:2`, validate Compose without printing its rendered output, pull the image, and recreate only the Uptime Kuma service. Watch logs until the migration and server startup finish; do not interrupt or restart it while migration is active.
+4. Require SQLite `quick_check=ok`, the expected monitor/notification/status-page counts, preserved heartbeat history, a fresh result from every monitor, an idempotent monitor audit, and an idempotent notification audit. Send and read one ntfy test message, then verify the direct LAN endpoint and public HTTPS/status-page route.
+5. If migration or verification fails, stop v2 and preserve its failed data directory. Restore the complete quiesced backup and recorded Compose/input files, then start the recorded v1 image. Never point v1 at the migrated v2 database.
+
+If the operator explicitly chooses to discard heartbeat history, first complete and verify the full quiesced backup in step 2. While Kuma remains stopped, create a replacement database from that stopped copy, delete only the `heartbeat` rows, run `VACUUM` and `quick_check`, and verify all non-history object counts before atomically replacing the working database. Retain the untouched backup. On first v2 start, require `No data to migrate` in the migration log and a new successful result from every active monitor. This is an opt-in shortcut, not the default migration path.
+
 ## Reconcile Uptime Kuma monitors
 
 The installed `/opt/kuma/reconcile.py` treats `/opt/kuma/monitors.json` as the declared monitor and public status-page state. It resolves sanitized host aliases and `example.com` targets from private `UPTIME_KUMA_*` values in `/opt/kuma/.env`. It requires one active Kuma user and one active default notification; it never exports or prints their credentials.
@@ -111,7 +123,7 @@ The installed `/opt/kuma/reconcile.py` treats `/opt/kuma/monitors.json` as the d
 4. Run the audit again. Require `changes_required=false`, then check all monitors have fresh results and the public status page reports the expected groups.
 5. If application verification fails, stop Kuma before replacing `uptime-kuma-data/kuma.db` from the printed backup path. Preserve the failed database first, start the same image, and verify monitors, groups, history, and notifications.
 
-Kuma's native JSON import/export is not the repository workflow. On installed version 1.23.17 it includes private notification configuration, omits public status-page groups, and offers an overwrite mode that deletes existing monitor history and notifications.
+Kuma's native JSON import/export is not the repository workflow. The former v1 export included private notification configuration, omitted public status-page groups, and offered an overwrite mode that deleted existing monitor history and notifications. Uptime Kuma v2 removes the deprecated JSON backup/restore feature.
 
 ## Reconcile Uptime Kuma notifications with ntfy
 

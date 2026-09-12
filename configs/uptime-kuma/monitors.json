@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "uptime_kuma_major": 1,
+  "uptime_kuma_major": 2,
   "description": "Sanitized, declarative source for the live Uptime Kuma monitors and public status page. reconcile.py resolves private host and domain inputs before auditing or applying it.",
   "inputs": {
     "public_domain_env": "UPTIME_KUMA_PUBLIC_DOMAIN",

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "uptime_kuma_major": 1,
+  "uptime_kuma_major": 2,
   "description": "Sanitized policy for the private self-hosted ntfy notification used by every Uptime Kuma monitor.",
   "name": "ntfy",
   "type": "ntfy",

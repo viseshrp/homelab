@@ -93,7 +93,10 @@
       "host": "rpimon",
       "port": 3001,
       "certificate": "Lets Encrypt",
-      "access_list": "Public"
+      "access_list": "Public",
+      "force_ssl": true,
+      "http2": true,
+      "websockets": true
     },
     {
       "domains": [

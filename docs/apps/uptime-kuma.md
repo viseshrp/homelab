@@ -4,7 +4,7 @@ Uptime Kuma checks service availability and provides a web interface for monitor
 
 ## My setup
 
-Kuma runs on `rpimon` from `/opt/kuma`. The repository and installed environment use `louislam/uptime-kuma:latest`, and the container publishes port 3001. Uptime Kuma's [Docker tag documentation](https://github.com/louislam/uptime-kuma/wiki/Docker-Tags) marks this tag deprecated and keeps it on v1; upgrading to v2 requires the separate `:2` tag and the [official migration procedure](https://github.com/louislam/uptime-kuma/wiki/Migration-From-v1-To-v2).
+Kuma runs on `rpimon` from `/opt/kuma`. The repository and installed environment use the recommended moving v2 tag, `louislam/uptime-kuma:2`, and the container publishes port 3001. Uptime Kuma's deprecated `latest` tag remains on v1. A v1 installation must follow the [official v2 migration procedure](https://github.com/louislam/uptime-kuma/wiki/Migration-From-v1-To-v2) before adopting `:2`.
 
 Nginx Proxy Manager forwards the `status` HTTPS hostname to `rpimon:3001`. Homarr includes a shortcut to it.
 
@@ -18,11 +18,13 @@ The container restarts automatically. Notification destinations remain private.
 
 [`notification.json`](../../configs/uptime-kuma/notification.json) and [`reconcile-notification.py`](../../configs/uptime-kuma/reconcile-notification.py) declare the provider shape without its private server, topic, or token. The installed default is the built-in ntfy provider with token authentication. It is applied to every monitor; the earlier Gmail/Apprise destination is removed after a successful test delivery.
 
-The installed Uptime Kuma 1.23.17 native JSON export is unsuitable for source control: it includes private notification configuration and does not include status-page groups. Do not commit a native export. The monitor and notification reconcilers commit only sanitized policy and resolve private inputs at runtime.
+The former Uptime Kuma 1.23.17 native JSON export was unsuitable for source control: it included private notification configuration and omitted status-page groups. Uptime Kuma v2 removes that deprecated backup/restore feature. The monitor and notification reconcilers commit only sanitized policy and resolve private inputs at runtime.
 
 All intended monitors are active. Public HTTP monitors cover the external route, while LAN port and ping monitors cover services and hosts that are not publicly routed. The inverted `Pi-hole Blocking` DNS monitor stays up only while Pi-hole rejects the documented telemetry hostname. Services without a running endpoint are omitted instead of remaining as disabled monitors.
 
-On September 12, 2026, `latest` resolved to the same Uptime Kuma 1.23.17 image that was already running. The live database matched the sanitized reference: 29 active monitors in four status-page groups, each with a fresh successful result and the private ntfy default notification. The old Gmail/Apprise notification was absent. Changing the reference therefore caused no application or database migration. Future pulls of `latest` may change the v1 image. This is a dated runtime observation, not a guarantee of future availability.
+The `:2` tag moves within the stable v2 release line. Record its platform-specific digest and application version before every pull. Major-version rollback requires restoring the entire quiesced pre-migration data directory before starting the recorded v1 image; never start v1 against a database migrated by v2.
+
+On September 11, 2026, `:2` resolved to Uptime Kuma 2.5.4 on ARM64. Before the v1-to-v2 cutover, the complete stopped v1 data directory and project inputs were copied to `/opt/kuma/backups/pre-v2-migration-20260912T022729Z` and verified with SQLite and SHA-256 checks. At the operator's direction, the working copy's heartbeat rows were removed before v2's first start; monitor, group, status-page, user, and notification records were retained. The v2 migration then reported no history to aggregate. All 29 monitors produced fresh successful results, both reconciliation audits were idempotent, and the direct endpoint, public status page, public Socket.IO handshake, and Kuma-to-ntfy delivery/readback passed. The full pre-migration backup remains the recovery source for the discarded history.
 
 ## Verify and recover
 

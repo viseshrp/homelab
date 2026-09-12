@@ -39,12 +39,18 @@ class UptimeKumaReconcileTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'placeholder'):
             reconcile.resolve_policy(self.policy, self.environment)
 
-    def test_compose_uses_the_latest_image_tag(self):
+    def test_compose_uses_the_recommended_v2_image_tag(self):
         compose = (ROOT / 'docker-compose/uptime-kuma/docker-compose.yml').read_text()
         example = (ROOT / 'docker-compose/uptime-kuma/.env.example').read_text()
         self.assertIn('UPTIME_KUMA_IMAGE:?', compose)
         self.assertIn(
-            'UPTIME_KUMA_IMAGE=louislam/uptime-kuma:latest', example)
+            'UPTIME_KUMA_IMAGE=louislam/uptime-kuma:2', example)
+
+    def test_declarative_policies_target_v2(self):
+        notification = json.loads(
+            (ROOT / 'configs/uptime-kuma/notification.json').read_text())
+        self.assertEqual(self.policy['uptime_kuma_major'], 2)
+        self.assertEqual(notification['uptime_kuma_major'], 2)
 
     def test_status_page_contains_every_monitor_once(self):
         reconcile.validate_policy(self.policy)

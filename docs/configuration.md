@@ -71,7 +71,7 @@ Compose derives default named-volume names from the project name. Changing the d
 | Dozzle | Remote agent endpoints and generated users file | `data/` and private authentication configuration |
 | Dozzle Agent | Per-host LAN bind address and display hostname | No application data; preserve installed Compose input for repeatable restarts |
 | Paperless | `docker-compose.env` with secret, URL, database/OCR/mail/consumer settings | `data`, `media`, `redisdata`, `consume`, and `export` |
-| Uptime Kuma | Moving `latest` image tag; declarative monitor policy and reconciler in `configs/uptime-kuma/` | `uptime-kuma-data/`; private notification details, public domain, and live addresses |
+| Uptime Kuma | Moving `:2` image tag; declarative monitor policy and reconciler in `configs/uptime-kuma/` | `uptime-kuma-data/`; private notification details, public domain, and live addresses |
 | ntfy | Moving `latest` image tag, public base URL, LAN bind address, UID/GID, cache duration, bcrypt user hashes, ACLs, and Kuma token | `data/`; mobile password, topic, auth database, and message cache |
 
 ### Media, network, and home services
@@ -102,7 +102,7 @@ Firezone and WG-Easy both publish UDP 51820 on `vpn-edge`. They cannot use that 
 
 Most image defaults float on `latest` or another moving tag. Set image variables to the installed tag or digest before an intentional upgrade. Rendering a Compose file does not validate application-level settings, schema migrations, architecture support, or rollback compatibility.
 
-Uptime Kuma and ntfy intentionally use their `latest` tags. Resolve and record each tag's platform-specific digest and application version before pulling, then keep a verified backup that can be paired with the pre-update image. Uptime Kuma's deprecated `latest` tag remains on v1; use `:2` only with the [documented v1-to-v2 migration procedure](https://github.com/louislam/uptime-kuma/wiki/Migration-From-v1-To-v2).
+Uptime Kuma uses its recommended moving `:2` tag, while ntfy uses `:latest`. Resolve and record each tag's platform-specific digest and application version before pulling, then keep a verified backup that can be paired with the pre-update image. Uptime Kuma's deprecated `latest` tag remains on v1; a v1 installation must complete the [documented v1-to-v2 migration procedure](https://github.com/louislam/uptime-kuma/wiki/Migration-From-v1-To-v2) before using `:2`.
 
 Planka is pinned to 2.2.1 and an inspected digest. An older Planka database needs its supported migration sequence; do not point a newer image at it casually. Firezone and WG-Easy use legacy image families and need version-specific review before an upgrade.
 
