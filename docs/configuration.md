@@ -110,6 +110,12 @@ Planka is pinned to 2.2.1 and an inspected digest. An older Planka database need
 
 Homarr, Dozzle, the Dozzle agents, and the GitHub runner mount the Docker socket. Remote agents replace unauthenticated Docker TCP listeners and expose only Dozzle's TLS agent protocol on LAN port 7007. Keep the central UI authenticated, do not enable actions or shell access, and do not forward agent ports outside the LAN.
 
+### Docker memory metrics on Raspberry Pi
+
+Dozzle reads container memory usage from Docker's runtime statistics. Docker returns `0B / 0B` when the host kernel does not expose the memory cgroup controller, so this cannot be repaired in the Dozzle container or agent. [`configs/host-os/docker-memory-cgroups.json`](../configs/host-os/docker-memory-cgroups.json) records the required boot parameters for affected hosts without copying their host-specific root-device arguments.
+
+The parameters belong on the existing single line in `/boot/firmware/cmdline.txt` and take effect only after a host reboot. On `rpimon`'s 6.12 Raspberry Pi kernel, the later `cgroup_enable=memory` parameter overrides the device tree's earlier `cgroup_disable=memory`; `cgroup_memory=1` is not needed. The older 6.1 kernel on `rpinfs` retains both parameters used by the working 6.1 Raspberry Pi hosts. Follow the [memory-metrics recovery procedure](operations.md#restore-docker-memory-metrics-on-raspberry-pi) and verify `docker stats`, rather than relying on `/proc/cgroups` alone under cgroup v2.
+
 ### Container log retention
 
 NPM and the standard Dozzle agents use `json-file` with `DOCKER_LOG_MAX_SIZE=10m` and `DOCKER_LOG_MAX_FILES=3` as configurable defaults. Both inputs are optional and belong in each project's private `.env` when an override is needed. Docker removes older rotated files beyond the count. These limits cover Docker stdout/stderr only, not application files or backups. Existing containers need recreation to apply a changed logging configuration; follow the [retention procedure](operations.md#change-container-log-retention).

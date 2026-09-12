@@ -149,6 +149,20 @@ NPM and the standard Dozzle agents default to three 10 MB `json-file` logs per c
 
 [Docker's logging documentation](https://docs.docker.com/engine/logging/drivers/json-file/) describes the limits and why restarting an existing container does not apply new logging settings.
 
+## Restore Docker memory metrics on Raspberry Pi
+
+Dozzle uses the Docker statistics API. When `docker stats --no-stream` reports `0B / 0B`, confirm that `docker info` reports `MemoryLimit=false` and that `memory` is absent from `/sys/fs/cgroup/cgroup.controllers`. This identifies a disabled host memory controller rather than a Dozzle agent failure. Docker documents the controller dependency in its [runtime metrics guide](https://docs.docker.com/engine/containers/runmetrics/).
+
+1. Read [`configs/host-os/docker-memory-cgroups.json`](../configs/host-os/docker-memory-cgroups.json), identify the active boot file, and keep its existing root-device and console parameters unchanged.
+2. Record the host boot time, kernel version, Docker version, every container's name/state/restart policy, and the boot-file checksum. Confirm that each pre-existing container has a restart policy that will return it after a reboot.
+3. Copy the boot file to a timestamped root-owned backup on the same boot filesystem. Append only missing required parameters to its single line, preserve its owner/mode, and verify the resulting token sequence without publishing the full host-specific command line.
+4. Reboot one host at a time after explicit operator approval. Wait for SSH and Docker, then compare the container inventory with the pre-change record.
+5. Require `memory` in `/sys/fs/cgroup/cgroup.controllers`, `MemoryLimit=true` from `docker info`, nonzero memory totals from `docker stats`, and visible Dozzle memory usage for a container on the repaired host.
+
+For Raspberry Pi's 6.12 downstream kernel, `cgroup_enable=memory` must occur after the device tree's default `cgroup_disable=memory`; the later parameter re-enables the cgroup v2 controller. The Raspberry Pi kernel maintainers document that behavior in [issue 6980](https://github.com/raspberrypi/linux/issues/6980). `/proc/cgroups` is a legacy-interface view and is not the acceptance check for that kernel.
+
+If a host does not return, use local console access to restore the timestamped boot-file backup. If the host returns but the controller remains disabled, restore the backup before attempting a different kernel or firmware change. Do not restart Docker separately during this procedure; the host reboot already restarts it.
+
 ## Diagnose a public URL
 
 Work from the client inward so each check rules out a layer.
