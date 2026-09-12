@@ -1,0 +1,38 @@
+{
+  "requirements": {
+    "downloadClients": 0,
+    "indexers": 0,
+    "rootFolders": 0
+  },
+  "common": {
+    "downloadclient": {
+      "autoRedownloadFailed": false,
+      "autoRedownloadFailedFromInteractiveSearch": false,
+      "enableCompletedDownloadHandling": false
+    },
+    "mediamanagement": {
+      "copyUsingHardlinks": false,
+      "deleteEmptyFolders": false,
+      "fileDate": "none",
+      "importExtraFiles": false,
+      "rescanAfterRefresh": "never",
+      "setPermissionsLinux": false,
+      "useScriptImport": false
+    }
+  },
+  "applications": {
+    "radarr": {
+      "mediamanagement": {
+        "autoRenameFolders": false
+      },
+      "naming": {
+        "renameMovies": false
+      }
+    },
+    "sonarr": {
+      "naming": {
+        "renameEpisodes": false
+      }
+    }
+  }
+}

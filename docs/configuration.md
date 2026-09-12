@@ -86,6 +86,7 @@ Compose derives default named-volume names from the project name. Changing the d
 | Pi-hole | Admin credential and installed image-compatible environment | `etc-pihole/`, `etc-dnsmasq.d/` |
 | Plex | Media roots and installed image; external media trees are read-only, deletion safeguards are enabled, analysis is scheduled, the redundant maintenance scan is disabled, and total Internet upload is 300 Mbps | `config/` and both external media trees; unused local TV/movie directories remain unmounted |
 | qBittorrent/Gluetun | AirVPN WireGuard private key, preshared key, assigned addresses | qBittorrent config, Gluetun state, both download trees |
+| Radarr/Sonarr/Seerr/Bazarr | Bind IP, UID/GID, media roots, and pinned images; no downloader or provider credentials in read-only mode | Four application `config/` directories; both media trees stay read-only |
 | WG-Easy | Endpoint, admin password, client DNS | Project directory containing WireGuard keys and peer state |
 
 ## Cross-project constraints
@@ -153,6 +154,6 @@ python3 scripts/check.py
 python3 -m unittest discover -s tests
 ```
 
-The checker uses dummy values to render all 25 Compose projects in temporary directories. It checks shell/Python syntax, JSON, YAML, and local Markdown links. It does not contact hosts, start containers, build images, or inspect private installed configuration.
+The checker uses dummy values to render all 26 Compose projects in temporary directories. It checks shell/Python syntax, JSON, YAML, and local Markdown links. It does not contact hosts, start containers, build images, or inspect private installed configuration.
 
 [Back to homelab](../README.md)

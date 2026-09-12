@@ -34,7 +34,7 @@ Private addresses are intentionally omitted here. The aliases `rpiblog`, `rpihas
 | `rpiproxy` | Ingress and blocking | [`npm`](apps/nginx-proxy-manager.md) → `/opt/nginx`; [`fail2ban`](apps/fail2ban.md) → `/opt/fail2ban`; [`cloudflared`](apps/cloudflare.md) → `/opt/cloudflared` |
 | `rpiblog` | Web apps and automation | [`blog`](apps/blog.md) → `/opt/blog`; [`gh-runner`](apps/github-runner.md) → `/opt/gh-runner`; [`anki`](apps/anki.md) → `/opt/anki`; [`planka`](apps/planka.md) → `/opt/planka`; [`linkding`](apps/linkding.md) → `/opt/linkding`; [`homarr`](apps/homarr.md) → `/opt/homarr`; [`vaultwarden`](apps/vaultwarden.md) → `/opt/vw`; [`fbn`](apps/fbn.md) → `/opt/fbn-compose` |
 | `rpimon` | Monitoring, notifications, documents, and archives | [`uptime-kuma`](apps/uptime-kuma.md) → `/opt/kuma`; [`ntfy`](apps/ntfy.md) → `/opt/ntfy`; [`dozzle`](apps/dozzle.md) → `/opt/dozzle`; [`archivebox`](apps/archivebox.md) → `/opt/archivebox`; [`paperless`](apps/paperless.md) → `/opt/paperless` |
-| `optiplex` | Media and downloads | [`plex`](apps/plex.md) → `/opt/plex`; [`qbit`](apps/qbittorrent.md) → `/opt/qbit`; [`filebrowser`](apps/filebrowser.md) → `/opt/filebrowser`; [Reelname](apps/reelname.md) is a host-installed CLI under `/opt/reelname` |
+| `optiplex` | Media and downloads | [`plex`](apps/plex.md) → `/opt/plex`; [`qbit`](apps/qbittorrent.md) → `/opt/qbit`; [`media-automation`](apps/media-automation.md) → `/opt/media-automation`; [`filebrowser`](apps/filebrowser.md) → `/opt/filebrowser`; [Reelname](apps/reelname.md) is a host-installed CLI under `/opt/reelname` |
 | `rpihole` | DNS | [`pihole`](apps/pihole.md) → `/opt/pihole-docker` |
 | `rpihass` | Home automation | [Home Assistant](apps/home-assistant.md); [Homebridge](apps/homebridge.md) as a Supervisor-managed HAOS app, plus a retained standalone Compose fallback with no live project directory |
 | `rpinfs` | File transfer | [`ftp`](apps/ftp.md) → `/opt/ftp` |
@@ -59,7 +59,7 @@ The domain is shown as `<domain>` to keep the checked-in documentation reusable.
 | `status.<domain>` | `rpimon:3001` | Uptime Kuma | Online |
 | `<domain>`, `www.<domain>` | `rpiblog:80` | Hugo site | Online |
 
-Cloudflare Tunnel publishes `hass.<domain>` directly to `rpihass:8123` through the connector on `rpiproxy`; it does not use an NPM proxy entry. There is no observed NPM proxy entry for Home Assistant, Homebridge, Paperless, ArchiveBox, Dozzle, File Browser, qBittorrent, Pi-hole administration, pywb, or WG-Easy administration. The remaining interfaces use direct LAN access unless another layer not represented here publishes them.
+Cloudflare Tunnel publishes `hass.<domain>` directly to `rpihass:8123` through the connector on `rpiproxy`; it does not use an NPM proxy entry. There is no observed NPM proxy entry for Home Assistant, Homebridge, Paperless, ArchiveBox, Dozzle, File Browser, qBittorrent, Radarr, Sonarr, Seerr, Bazarr, Pi-hole administration, pywb, or WG-Easy administration. The remaining interfaces use direct LAN access unless another layer not represented here publishes them.
 
 ## Direct LAN interfaces
 
@@ -80,6 +80,7 @@ Cloudflare Tunnel publishes `hass.<domain>` directly to `rpihass:8123` through t
 | `optiplex:32400` | Plex | Also behind NPM |
 | `optiplex:8080` / `optiplex:8081` | File Browser | One instance per media tree |
 | `optiplex:8085` | qBittorrent | Published by Gluetun |
+| `optiplex` loopback `:5055` / `:6767` / `:7878` / `:8989` | Seerr / Bazarr / Radarr / Sonarr | Local-only safety mode; no public route, download-client connection, or writable media mount |
 | `rpihole:80` | Pi-hole administration | DNS service uses port 53 |
 | `rpihass:8123` / `rpihass:8581` | Home Assistant / Homebridge | Homarr direct links |
 | `vpn-edge:13000` / `vpn-edge:51821` | Firezone / WG-Easy administration | The Firezone port is also behind NPM |
@@ -104,7 +105,7 @@ The September 9 direct probe produced these results, with the `rpihass` applicat
 | `rpiblog` | Connected | Blog, Anki, Planka, Homarr, Linkding, and Vaultwarden ports answered |
 | `rpiproxy` | Connected | HTTP, HTTPS TCP, and NPM administration answered |
 | `rpimon` | Connected | Uptime Kuma, ntfy, Dozzle, ArchiveBox, and pywb answered; Paperless 8000 refused |
-| `optiplex` | Connected | Plex, both File Browser instances, and qBittorrent answered |
+| `optiplex` | Connected | Plex, both File Browser instances, and qBittorrent answered; media-automation status is documented in its application page |
 | `rpihole` | Connected | DNS TCP 53 and web port 80 answered |
 | `rpinfs` | Connected | FTP 21 refused |
 | `vpn-edge` | Connected | Firezone 13000 returned HTTP 200; WG-Easy 51821 refused |

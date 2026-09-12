@@ -1,0 +1,108 @@
+services:
+  radarr:
+    image: "${RADARR_IMAGE:-lscr.io/linuxserver/radarr@sha256:95ba0801df4d9d1d79d0d9a3849f656542497dab061d91b87ad4f53a71aff3ef}"
+    container_name: radarr
+    user: "${PUID:-1000}:${PGID:-1000}"
+    environment:
+      TZ: "${TZ:-America/New_York}"
+    ports:
+    - "${MEDIA_AUTOMATION_BIND_IP:-127.0.0.1}:${RADARR_PORT:-7878}:7878"
+    volumes:
+    - type: bind
+      source: ./radarr/config
+      target: /config
+    - type: bind
+      source: "${MEDIA2_ROOT:-/mnt/media2}"
+      target: /mnt/media2
+      read_only: true
+    - type: bind
+      source: "${MEDIA3_ROOT:-/mnt/media3}"
+      target: /mnt/media3
+      read_only: true
+    read_only: true
+    tmpfs:
+    - "/run:uid=${PUID:-1000},gid=${PGID:-1000},exec,mode=0755"
+    security_opt:
+    - no-new-privileges:true
+    restart: unless-stopped
+
+  sonarr:
+    image: "${SONARR_IMAGE:-lscr.io/linuxserver/sonarr@sha256:4d9df314875e1249ab7d6170c2b9b3dc1d8e6383f168ceb10dc9a5ad9b324739}"
+    container_name: sonarr
+    user: "${PUID:-1000}:${PGID:-1000}"
+    environment:
+      TZ: "${TZ:-America/New_York}"
+    ports:
+    - "${MEDIA_AUTOMATION_BIND_IP:-127.0.0.1}:${SONARR_PORT:-8989}:8989"
+    volumes:
+    - type: bind
+      source: ./sonarr/config
+      target: /config
+    - type: bind
+      source: "${MEDIA2_ROOT:-/mnt/media2}"
+      target: /mnt/media2
+      read_only: true
+    - type: bind
+      source: "${MEDIA3_ROOT:-/mnt/media3}"
+      target: /mnt/media3
+      read_only: true
+    read_only: true
+    tmpfs:
+    - "/run:uid=${PUID:-1000},gid=${PGID:-1000},exec,mode=0755"
+    security_opt:
+    - no-new-privileges:true
+    restart: unless-stopped
+
+  seerr:
+    image: "${SEERR_IMAGE:-ghcr.io/seerr-team/seerr@sha256:f4768de5f616248d723e05891f3345a1402123775d03bf0890dbfedc0831bda1}"
+    container_name: seerr
+    init: true
+    user: "${PUID:-1000}:${PGID:-1000}"
+    environment:
+      LOG_LEVEL: "${SEERR_LOG_LEVEL:-info}"
+      TZ: "${TZ:-America/New_York}"
+      PORT: '5055'
+    ports:
+    - "${MEDIA_AUTOMATION_BIND_IP:-127.0.0.1}:${SEERR_PORT:-5055}:5055"
+    volumes:
+    - type: bind
+      source: ./seerr/config
+      target: /app/config
+    cap_drop:
+    - ALL
+    security_opt:
+    - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5055/api/v1/settings/public"]
+      start_period: 20s
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    restart: unless-stopped
+
+  bazarr:
+    image: "${BAZARR_IMAGE:-lscr.io/linuxserver/bazarr@sha256:84b6f05a7a4194fafe5a0bec062d32f6ae9ea74db33d43d678cb9a3191f31c24}"
+    container_name: bazarr
+    user: "${PUID:-1000}:${PGID:-1000}"
+    environment:
+      TZ: "${TZ:-America/New_York}"
+    ports:
+    - "${MEDIA_AUTOMATION_BIND_IP:-127.0.0.1}:${BAZARR_PORT:-6767}:6767"
+    volumes:
+    - type: bind
+      source: ./bazarr/config
+      target: /config
+    - type: bind
+      source: "${MEDIA2_ROOT:-/mnt/media2}"
+      target: /mnt/media2
+      read_only: true
+    - type: bind
+      source: "${MEDIA3_ROOT:-/mnt/media3}"
+      target: /mnt/media3
+      read_only: true
+    read_only: true
+    tmpfs:
+    - "/run:uid=${PUID:-1000},gid=${PGID:-1000},exec,mode=0755"
+    security_opt:
+    - no-new-privileges:true
+    restart: unless-stopped

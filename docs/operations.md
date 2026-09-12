@@ -225,6 +225,19 @@ Confirm `ButlerTaskRefreshLibraries=0` while `FSEventLibraryUpdatesEnabled=1`, `
 
 For remote bandwidth, confirm `WanTotalMaxUploadRate=300000`, `WanPerStreamMaxUploadRate=0`, and `WanPerUserStreamCount=1`. Re-test the server's upload at representative remote-viewing hours before raising the total. Save and hash `Preferences.xml`, change only the total upload preference, read all three bandwidth preferences back, and verify that Plex was not restarted. Restore the earlier unset total with `WanTotalMaxUploadRate=0` if needed. Plex's limit does not control competing qBittorrent traffic.
 
+### Verify media-automation read-only mode
+
+The media-automation stack is safe only while its Docker and application boundaries agree:
+
+1. Confirm `/mnt/media2` and `/mnt/media3` are the intended mounted filesystems before starting the project.
+2. Inspect the Radarr, Sonarr, and Bazarr mounts. Every media source must report `RW=false`; only each service's `/config` mount may be writable.
+3. Confirm the Compose project has no Docker socket, qBittorrent connection, indexer, subtitle provider, or Seerr-to-Arr service connection.
+4. Confirm the four UIs respond on their loopback ports and Plex/qBittorrent retain their earlier container IDs, image IDs, and restart counts.
+
+Do not test the boundary by creating, renaming, or deleting a media file. Docker mount inspection is the parity proof. If any media mount reports writable, stop the three affected services before configuring an application.
+
+Application-level hardening is managed by `/opt/media-automation/manage_safety.py` and the checked-in policy. Run `audit` first. `apply` refuses to proceed unless Radarr and Sonarr each have zero root folders, download clients, and indexers, then writes and verifies an exact pre-change rollback manifest before changing settings. To revert, pass the printed snapshot directory to `restore`; restoration changes only the controlled fields and has the same empty-integration precondition. See the [media-automation setting table and commands](apps/media-automation.md#reversible-application-hardening).
+
 ## Common fault patterns
 
 | Symptom | Likely layer | Check first |
@@ -262,6 +275,7 @@ For remote bandwidth, confirm `WanTotalMaxUploadRate=300000`, `WanPerStreamMaxUp
 | Home Assistant | Encrypted full backup containing configuration, apps, custom integrations, and Supervisor-managed state, plus the emergency kit stored separately | Use the built-in backup inventory to confirm completion; a backup on the same host does not protect against host or storage loss |
 | Homebridge | Home Assistant backup entry for the Homebridge app; standalone fallback uses `HOMEBRIDGE_DATA_DIR` | Preserve bridge pairing, UI account, plugin configuration, and credentials; `node_modules` is intentionally excluded and rebuilt from configuration |
 | Media | `/mnt/media2`, `/mnt/media3`, Plex config, qBittorrent config, Gluetun state | Bulk media and app metadata are separate backup units; verify mounts before restore |
+| Media automation | `/opt/media-automation/{radarr,sonarr,seerr,bazarr}/config` plus installed Compose/env | Stop the project for a consistent copy of SQLite state; media trees are read-only and are not part of this stack's writable state |
 | Pi-hole | `etc-pihole`, `etc-dnsmasq.d`, and private settings | Verify DNS resolution and custom records after restore |
 | WG-Easy | `/opt/wg-easy` project/state and private env | Contains WireGuard private keys and peer configuration; restrict backup access |
 

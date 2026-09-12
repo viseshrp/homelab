@@ -40,7 +40,7 @@ Nginx accepts `CF-Connecting-IP` only when the connecting peer belongs to the ch
 
 ### LAN access
 
-Homarr mixes public HTTPS links with direct LAN links. Dozzle, File Browser, qBittorrent, ArchiveBox, Paperless, Pi-hole, Home Assistant, Homebridge, and the NPM administration page can bypass public ingress when accessed from the LAN. That path is useful for diagnosis because it separates a backend failure from DNS, certificate, Cloudflare, or proxy failures.
+Homarr mixes public HTTPS links with direct LAN links. Dozzle, File Browser, qBittorrent, ArchiveBox, Paperless, Pi-hole, Home Assistant, Homebridge, and the NPM administration page can bypass public ingress when accessed from the LAN. The media-automation interfaces remain loopback-only until their administrator accounts are configured. These direct paths are useful for diagnosis because they separate a backend failure from DNS, certificate, Cloudflare, or proxy failures.
 
 ## Application dependencies
 
@@ -71,6 +71,8 @@ flowchart LR
         plex["Plex"] --> mediaTrees["media2 + media3"]
         filebrowser["File Browser x2"] --> mediaTrees
         reelname["Reelname"] --> mediaTrees
+        mediaManagers["Radarr · Sonarr · Bazarr"] -->|"read-only binds"| mediaTrees
+        seerr["Seerr<br/>request state only"]
         downloads --> mediaTrees
     end
 
@@ -85,7 +87,7 @@ flowchart LR
     end
 ```
 
-Compose networks keep both PostgreSQL containers, Redis, Tika, and Gotenberg off host ports. qBittorrent is different: it joins Gluetun's network namespace, so Gluetun publishes the qBittorrent web and torrent ports.
+Compose networks keep both PostgreSQL containers, Redis, Tika, and Gotenberg off host ports. qBittorrent is different: it joins Gluetun's network namespace, so Gluetun publishes the qBittorrent web and torrent ports. The media-automation stack is intentionally disconnected from qBittorrent and gives Radarr, Sonarr, and Bazarr read-only media binds. Seerr is not connected to the Arr services in this safety mode.
 
 ## State and storage
 
@@ -94,13 +96,13 @@ State falls into four recovery classes.
 | Class | Examples | Recovery requirement |
 | --- | --- | --- |
 | Generated or replaceable | Blog `public/`, container images | Rebuild from source or pull the recorded image |
-| File-backed application state | Anki `data/`, Homarr `homarr/`, Linkding `data/`, Plex `config/`, Pi-hole directories | Preserve ownership and application compatibility; verify with the application after restore |
+| File-backed application state | Anki `data/`, Homarr `homarr/`, Linkding `data/`, Plex `config/`, media-automation app configs, Pi-hole directories | Preserve ownership and application compatibility; verify with the application after restore |
 | Live databases | Planka and Firezone PostgreSQL volumes; SQLite-backed NPM, ntfy, Vaultwarden, Uptime Kuma, File Browser, and FBN state | Use an application/database export or quiesce writes before copying; test a restore |
 | Bulk user data | Paperless media, ArchiveBox captures, both media trees | Back up independently from container configuration; validate counts, hashes, and application indexing |
 
 Named Docker volumes depend on the Compose project name. Moving a project to a different directory or invoking Compose with a different project name can silently select a new empty volume. Bind-mounted directories depend on the same host paths remaining available.
 
-The OptiPlex media trees couple Plex, qBittorrent, File Browser, and Reelname. A mount failure can therefore appear as several unrelated application failures. Paperless and ArchiveBox keep their primary content on `rpimon`; their helper containers do not own the durable documents or captures.
+The OptiPlex media trees couple Plex, qBittorrent, File Browser, Reelname, and the read-only views used by Radarr, Sonarr, and Bazarr. A mount failure can therefore appear as several unrelated application failures. Paperless and ArchiveBox keep their primary content on `rpimon`; their helper containers do not own the durable documents or captures.
 
 ## Privilege and trust boundaries
 
@@ -112,6 +114,7 @@ The OptiPlex media trees couple Plex, qBittorrent, File Browser, and Reelname. A
 | Fail2ban uses host networking plus `NET_ADMIN`/`NET_RAW` | A bad rule can affect host and container traffic. Its Cloudflare cleanup is limited by an ownership journal. |
 | Plex, Pi-hole, and the Homebridge HAOS app use host networking | Port collisions and host firewall rules apply directly to these containers. |
 | Gluetun, Firezone, and WG-Easy receive network capabilities | Their private keys and state are security-sensitive. Firezone and WG-Easy both default to UDP 51820 on `vpn-edge`, so they cannot bind that port at the same time. |
+| Media automation can normally modify or delete content | This deployment denies media writes with Docker read-only binds and omits qBittorrent, indexer, provider, and Seerr-to-Arr connections. Preserve that boundary while media changes are prohibited. |
 | Kuma and ntfy share one host and ingress path | An `rpimon`, NPM, Cloudflare, LAN, or power failure can stop both detection and delivery. Use an independent dead-man check when that failure class must page someone. |
 | Secrets live outside Git | Fresh `.env.example` files are incomplete by design and must never replace an installed environment during an update. |
 

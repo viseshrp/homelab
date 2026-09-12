@@ -26,6 +26,7 @@ The pages in this directory document how each service fits this lab: deployment 
 | [ArchiveBox](archivebox.md) and [pywb](pywb.md) | `rpimon` | LAN ports 8002/8082 | Shared `data/` capture tree |
 | [File Browser](filebrowser.md) | `optiplex` | LAN ports 8080/8081 | Separate databases/settings plus media trees |
 | [qBittorrent](qbittorrent.md) through [Gluetun](gluetun.md) | `optiplex` | LAN port 8085 | Client config, VPN state, download trees |
+| [Radarr, Sonarr, Seerr, and Bazarr](media-automation.md) | `optiplex` | Loopback ports 7878/8989/5055/6767 | Separate app configs; media trees are read-only |
 | [Pi-hole](pihole.md) | `rpihole` | DNS 53 and LAN web UI | `etc-pihole`, `etc-dnsmasq.d` |
 | [Home Assistant](home-assistant.md) | `rpihass` | LAN port 8123 and `hass` tunnel route | Host-managed Home Assistant configuration/state |
 | [Homebridge](homebridge.md) | `rpihass` | LAN port 8581 | Supervisor-managed app configuration mapped to `/homebridge` |

@@ -1,4 +1,5 @@
 """No network, Docker daemon, or host firewall access in these tests."""
+import json
 from pathlib import Path
 import subprocess
 import sys
@@ -99,6 +100,43 @@ class IgnorePolicyTests(unittest.TestCase):
         ]:
             with self.subTest(path=path):
                 self.assertFalse(self.ignored(path))
+
+
+class MediaAutomationSafetyTests(unittest.TestCase):
+    def setUp(self):
+        self.compose = (ROOT / 'docker-compose/media-automation/docker-compose.yml').read_text()
+        self.policy = json.loads(
+            (ROOT / 'configs/media-automation/safety-policy.json').read_text())
+
+    def test_every_media_mount_is_read_only(self):
+        self.assertEqual(self.compose.count('source: "${MEDIA2_ROOT'), 3)
+        self.assertEqual(self.compose.count('source: "${MEDIA3_ROOT'), 3)
+        self.assertEqual(self.compose.count('read_only: true'), 9)
+
+    def test_stack_cannot_control_docker_or_qbittorrent(self):
+        self.assertNotIn('/var/run/docker.sock', self.compose)
+        self.assertNotIn('8085', self.compose)
+        self.assertNotIn('qbittorrent', self.compose.lower())
+
+    def test_application_policy_disables_automatic_file_work(self):
+        download = self.policy['common']['downloadclient']
+        media = self.policy['common']['mediamanagement']
+        self.assertFalse(download['enableCompletedDownloadHandling'])
+        self.assertFalse(download['autoRedownloadFailed'])
+        self.assertFalse(download['autoRedownloadFailedFromInteractiveSearch'])
+        self.assertFalse(media['copyUsingHardlinks'])
+        self.assertEqual(media['rescanAfterRefresh'], 'never')
+        self.assertFalse(media['deleteEmptyFolders'])
+        self.assertFalse(media['importExtraFiles'])
+        self.assertFalse(media['setPermissionsLinux'])
+        self.assertFalse(media['useScriptImport'])
+
+    def test_reversible_safety_assets_are_deployed(self):
+        manifest = json.loads((ROOT / 'deployments.json').read_text())
+        self.assertEqual(manifest['media-automation']['assets'], {
+            'configs/media-automation/manage_safety.py': 'manage_safety.py',
+            'configs/media-automation/safety-policy.json': 'safety-policy.json',
+        })
 
 
 class FirewallTests(unittest.TestCase):

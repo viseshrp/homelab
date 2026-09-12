@@ -104,6 +104,15 @@
     "compose": "docker-compose.yml",
     "assets": {}
   },
+  "media-automation": {
+    "host": "optiplex",
+    "directory": "/opt/media-automation",
+    "compose": "docker-compose.yml",
+    "assets": {
+      "configs/media-automation/manage_safety.py": "manage_safety.py",
+      "configs/media-automation/safety-policy.json": "safety-policy.json"
+    }
+  },
   "npm": {
     "host": "rpiproxy",
     "directory": "/opt/nginx",
