@@ -213,6 +213,18 @@ df -i
 
 For media failures, confirm that `/mnt/media2` and `/mnt/media3` are the intended mounted filesystems before restarting Plex, qBittorrent, or File Browser. An empty mount point can look like data loss while the storage device is merely absent.
 
+### Verify Plex library safeguards
+
+Confirm Plex reports `autoEmptyTrash=0` and `allowMediaDeletion=0`. Both external media mounts must report `RW=false`; do not test the boundary with a file operation. Automatic trash emptying affects Plex library records rather than source media, but leaving it enabled can discard records during a scan when a media filesystem is temporarily unavailable. Manual **Empty Trash** remains possible and should require an explicit operator decision.
+
+Before changing either preference, save and hash a root-only copy of Plex's `Preferences.xml`. Apply a single preference through Plex settings or its authenticated local API, read it back, and confirm the container ID and active sessions are unchanged. Roll back through the same setting interface; do not replace a live `Preferences.xml` while Plex is running.
+
+For analysis scheduling, confirm `GenerateIntroMarkerBehavior=scheduled` and `GenerateCreditsMarkerBehavior=scheduled`. Each setting moves future detection into the configured maintenance window and does not remove existing markers. Change one preference at a time: save and hash `Preferences.xml`, read both marker preferences afterward, and verify the Plex container was not restarted. Restore only the changed preference to its earlier value through the same setting interface if verification fails.
+
+Confirm `ButlerTaskRefreshLibraries=0` while `FSEventLibraryUpdatesEnabled=1`, `FSEventLibraryPartialScanEnabled=1`, `ScheduledLibraryUpdatesEnabled=1`, and `ScheduledLibraryUpdateInterval=86400`. This removes only the maintenance-window library scan; automatic, partial, and daily periodic scans continue. Back up `Preferences.xml`, change only the Butler preference, read all five scan preferences back, and verify that Plex was not restarted. Restore `ButlerTaskRefreshLibraries=1` through the same setting interface if needed.
+
+For remote bandwidth, confirm `WanTotalMaxUploadRate=300000`, `WanPerStreamMaxUploadRate=0`, and `WanPerUserStreamCount=1`. Re-test the server's upload at representative remote-viewing hours before raising the total. Save and hash `Preferences.xml`, change only the total upload preference, read all three bandwidth preferences back, and verify that Plex was not restarted. Restore the earlier unset total with `WanTotalMaxUploadRate=0` if needed. Plex's limit does not control competing qBittorrent traffic.
+
 ## Common fault patterns
 
 | Symptom | Likely layer | Check first |

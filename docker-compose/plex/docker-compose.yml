@@ -2,15 +2,16 @@ services:
   plex:
     image: "${PLEX_IMAGE:-lscr.io/linuxserver/plex:latest}"
     container_name: plex
+    devices:
+    - "/dev/dri:/dev/dri"
     volumes:
     - "./config:/config"
-    - "./tv:/tv"
-    - "./movies:/movies"
-    - "${MEDIA2_ROOT:-/mnt/media2}:/mnt/media"
-    - "${MEDIA3_ROOT:-/mnt/media3}:/mnt/media3"
+    - "${MEDIA2_ROOT:-/mnt/media2}:/mnt/media:ro"
+    - "${MEDIA3_ROOT:-/mnt/media3}:/mnt/media3:ro"
     network_mode: host
     restart: unless-stopped
     environment:
       PUID: '0'
       PGID: '0'
       VERSION: docker
+      TZ: "${TZ:-America/New_York}"

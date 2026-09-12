@@ -84,7 +84,7 @@ Compose derives default named-volume names from the project name. Changing the d
 | Homebridge | HAOS app settings; `HOMEBRIDGE_DATA_DIR` only for the retained standalone fallback | Supervisor-managed app configuration, including pairing, UI account, and plugin state |
 | Nginx Proxy Manager | Installed image and frame policy | `data/`, `letsencrypt/`, installed environment |
 | Pi-hole | Admin credential and installed image-compatible environment | `etc-pihole/`, `etc-dnsmasq.d/` |
-| Plex | Media roots and installed image | `config/`, local TV/movie directories, both media trees |
+| Plex | Media roots and installed image; external media trees are read-only, deletion safeguards are enabled, analysis is scheduled, the redundant maintenance scan is disabled, and total Internet upload is 300 Mbps | `config/` and both external media trees; unused local TV/movie directories remain unmounted |
 | qBittorrent/Gluetun | AirVPN WireGuard private key, preshared key, assigned addresses | qBittorrent config, Gluetun state, both download trees |
 | WG-Easy | Endpoint, admin password, client DNS | Project directory containing WireGuard keys and peer state |
 
