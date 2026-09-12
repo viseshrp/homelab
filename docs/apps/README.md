@@ -14,6 +14,7 @@ The pages in this directory document how each service fits this lab: deployment 
 | [Vaultwarden](vaultwarden.md) | `rpiblog` | `pass` | `vw-data/` |
 | [Plex](plex.md) | `optiplex` | `plex` | `config/` plus both media trees |
 | [Uptime Kuma](uptime-kuma.md) | `rpimon` | `status` | `uptime-kuma-data/` |
+| [ntfy](ntfy.md) | `rpimon` | `ntfy` | `data/`; private mobile credentials |
 | [Firezone](firezone.md) | `vpn-edge` | `firezone` | `firezone/`, PostgreSQL volume, private keys/settings |
 
 ## LAN and internal applications

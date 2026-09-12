@@ -2,7 +2,7 @@
 
 This repository is the public, sanitized control plane for my homelab: Docker Compose templates, supporting configuration, deployment metadata, validation tools, and operating notes. Private `.env` files, credentials, live application databases, and host-specific state stay outside Git.
 
-The lab currently maps 24 Compose projects to eight deployment hosts. Public web traffic enters through Nginx Proxy Manager or the dedicated Home Assistant Cloudflare Tunnel; storage-heavy media services live on the OptiPlex; web apps and automation share `rpiblog`; monitoring, archives, and document services share `rpimon`.
+The lab currently maps 25 Compose projects to eight deployment hosts. Public web traffic enters through Nginx Proxy Manager or the dedicated Home Assistant Cloudflare Tunnel; storage-heavy media services live on the OptiPlex; web apps and automation share `rpiblog`; monitoring, notifications, archives, and document services share `rpimon`.
 
 ## System map
 
@@ -14,7 +14,7 @@ flowchart LR
     subgraph hosts["Application hosts"]
         web["rpiblog<br/>Hugo / Nginx · Homarr · Anki<br/>Vaultwarden · Linkding<br/>Planka + PostgreSQL (TCP)<br/>FBN · GitHub Actions runner (HTTPS)"]
         media["optiplex<br/>Plex · File Browser ×2<br/>qBittorrent + Gluetun<br/>Reelname (CLI)"]
-        monitor["rpimon<br/>Uptime Kuma · Dozzle<br/>ArchiveBox · pywb<br/>Paperless + Redis (TCP)<br/>Tika · Gotenberg (HTTP)"]
+        monitor["rpimon<br/>Uptime Kuma · ntfy · Dozzle<br/>ArchiveBox · pywb<br/>Paperless + Redis (TCP)<br/>Tika · Gotenberg (HTTP)"]
         vpn["vpn-edge<br/>Firezone + PostgreSQL (TCP)<br/>WG-Easy<br/>WireGuard / UDP 51820"]
     end
 
@@ -44,7 +44,7 @@ flowchart LR
     clients -->|"FTP / TCP 20-21, 40000-40009"| ftp
 ```
 
-Nginx Proxy Manager currently lists nine enabled HTTPS proxy entries: eight subdomains plus the apex/`www` pair. The live route table and its observation date are in [the inventory](docs/inventory.md#https-ingress).
+Nginx Proxy Manager currently lists ten enabled HTTPS proxy entries: nine subdomains plus the apex/`www` pair. The live route table and its observation date are in [the inventory](docs/inventory.md#https-ingress).
 
 ## Host responsibilities
 
@@ -52,7 +52,7 @@ Nginx Proxy Manager currently lists nine enabled HTTPS proxy entries: eight subd
 | --- | --- | --- |
 | `rpiproxy` | Public ingress and request blocking | Nginx Proxy Manager, cloudflared, Fail2ban, Cloudflare ban integration |
 | `rpiblog` | Public web apps and automation | Blog, Homarr, Anki, Planka/PostgreSQL, Linkding, Vaultwarden, FBN, GitHub runner |
-| `rpimon` | Monitoring, documents, and web archives | Uptime Kuma, Dozzle, Paperless/Redis/Tika/Gotenberg, ArchiveBox/pywb |
+| `rpimon` | Monitoring, notifications, documents, and web archives | Uptime Kuma, ntfy, Dozzle, Paperless/Redis/Tika/Gotenberg, ArchiveBox/pywb |
 | `optiplex` | Media storage and download traffic | Plex, qBittorrent/Gluetun, two File Browser instances, Reelname |
 | `rpihole` | LAN DNS | Pi-hole |
 | `rpihass` | Home automation | Home Assistant, Homebridge |

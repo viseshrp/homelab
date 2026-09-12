@@ -21,7 +21,7 @@ Docker stdout/stderr logs use `json-file` rotation, retaining three files of 10 
 
 ## Observed proxy map
 
-The NPM UI displayed version 2.15.1 and these nine enabled rows during a read-only check on September 9, 2026. All used Let's Encrypt, the Public access-list setting, and an Online row status.
+The NPM UI displayed version 2.15.1 and these ten enabled rows after the ntfy route was added and checked on September 11, 2026. All used Let's Encrypt, the Public access-list setting, and an Online row status.
 
 | Public name | Backend | Service |
 | --- | --- | --- |
@@ -30,6 +30,7 @@ The NPM UI displayed version 2.15.1 and these nine enabled rows during a read-on
 | `firezone.<domain>` | `vpn-edge:13000` | Firezone management |
 | `home.<domain>` | `rpiblog:7575` | Homarr |
 | `links.<domain>` | `rpiblog:9090` | Linkding |
+| `ntfy.<domain>` | `rpimon:2586` | ntfy |
 | `pass.<domain>` | `rpiblog:8089` | Vaultwarden |
 | `plex.<domain>` | `optiplex:32400` | Plex |
 | `status.<domain>` | `rpimon:3001` | Uptime Kuma |
@@ -59,7 +60,7 @@ Changing `routes.json` does not update NPM. Never paste a rendered production co
 
 Back up `data/`, `letsencrypt/`, the installed Compose file, and its private environment as one recovery set. This template uses NPM's SQLite database under `data/`; quiesce writes or copy it consistently. After a restore, verify:
 
-1. The administration login and all nine proxy rows.
+1. The administration login and all ten proxy rows.
 2. Certificate presence and renewal state.
 3. A direct backend and its corresponding public URL.
 4. Real client-address logging through Cloudflare and from the LAN.

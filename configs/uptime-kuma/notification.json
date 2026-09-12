@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "uptime_kuma_major": 1,
+  "description": "Sanitized policy for the private self-hosted ntfy notification used by every Uptime Kuma monitor.",
+  "name": "ntfy",
+  "type": "ntfy",
+  "authentication_method": "accessToken",
+  "server_url_env": "UPTIME_KUMA_NTFY_SERVER_URL",
+  "topic_env": "UPTIME_KUMA_NTFY_TOPIC",
+  "access_token_env": "UPTIME_KUMA_NTFY_ACCESS_TOKEN",
+  "priority": 4
+}

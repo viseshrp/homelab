@@ -113,6 +113,18 @@ The installed `/opt/kuma/reconcile.py` treats `/opt/kuma/monitors.json` as the d
 
 Kuma's native JSON import/export is not the repository workflow. On installed version 1.23.17 it includes private notification configuration, omits public status-page groups, and offers an overwrite mode that deletes existing monitor history and notifications.
 
+## Reconcile Uptime Kuma notifications with ntfy
+
+The installed `/opt/kuma/reconcile-notification.py` treats `/opt/kuma/notification.json` as the provider policy. Private values come from `UPTIME_KUMA_NTFY_SERVER_URL`, `UPTIME_KUMA_NTFY_TOPIC`, and `UPTIME_KUMA_NTFY_ACCESS_TOKEN` in `/opt/kuma/.env`; the command never prints them.
+
+1. Run `sudo python3 /opt/kuma/reconcile-notification.py --prune` and review the provider, assignment, and extra-notification counts.
+2. Run `sudo python3 /opt/kuma/reconcile-notification.py --apply --prune`. The command creates a consistent SQLite backup, sends a test alert before cutover, makes ntfy the only default, reconciles every monitor link, and then removes the old provider.
+3. Read the test message with the read-only mobile account, then run the audit again and require `changes_required=false`, `provider_configured=true`, and `all_monitors_linked=true`.
+4. Verify that anonymous publish/read and mobile publish fail, while the Kuma token can publish but cannot read.
+5. If any application check fails, preserve the failed database, stop Kuma, restore `kuma.db` from the printed `pre-notification-reconcile-*` backup, start the unchanged image, and recheck notifications and monitor history.
+
+The provider test proves the complete Kuma-to-ntfy path. It does not prove delivery during an `rpimon`, NPM, Cloudflare, LAN, or power outage because both applications and the public route share those failure domains.
+
 ## Change container log retention
 
 NPM and the standard Dozzle agents default to three 10 MB `json-file` logs per container. Optional `DOCKER_LOG_MAX_SIZE` and `DOCKER_LOG_MAX_FILES` inputs override those limits. Docker discards older rotated logs beyond the configured count; preserve needed history first. Application log files and backups have separate retention.
@@ -206,6 +218,7 @@ For media failures, confirm that `/mnt/media2` and `/mnt/media3` are the intende
 | ArchiveBox | `/opt/archivebox/data` | Preserve snapshots, WARC files, and pywb indexes; verify replay after restore |
 | Vaultwarden | `/opt/vw/vw-data` plus private SMTP/domain settings | Quiesce writes or use a supported SQLite/database backup path |
 | Uptime Kuma | `/opt/kuma/uptime-kuma-data` | Quiesce or use a consistent SQLite copy; verify monitors and notification settings |
+| ntfy | `/opt/ntfy/data`, private `.env`, and `mobile-subscription.txt` | Stop ntfy for a consistent copy; verify both SQLite databases, ACLs, public subscriptions, and Kuma delivery |
 | FBN | External `FBN_DATA_VOLUME`, source version, and private auth/config | Protect the browser profile and SQLite state; test that pending delivery state survives |
 | GitHub runner | `/opt/gh-runner/runner-config`, installed Compose/env, and labels | Protect the stored runner credentials; if they are unusable, register once with a new one-hour token and then remove it from the container configuration |
 | Home Assistant | Encrypted full backup containing configuration, apps, custom integrations, and Supervisor-managed state, plus the emergency kit stored separately | Use the built-in backup inventory to confirm completion; a backup on the same host does not protect against host or storage loss |

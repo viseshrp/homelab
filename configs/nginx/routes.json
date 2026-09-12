@@ -53,6 +53,20 @@
     },
     {
       "domains": [
+        "ntfy.example.com"
+      ],
+      "scheme": "http",
+      "host": "rpimon",
+      "port": 2586,
+      "certificate": "Lets Encrypt",
+      "access_list": "Public",
+      "force_ssl": true,
+      "http2": true,
+      "websockets": true,
+      "advanced_config": "proxy_buffering off; proxy_request_buffering off; proxy_redirect off; proxy_connect_timeout 3m; proxy_send_timeout 3m; proxy_read_timeout 3m; client_max_body_size 100k;"
+    },
+    {
+      "domains": [
         "pass.example.com"
       ],
       "scheme": "http",

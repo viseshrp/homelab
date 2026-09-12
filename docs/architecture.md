@@ -11,7 +11,7 @@ flowchart TB
     cloudflare -->|"Cloudflare Tunnel"| tunnel["rpiproxy<br/>cloudflared"]
     tunnel -->|"HTTP :8123"| rpihass["rpihass<br/>Home Assistant"]
     npm -->|"HTTP :80, :8080, :3001,<br/>:7575, :9090, :8089"| rpiblog
-    npm -->|"HTTP :3001"| rpimon
+    npm -->|"HTTP :3001, :2586"| rpimon
     npm -->|"HTTP :32400"| optiplex
     npm -->|"HTTP :13000"| vpnedge["vpn-edge"]
 
@@ -32,7 +32,7 @@ Nginx Proxy Manager terminates HTTPS for the shared proxy routes. The dedicated 
 
 ### Public ingress
 
-Nginx Proxy Manager publishes ports 80 and 443 and keeps its administration interface on port 81. Its persisted `data/` directory contains configuration and access logs; `letsencrypt/` contains certificate state. The nine observed entries use Let's Encrypt certificates and the Public access-list setting.
+Nginx Proxy Manager publishes ports 80 and 443 and keeps its administration interface on port 81. Its persisted `data/` directory contains configuration and access logs; `letsencrypt/` contains certificate state. The ten observed entries use Let's Encrypt certificates and the Public access-list setting.
 
 The Home Assistant route bypasses NPM. Cloudflare stores the remotely managed public-hostname rule, while `/opt/cloudflared` on `rpiproxy` runs the connector with a host-only tunnel token. The checked-in reference uses example names and contains no account ID, tunnel ID, or token.
 
@@ -61,7 +61,7 @@ flowchart LR
         paperless --> tika["Tika"]
         paperless --> gotenberg["Gotenberg"]
         archivebox["ArchiveBox"] -->|"WARC files"| pywb["pywb replay"]
-        kuma["Uptime Kuma"]
+        kuma["Uptime Kuma"] -->|"write-only token"| ntfy["ntfy"]
         dozzle["Dozzle"] -->|"local socket / TLS agents :7007"| dockerHosts["Docker engines"]
     end
 
@@ -90,7 +90,7 @@ State falls into four recovery classes.
 | --- | --- | --- |
 | Generated or replaceable | Blog `public/`, container images | Rebuild from source or pull the recorded image |
 | File-backed application state | Anki `data/`, Homarr `homarr/`, Linkding `data/`, Plex `config/`, Pi-hole directories | Preserve ownership and application compatibility; verify with the application after restore |
-| Live databases | Planka and Firezone PostgreSQL volumes; SQLite-backed NPM, Vaultwarden, Uptime Kuma, File Browser, and FBN state | Use an application/database export or quiesce writes before copying; test a restore |
+| Live databases | Planka and Firezone PostgreSQL volumes; SQLite-backed NPM, ntfy, Vaultwarden, Uptime Kuma, File Browser, and FBN state | Use an application/database export or quiesce writes before copying; test a restore |
 | Bulk user data | Paperless media, ArchiveBox captures, both media trees | Back up independently from container configuration; validate counts, hashes, and application indexing |
 
 Named Docker volumes depend on the Compose project name. Moving a project to a different directory or invoking Compose with a different project name can silently select a new empty volume. Bind-mounted directories depend on the same host paths remaining available.
@@ -107,6 +107,7 @@ The OptiPlex media trees couple Plex, qBittorrent, File Browser, and Reelname. A
 | Fail2ban uses host networking plus `NET_ADMIN`/`NET_RAW` | A bad rule can affect host and container traffic. Its Cloudflare cleanup is limited by an ownership journal. |
 | Plex, Pi-hole, and the Homebridge HAOS app use host networking | Port collisions and host firewall rules apply directly to these containers. |
 | Gluetun, Firezone, and WG-Easy receive network capabilities | Their private keys and state are security-sensitive. Firezone and WG-Easy both default to UDP 51820 on `vpn-edge`, so they cannot bind that port at the same time. |
+| Kuma and ntfy share one host and ingress path | An `rpimon`, NPM, Cloudflare, LAN, or power failure can stop both detection and delivery. Use an independent dead-man check when that failure class must page someone. |
 | Secrets live outside Git | Fresh `.env.example` files are incomplete by design and must never replace an installed environment during an update. |
 
 ## Failure domains
@@ -115,7 +116,7 @@ The OptiPlex media trees couple Plex, qBittorrent, File Browser, and Reelname. A
 | --- | --- | --- |
 | `rpiproxy` or NPM unavailable | All public HTTPS routes | Test one backend directly on its LAN port |
 | `rpiblog` unavailable | Apex site plus Anki, boards, homepage, bookmarks, and password-vault routes | Check SSH/host power, then the affected Compose projects |
-| `rpimon` unavailable | Status page, logs UI, archives, and document services | Do not rely on Uptime Kuma alone; test the host and direct ports |
+| `rpimon` unavailable | Status page, ntfy delivery, logs UI, archives, and document services | Do not rely on Uptime Kuma or ntfy alone; test the host and direct ports |
 | `optiplex` or a media mount unavailable | Plex, downloads, both File Browser instances, and media rename work | Verify `/mnt/media2` and `/mnt/media3` before restarting applications |
 | `rpihole` unavailable | DNS failures for clients that use it | Query another resolver or access a known service by address |
 | `vpn-edge` unavailable | Firezone/WireGuard remote access | Check local access before changing proxy or DNS configuration |

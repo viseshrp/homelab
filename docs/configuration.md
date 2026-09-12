@@ -71,7 +71,8 @@ Compose derives default named-volume names from the project name. Changing the d
 | Dozzle | Remote agent endpoints and generated users file | `data/` and private authentication configuration |
 | Dozzle Agent | Per-host LAN bind address and display hostname | No application data; preserve installed Compose input for repeatable restarts |
 | Paperless | `docker-compose.env` with secret, URL, database/OCR/mail/consumer settings | `data`, `media`, `redisdata`, `consume`, and `export` |
-| Uptime Kuma | Installed image; declarative monitor policy and reconciler in `configs/uptime-kuma/` | `uptime-kuma-data/`; private notification details, public domain, and live addresses |
+| Uptime Kuma | Pinned installed image; declarative monitor policy and reconciler in `configs/uptime-kuma/` | `uptime-kuma-data/`; private notification details, public domain, and live addresses |
+| ntfy | Pinned image, public base URL, LAN bind address, UID/GID, cache duration, bcrypt user hashes, ACLs, and Kuma token | `data/`; mobile password, topic, auth database, and message cache |
 
 ### Media, network, and home services
 
@@ -127,7 +128,7 @@ NPM's `nginx.conf` includes `data/nginx/custom/cloudflare-trusted.conf` and acce
 
 ## NPM route reference
 
-[`configs/nginx/routes.json`](../configs/nginx/routes.json) records the nine observed routes with example domains and logical backend names. It is not an import file and changing it does not change NPM. When an operator intentionally changes a live route, update the reference separately and verify the public URL and direct backend.
+[`configs/nginx/routes.json`](../configs/nginx/routes.json) records the ten observed routes with example domains and logical backend names. It is not an import file and changing it does not change NPM. When an operator intentionally changes a live route, update the reference separately and verify the public URL and direct backend.
 
 ## Home Assistant and kiosk
 
@@ -144,6 +145,6 @@ python3 scripts/check.py
 python3 -m unittest discover -s tests
 ```
 
-The checker uses dummy values to render all 23 Compose projects in temporary directories. It checks shell/Python syntax, JSON, YAML, and local Markdown links. It does not contact hosts, start containers, build images, or inspect private installed configuration.
+The checker uses dummy values to render all 25 Compose projects in temporary directories. It checks shell/Python syntax, JSON, YAML, and local Markdown links. It does not contact hosts, start containers, build images, or inspect private installed configuration.
 
 [Back to homelab](../README.md)

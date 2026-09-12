@@ -32,10 +32,21 @@ class UptimeKumaReconcileTests(unittest.TestCase):
         self.assertEqual(monitors['Pi-hole Blocking']['resolver'], '192.0.2.13')
         self.assertEqual(monitors['Pi-hole Blocking']['record_type'], 'CNAME')
         self.assertTrue(monitors['Pi-hole Blocking']['expected_failure'])
+        self.assertEqual(monitors['Ntfy']['url'],
+                         'https://ntfy.example.com/v1/health')
 
     def test_apply_resolution_refuses_documentation_placeholders(self):
         with self.assertRaisesRegex(ValueError, 'placeholder'):
             reconcile.resolve_policy(self.policy, self.environment)
+
+    def test_compose_requires_an_immutable_image(self):
+        compose = (ROOT / 'docker-compose/uptime-kuma/docker-compose.yml').read_text()
+        example = (ROOT / 'docker-compose/uptime-kuma/.env.example').read_text()
+        self.assertIn('UPTIME_KUMA_IMAGE:?', compose)
+        self.assertRegex(
+            example,
+            r'UPTIME_KUMA_IMAGE=louislam/uptime-kuma:1\.23\.17@sha256:'
+            r'[0-9a-f]{64}')
 
     def test_status_page_contains_every_monitor_once(self):
         reconcile.validate_policy(self.policy)
@@ -55,6 +66,9 @@ class UptimeKumaReconcileTests(unittest.TestCase):
         manifest = json.loads((ROOT / 'deployments.json').read_text())
         self.assertEqual(manifest['uptime-kuma']['assets'], {
             'configs/uptime-kuma/monitors.json': 'monitors.json',
+            'configs/uptime-kuma/notification.json': 'notification.json',
+            'configs/uptime-kuma/reconcile-notification.py':
+                'reconcile-notification.py',
             'configs/uptime-kuma/reconcile.py': 'reconcile.py',
         })
 

@@ -113,6 +113,14 @@
       "configs/nginx/data/nginx/custom/cloudflare-trusted.conf": "data/nginx/custom/cloudflare-trusted.conf"
     }
   },
+  "ntfy": {
+    "host": "rpimon",
+    "directory": "/opt/ntfy",
+    "compose": "docker-compose.yml",
+    "assets": {
+      "configs/ntfy/generate-private.py": "generate-private.py"
+    }
+  },
   "paperless": {
     "host": "rpimon",
     "directory": "/opt/paperless",
@@ -149,6 +157,8 @@
     "compose": "docker-compose.yml",
     "assets": {
       "configs/uptime-kuma/monitors.json": "monitors.json",
+      "configs/uptime-kuma/notification.json": "notification.json",
+      "configs/uptime-kuma/reconcile-notification.py": "reconcile-notification.py",
       "configs/uptime-kuma/reconcile.py": "reconcile.py"
     }
   },

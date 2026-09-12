@@ -28,7 +28,7 @@
       "200-299"
     ],
     "http_expiry_notification": true,
-    "notification": "existing private default"
+    "notification": "self-hosted ntfy default"
   },
   "previous_names": {
     "Anki": [
@@ -99,7 +99,8 @@
           "Vaultwarden",
           "Home Assistant",
           "Linkding",
-          "Planka"
+          "Planka",
+          "Ntfy"
         ]
       },
       {
@@ -198,6 +199,11 @@
       "name": "Nginx Proxy Manager",
       "type": "port",
       "target": "rpiproxy:81"
+    },
+    {
+      "name": "Ntfy",
+      "type": "http",
+      "target": "https://ntfy.example.com/v1/health"
     },
     {
       "name": "Pi-hole Blocking",

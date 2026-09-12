@@ -33,7 +33,7 @@ Private addresses are intentionally omitted here. The aliases `rpiblog`, `rpihas
 | --- | --- | --- |
 | `rpiproxy` | Ingress and blocking | [`npm`](apps/nginx-proxy-manager.md) → `/opt/nginx`; [`fail2ban`](apps/fail2ban.md) → `/opt/fail2ban`; [`cloudflared`](apps/cloudflare.md) → `/opt/cloudflared` |
 | `rpiblog` | Web apps and automation | [`blog`](apps/blog.md) → `/opt/blog`; [`gh-runner`](apps/github-runner.md) → `/opt/gh-runner`; [`anki`](apps/anki.md) → `/opt/anki`; [`planka`](apps/planka.md) → `/opt/planka`; [`linkding`](apps/linkding.md) → `/opt/linkding`; [`homarr`](apps/homarr.md) → `/opt/homarr`; [`vaultwarden`](apps/vaultwarden.md) → `/opt/vw`; [`fbn`](apps/fbn.md) → `/opt/fbn-compose` |
-| `rpimon` | Monitoring, documents, and archives | [`uptime-kuma`](apps/uptime-kuma.md) → `/opt/kuma`; [`dozzle`](apps/dozzle.md) → `/opt/dozzle`; [`archivebox`](apps/archivebox.md) → `/opt/archivebox`; [`paperless`](apps/paperless.md) → `/opt/paperless` |
+| `rpimon` | Monitoring, notifications, documents, and archives | [`uptime-kuma`](apps/uptime-kuma.md) → `/opt/kuma`; [`ntfy`](apps/ntfy.md) → `/opt/ntfy`; [`dozzle`](apps/dozzle.md) → `/opt/dozzle`; [`archivebox`](apps/archivebox.md) → `/opt/archivebox`; [`paperless`](apps/paperless.md) → `/opt/paperless` |
 | `optiplex` | Media and downloads | [`plex`](apps/plex.md) → `/opt/plex`; [`qbit`](apps/qbittorrent.md) → `/opt/qbit`; [`filebrowser`](apps/filebrowser.md) → `/opt/filebrowser`; [Reelname](apps/reelname.md) is a host-installed CLI under `/opt/reelname` |
 | `rpihole` | DNS | [`pihole`](apps/pihole.md) → `/opt/pihole-docker` |
 | `rpihass` | Home automation | [Home Assistant](apps/home-assistant.md); [Homebridge](apps/homebridge.md) as a Supervisor-managed HAOS app, plus a retained standalone Compose fallback with no live project directory |
@@ -53,6 +53,7 @@ The domain is shown as `<domain>` to keep the checked-in documentation reusable.
 | `firezone.<domain>` | `vpn-edge:13000` | Firezone management | Online |
 | `home.<domain>` | `rpiblog:7575` | Homarr | Online |
 | `links.<domain>` | `rpiblog:9090` | Linkding | Online |
+| `ntfy.<domain>` | `rpimon:2586` | ntfy | Online |
 | `pass.<domain>` | `rpiblog:8089` | Vaultwarden | Online |
 | `plex.<domain>` | `optiplex:32400` | Plex | Online |
 | `status.<domain>` | `rpimon:3001` | Uptime Kuma | Online |
@@ -72,6 +73,7 @@ Cloudflare Tunnel publishes `hass.<domain>` directly to `rpihass:8123` through t
 | `rpiblog:9090` | Linkding | Also behind NPM |
 | `rpiblog:8089` | Vaultwarden | Also behind NPM; Compose also publishes 3012 |
 | `rpimon:3001` | Uptime Kuma | Also behind NPM |
+| `rpimon:2586` | ntfy | Private-LAN bind; also behind NPM |
 | `rpimon:8080` | Dozzle | Homarr direct link |
 | `rpimon:8002` / `rpimon:8082` | ArchiveBox / pywb | Capture UI and WARC replay |
 | `rpimon:8000` | Paperless | Web interface |
@@ -95,13 +97,13 @@ Cloudflare Tunnel publishes `hass.<domain>` directly to `rpihass:8123` through t
 
 ## Reachability snapshot
 
-The earlier September 9 direct probe produced these results. “Refused” means the host answered but nothing accepted the connection on that port; “timeout” means the check received no answer within its bound.
+The September 9 direct probe produced these results, with ntfy rechecked on September 11. “Refused” means the host answered but nothing accepted the connection on that port; “timeout” means the check received no answer within its bound.
 
 | Host | SSH | Application result |
 | --- | --- | --- |
 | `rpiblog` | Connected | Blog, Anki, Planka, Homarr, Linkding, and Vaultwarden ports answered |
 | `rpiproxy` | Connected | HTTP, HTTPS TCP, and NPM administration answered |
-| `rpimon` | Connected | Uptime Kuma, Dozzle, ArchiveBox, and pywb answered; Paperless 8000 refused |
+| `rpimon` | Connected | Uptime Kuma, ntfy, Dozzle, ArchiveBox, and pywb answered; Paperless 8000 refused |
 | `optiplex` | Connected | Plex, both File Browser instances, and qBittorrent answered |
 | `rpihole` | Connected | DNS TCP 53 and web port 80 answered |
 | `rpinfs` | Connected | FTP 21 refused |

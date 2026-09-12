@@ -37,6 +37,7 @@ __pycache__/
 /docker-compose/linkding/data/
 /docker-compose/npm/data/
 /docker-compose/npm/letsencrypt/
+/docker-compose/ntfy/data/
 /docker-compose/paperless/consume/
 /docker-compose/paperless/export/
 /docker-compose/pihole/etc-pihole/
