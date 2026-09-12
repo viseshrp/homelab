@@ -12,7 +12,8 @@ import subprocess
 from urllib.parse import urlsplit
 
 
-PUBLISHER = 'kuma-publisher'
+KUMA_PUBLISHER = 'kuma-publisher'
+SCRUTINY_PUBLISHER = 'scrutiny-publisher'
 SUBSCRIBER = 'mobile-subscriber'
 DEFAULT_IMAGE = 'binwiederhier/ntfy:latest'
 
@@ -75,18 +76,27 @@ def generate(output_dir, base_url, bind_ip, uid=1000, gid=1000,
     os.chmod(output_dir, 0o700)
 
     topic = 'kuma-' + secrets.token_hex(12)
-    publisher_password = secrets.token_urlsafe(24)
+    kuma_password = secrets.token_urlsafe(24)
+    scrutiny_password = secrets.token_urlsafe(24)
     subscriber_password = secrets.token_urlsafe(24)
     alphabet = string.ascii_lowercase + string.digits
-    publisher_token = 'tk_' + ''.join(secrets.choice(alphabet) for _ in range(29))
-    publisher_hash = password_hasher(publisher_password, PUBLISHER)
+    kuma_token = 'tk_' + ''.join(secrets.choice(alphabet) for _ in range(29))
+    scrutiny_token = 'tk_' + ''.join(secrets.choice(alphabet) for _ in range(29))
+    kuma_hash = password_hasher(kuma_password, KUMA_PUBLISHER)
+    scrutiny_hash = password_hasher(scrutiny_password, SCRUTINY_PUBLISHER)
     subscriber_hash = password_hasher(subscriber_password, SUBSCRIBER)
 
     auth_users = (
-        f'{PUBLISHER}:{publisher_hash}:user,'
+        f'{KUMA_PUBLISHER}:{kuma_hash}:user,'
+        f'{SCRUTINY_PUBLISHER}:{scrutiny_hash}:user,'
         f'{SUBSCRIBER}:{subscriber_hash}:user')
-    auth_access = f'{PUBLISHER}:{topic}:wo,{SUBSCRIBER}:{topic}:ro'
-    auth_tokens = f'{PUBLISHER}:{publisher_token}:kuma'
+    auth_access = (
+        f'{KUMA_PUBLISHER}:{topic}:wo,'
+        f'{SCRUTINY_PUBLISHER}:{topic}:wo,'
+        f'{SUBSCRIBER}:{topic}:ro')
+    auth_tokens = (
+        f'{KUMA_PUBLISHER}:{kuma_token}:kuma,'
+        f'{SCRUTINY_PUBLISHER}:{scrutiny_token}:scrutiny')
 
     compose_env = f"""NTFY_IMAGE={image}
 NTFY_BASE_URL={base_url}
@@ -108,13 +118,17 @@ Password: {subscriber_password}
 """
     kuma = f"""UPTIME_KUMA_NTFY_SERVER_URL={base_url}
 UPTIME_KUMA_NTFY_TOPIC={topic}
-UPTIME_KUMA_NTFY_ACCESS_TOKEN={publisher_token}
+UPTIME_KUMA_NTFY_ACCESS_TOKEN={kuma_token}
 """
+    ntfy_host = urlsplit(base_url).netloc
+    scrutiny = (
+        f'SCRUTINY_NTFY_URL=ntfy://:{scrutiny_token}@{ntfy_host}/{topic}\n')
 
     paths = {
         'compose_env': output_dir / '.env',
         'mobile': output_dir / 'mobile-subscription.txt',
         'kuma': output_dir / 'kuma-ntfy.env',
+        'scrutiny': output_dir / 'scrutiny-ntfy.env',
     }
     for path in paths.values():
         if path.exists():
@@ -122,6 +136,7 @@ UPTIME_KUMA_NTFY_ACCESS_TOKEN={publisher_token}
     write_private(paths['compose_env'], compose_env)
     write_private(paths['mobile'], mobile)
     write_private(paths['kuma'], kuma)
+    write_private(paths['scrutiny'], scrutiny)
     return paths
 
 

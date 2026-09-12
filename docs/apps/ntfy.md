@@ -18,13 +18,16 @@ The container runs as UID/GID 1000, listens on unprivileged container port 8080,
 
 ## Authentication and delivery
 
-The installed private environment declares two non-admin users and one topic:
+The installed private environment declares three non-admin users and one topic:
 
 - `kuma-publisher` has write-only access and uses a dedicated access token from Uptime Kuma.
+- `scrutiny-publisher` has write-only access and uses a separate token from Scrutiny.
 - `mobile-subscriber` has read-only access and uses a separate password in the mobile app.
 - Anonymous access is denied, account signup is disabled, and attachment uploads are disabled.
 
-Run [`generate-private.py`](../../configs/ntfy/generate-private.py) outside the repository to create `.env`, `mobile-subscription.txt`, and `kuma-ntfy.env` with mode 0600. It generates a random topic, independent credentials, cost-12 bcrypt password hashes, and a Kuma token without printing them. Never commit or paste those files into logs.
+Run [`generate-private.py`](../../configs/ntfy/generate-private.py) outside the repository to create `.env`, `mobile-subscription.txt`, `kuma-ntfy.env`, and `scrutiny-ntfy.env` with mode 0600. It generates a random topic, independent credentials, cost-12 bcrypt password hashes, and separate Kuma and Scrutiny tokens without printing them. [`add-scrutiny-publisher.py`](../../configs/ntfy/add-scrutiny-publisher.py) adds the Scrutiny identity to an existing installation without rotating the established topic or credentials. Never commit or paste private files into logs.
+
+On September 12, 2026, the installed server was extended with the Scrutiny publisher. The resulting ACL inventory showed separate write-only Kuma and Scrutiny identities, the mobile account remained read-only, both publisher tokens were rotated after verification, and the Kuma and Scrutiny application-level notification tests succeeded.
 
 `NTFY_UPSTREAM_BASE_URL=https://ntfy.sh` supports timely iOS push delivery. The upstream receives a poll request containing the message ID and a hash of the topic URL, not the alert body. The public `NTFY_BASE_URL` must match the server configured in the iOS app.
 

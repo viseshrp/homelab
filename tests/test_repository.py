@@ -1,4 +1,5 @@
 """No network, Docker daemon, or host firewall access in these tests."""
+import importlib.util
 import json
 from pathlib import Path
 import subprocess
@@ -14,6 +15,13 @@ import prepare
 import check
 import integration
 import source_firewall
+
+
+def load_script(name, relative):
+    spec = importlib.util.spec_from_file_location(name, ROOT / relative)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 class PreparationTests(unittest.TestCase):
@@ -137,6 +145,47 @@ class MediaAutomationSafetyTests(unittest.TestCase):
             'configs/media-automation/manage_safety.py': 'manage_safety.py',
             'configs/media-automation/safety-policy.json': 'safety-policy.json',
         })
+
+
+class ScrutinyConfigurationTests(unittest.TestCase):
+    def test_ntfy_generator_creates_separate_scrutiny_token(self):
+        module = load_script('ntfy_generate_private', 'configs/ntfy/generate-private.py')
+        with tempfile.TemporaryDirectory() as tmp:
+            paths = module.generate(
+                Path(tmp), 'https://ntfy.example.com', '192.168.1.14',
+                password_hasher=lambda password, username: '$2y$12$' + username)
+            self.assertEqual(set(paths), {'compose_env', 'mobile', 'kuma', 'scrutiny'})
+            compose_env = paths['compose_env'].read_text()
+            self.assertIn('scrutiny-publisher:', compose_env)
+            self.assertIn(':scrutiny', compose_env)
+            scrutiny_env = paths['scrutiny'].read_text()
+            self.assertIn('SCRUTINY_NTFY_URL=ntfy://:tk_', scrutiny_env)
+            self.assertIn('@ntfy.example.com/kuma-', scrutiny_env)
+
+    def test_existing_ntfy_environment_can_be_extended_without_rotation(self):
+        module = load_script(
+            'ntfy_add_scrutiny', 'configs/ntfy/add-scrutiny-publisher.py')
+        with tempfile.TemporaryDirectory() as tmp:
+            env_path = Path(tmp) / '.env'
+            output_path = Path(tmp) / 'scrutiny-ntfy.env'
+            topic = 'kuma-existing-topic'
+            env_path.write_text(
+                'NTFY_BASE_URL=https://ntfy.example.com\n'
+                "NTFY_AUTH_USERS='kuma-publisher:$2y$12$kuma:user,"
+                "mobile-subscriber:$2y$12$mobile:user'\n"
+                f"NTFY_AUTH_ACCESS='kuma-publisher:{topic}:wo,"
+                f"mobile-subscriber:{topic}:ro'\n"
+                "NTFY_AUTH_TOKENS='kuma-publisher:tk_existing:kuma'\n")
+            result = module.extend(
+                env_path, output_path,
+                password_hasher=lambda password, username: '$2y$12$scrutiny',
+                token='tk_' + 'a' * 29)
+            self.assertEqual(result['topic'], topic)
+            updated = env_path.read_text()
+            self.assertIn(f'scrutiny-publisher:{topic}:wo', updated)
+            self.assertIn('scrutiny-publisher:tk_', updated)
+            self.assertIn('@ntfy.example.com/' + topic, output_path.read_text())
+
 
 
 class FirewallTests(unittest.TestCase):

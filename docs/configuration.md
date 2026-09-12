@@ -72,7 +72,7 @@ Compose derives default named-volume names from the project name. Changing the d
 | Dozzle Agent | Per-host LAN bind address and display hostname | No application data; preserve installed Compose input for repeatable restarts |
 | Paperless | `docker-compose.env` with secret, URL, database/OCR/mail/consumer settings | `data`, `media`, `redisdata`, `consume`, and `export` |
 | Uptime Kuma | Moving `:2` image tag; declarative monitor policy and reconciler in `configs/uptime-kuma/` | `uptime-kuma-data/`; private notification details, public domain, and live addresses |
-| ntfy | Moving `latest` image tag, public base URL, LAN bind address, UID/GID, cache duration, bcrypt user hashes, ACLs, and Kuma token | `data/`; mobile password, topic, auth database, and message cache |
+| ntfy | Moving `latest` image tag, public base URL, LAN bind address, UID/GID, cache duration, bcrypt user hashes, ACLs, and separate Kuma/Scrutiny tokens | `data/`; mobile password, topic, auth database, and message cache |
 
 ### Media, network, and home services
 
