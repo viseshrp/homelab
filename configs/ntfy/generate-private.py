@@ -14,10 +14,7 @@ from urllib.parse import urlsplit
 
 PUBLISHER = 'kuma-publisher'
 SUBSCRIBER = 'mobile-subscriber'
-DEFAULT_IMAGE = (
-    'binwiederhier/ntfy:v2.28.0@sha256:'
-    '6ef4b819f722fccdc036af611c4774cfdc2de821ab74fdd48bbf4c9d6f8973da'
-)
+DEFAULT_IMAGE = 'binwiederhier/ntfy:latest'
 
 
 def validate_base_url(value):

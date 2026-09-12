@@ -27,7 +27,7 @@ notification = load_module(
 
 
 class NtfyTests(unittest.TestCase):
-    def test_compose_uses_private_auth_and_a_pinned_image_input(self):
+    def test_compose_uses_private_auth_and_the_latest_image_tag(self):
         compose = (ROOT / 'docker-compose/ntfy/docker-compose.yml').read_text()
         example = (ROOT / 'docker-compose/ntfy/.env.example').read_text()
         self.assertIn('NTFY_AUTH_DEFAULT_ACCESS: "deny-all"', compose)
@@ -35,9 +35,7 @@ class NtfyTests(unittest.TestCase):
         self.assertIn('NTFY_BEHIND_PROXY: "true"', compose)
         self.assertIn('NTFY_UPSTREAM_BASE_URL', compose)
         self.assertNotIn('NTFY_ATTACHMENT_CACHE_DIR', compose)
-        self.assertRegex(
-            example,
-            r'NTFY_IMAGE=binwiederhier/ntfy:v2\.28\.0@sha256:[0-9a-f]{64}')
+        self.assertIn('NTFY_IMAGE=binwiederhier/ntfy:latest', example)
 
     def test_generator_separates_server_and_mobile_secrets(self):
         fake_hash = '$2y$12$' + ('a' * 53)
@@ -58,6 +56,8 @@ class NtfyTests(unittest.TestCase):
                          if line.startswith('Topic: '))
             token = next(line.split('=', 1)[1] for line in kuma.splitlines()
                          if line.startswith('UPTIME_KUMA_NTFY_ACCESS_TOKEN='))
+            self.assertIn(
+                'NTFY_IMAGE=binwiederhier/ntfy:latest', compose_env)
             self.assertNotIn(password, compose_env)
             self.assertIn(f'kuma-publisher:{topic}:wo', compose_env)
             self.assertIn(f'mobile-subscriber:{topic}:ro', compose_env)

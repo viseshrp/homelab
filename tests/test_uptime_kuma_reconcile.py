@@ -39,14 +39,12 @@ class UptimeKumaReconcileTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'placeholder'):
             reconcile.resolve_policy(self.policy, self.environment)
 
-    def test_compose_requires_an_immutable_image(self):
+    def test_compose_uses_the_latest_image_tag(self):
         compose = (ROOT / 'docker-compose/uptime-kuma/docker-compose.yml').read_text()
         example = (ROOT / 'docker-compose/uptime-kuma/.env.example').read_text()
         self.assertIn('UPTIME_KUMA_IMAGE:?', compose)
-        self.assertRegex(
-            example,
-            r'UPTIME_KUMA_IMAGE=louislam/uptime-kuma:1\.23\.17@sha256:'
-            r'[0-9a-f]{64}')
+        self.assertIn(
+            'UPTIME_KUMA_IMAGE=louislam/uptime-kuma:latest', example)
 
     def test_status_page_contains_every_monitor_once(self):
         reconcile.validate_policy(self.policy)

@@ -4,7 +4,7 @@ Uptime Kuma checks service availability and provides a web interface for monitor
 
 ## My setup
 
-Kuma runs on `rpimon` from `/opt/kuma`. The installed 1.23.17 image is pinned by digest in `.env.example`, and the container publishes port 3001.
+Kuma runs on `rpimon` from `/opt/kuma`. The repository and installed environment use `louislam/uptime-kuma:latest`, and the container publishes port 3001. Uptime Kuma's [Docker tag documentation](https://github.com/louislam/uptime-kuma/wiki/Docker-Tags) marks this tag deprecated and keeps it on v1; upgrading to v2 requires the separate `:2` tag and the [official migration procedure](https://github.com/louislam/uptime-kuma/wiki/Migration-From-v1-To-v2).
 
 Nginx Proxy Manager forwards the `status` HTTPS hostname to `rpimon:3001`. Homarr includes a shortcut to it.
 
@@ -22,7 +22,7 @@ The installed Uptime Kuma 1.23.17 native JSON export is unsuitable for source co
 
 All intended monitors are active. Public HTTP monitors cover the external route, while LAN port and ping monitors cover services and hosts that are not publicly routed. The inverted `Pi-hole Blocking` DNS monitor stays up only while Pi-hole rejects the documented telemetry hostname. Services without a running endpoint are omitted instead of remaining as disabled monitors.
 
-On September 11, 2026, the live database matched the sanitized reference: 29 active monitors in four status-page groups, each with a fresh successful result and the private ntfy default notification. The old Gmail/Apprise notification was absent. The notification cutover did not restart Kuma. Afterward, the container was recreated once to replace the moving image reference with the immutable digest of the same 1.23.17 image; no database migration or image change occurred. This is a dated runtime observation, not a guarantee of future availability.
+On September 12, 2026, `latest` resolved to the same Uptime Kuma 1.23.17 image that was already running. The live database matched the sanitized reference: 29 active monitors in four status-page groups, each with a fresh successful result and the private ntfy default notification. The old Gmail/Apprise notification was absent. Changing the reference therefore caused no application or database migration. Future pulls of `latest` may change the v1 image. This is a dated runtime observation, not a guarantee of future availability.
 
 ## Verify and recover
 
@@ -56,6 +56,6 @@ The cutover creates a separate consistent SQLite backup before changing Kuma. It
 
 Check `rpimon:3001` and the `status` route, then confirm every monitor records a fresh result. Test the ntfy route and read the test message with the mobile subscriber credentials.
 
-Back up `uptime-kuma-data/` consistently because it contains the SQLite database, monitors, history, and notification settings. After a restore, verify timestamps and live monitor execution rather than relying on historical green rows.
+Back up `uptime-kuma-data/` consistently because it contains the SQLite database, monitors, history, and notification settings. Record the resolved image digest before pulling the moving tag. After a restore, run the recorded pre-update image and verify timestamps and live monitor execution rather than relying on historical green rows.
 
 [Compose](../../docker-compose/uptime-kuma/docker-compose.yml) · [Operations](../operations.md) · [Application index](README.md)

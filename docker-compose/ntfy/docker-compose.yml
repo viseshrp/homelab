@@ -1,6 +1,6 @@
 services:
   ntfy:
-    image: "${NTFY_IMAGE:?Set NTFY_IMAGE to a pinned ntfy image}"
+    image: "${NTFY_IMAGE:?Set NTFY_IMAGE to the intended ntfy image tag}"
     container_name: ntfy
     command:
       - serve

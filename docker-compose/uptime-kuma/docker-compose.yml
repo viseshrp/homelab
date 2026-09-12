@@ -1,6 +1,6 @@
 services:
   uptime-kuma:
-    image: "${UPTIME_KUMA_IMAGE:?Set UPTIME_KUMA_IMAGE to a pinned image digest}"
+    image: "${UPTIME_KUMA_IMAGE:?Set UPTIME_KUMA_IMAGE to the intended image tag}"
     container_name: uptime-kuma
     ports:
     - 3001:3001
