@@ -85,6 +85,31 @@ sudo docker compose exec -T diun diun notif test
 
 Confirm the mobile message identifies the correct host. Independently prove that the same publisher token is denied read access. Do not leave the HAOS `notification_test_on_start` option enabled after its one-time test.
 
+## Verified rollout on September 13, 2026
+
+The distributed rollout completed on all eight hosts. Each conventional host passed its real Compose render, native healthcheck, persistent-database restart check, notification test, write-only token check, and byte-for-byte comparison of the deployed Compose and rule files with its isolated repository payload. The latest completed scans were:
+
+| Host | Docker-provider inputs | File-provider rules | Latest completed result |
+| --- | ---: | ---: | --- |
+| `optiplex` | 11 | 7 | 18 unchanged, 0 skipped, 0 failed |
+| `rpiblog` | 8 | 7 | 18 unchanged, 1 intentionally filtered seed, 0 failed |
+| `rpihole` | 3 | 2 | 5 unchanged, 0 skipped, 0 failed |
+| `rpimon` | 8 | 8 | 15 unchanged, 2 intentionally filtered seeds, 0 failed |
+| `rpinfs` | 2 | 2 | 4 unchanged, 0 skipped, 0 failed |
+| `rpiproxy` | 5 | 3 | 8 unchanged, 0 skipped, 0 failed |
+| `vpn-edge` | 5 | 4 | 10 unchanged, 2 intentionally filtered seeds, 0 failed |
+| `rpihass` | Not enabled | 2 | 2 unchanged, 0 skipped, 0 failed |
+
+The conventional Docker-provider counts reconcile with the unique registry-backed image references visible in the live container inventory. Two containers on `optiplex` intentionally share the same File Browser image reference. The three unique local-build references on `rpiblog` are not registry images; the host-specific file rules cover the selected upstream channels and version boundaries that must be monitored independently. No conventional container had a `diun.enable=false` label.
+
+Dozzle reported all eight hosts and 64 containers, including exited containers. One DIUN log stream was opened for every host. The seven conventional instances were healthy, the HAOS app was running, and every stream showed a completed scan with the six-hour schedule and zero failures.
+
+All eight native ntfy tests succeeded. Each host's DIUN publisher token was independently denied subscriber access with HTTP 403. On HAOS, the one-time test option was returned to `false` before the final DIUN-only restart.
+
+The conventional rollback archives are under `/opt/backups/diun-local-20260913T035739Z` on their respective hosts and passed archive listing and SHA-256 verification. HAOS backup `279e9904` is a completed full backup named `pre-diun-local-20260913T0022EDT`; the narrower package archive is `/share/diun-agent-backups/diun-agent-pre-4.33.0-5-20260913T0025EDT.tar.gz` with SHA-256 `2ddbaea62ec5cb5f9b02328d6216e188a216964f35dc20e696aa7a743943c42d`.
+
+The obsolete central `diun-release-watch` container, release catalog, data directory, and its two private profile settings were removed from `rpimon` only after backup and local-provider verification. No application workload was stopped or recreated. Homebridge and PairDrop remained running. No rollback was performed.
+
 ## Alignment with upstream documentation
 
 | Official DIUN behavior | This deployment |
