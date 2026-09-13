@@ -1,0 +1,35 @@
+name: DIUN Agent
+version: "4.33.0-5"
+slug: diun_agent
+description: Notify through ntfy when Homebridge or PairDrop publishes a new image.
+url: https://github.com/viseshrp/homelab/tree/main/home-assistant-diun-agent
+arch:
+  - aarch64
+  - amd64
+startup: services
+boot: auto
+init: false
+docker_api: false
+tmpfs: true
+backup: cold
+options:
+  ntfy_endpoint: null
+  ntfy_topic: null
+  ntfy_token: null
+  hostname: rpihass
+  timezone: America/New_York
+  schedule: "0 */6 * * *"
+  jitter: 45m
+  notification_test_on_start: false
+  log_level: info
+schema:
+  ntfy_endpoint: url
+  ntfy_topic: str
+  ntfy_token: password
+  hostname: str
+  timezone: str
+  schedule: str
+  jitter: str
+  notification_test_on_start: bool
+  log_level: list(debug|info|warn|error)
+stage: stable

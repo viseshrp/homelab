@@ -1,0 +1,14 @@
+[
+  {"name": "docker.io/crazymax/diun:latest", "notify_on": ["update"]},
+  {"name": "docker.io/amir20/dozzle:latest", "notify_on": ["update"]},
+  {"name": "ghcr.io/plankanban/planka:latest", "notify_on": ["update"]},
+  {"name": "ghcr.io/ajnart/homarr:latest", "notify_on": ["update"]},
+  {"name": "docker.io/library/nginx:latest", "notify_on": ["update"]},
+  {"name": "docker.io/library/ubuntu:24.04", "notify_on": ["update"]},
+  {
+    "name": "docker.io/library/postgres:14-alpine",
+    "watch_repo": true,
+    "notify_on": ["new"],
+    "include_tags": ["^(1[5-9]|[2-9][0-9]+)-alpine$"]
+  }
+]

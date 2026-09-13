@@ -46,6 +46,8 @@ Homarr mixes public HTTPS links with direct LAN links. Dozzle, File Browser, qBi
 
 ```mermaid
 flowchart LR
+    registries["Public image registries"]
+
     subgraph web["rpiblog"]
         runner["GitHub runner"] -->|"writes generated site"| blog["Blog / Nginx"]
         planka["Planka"] --> plankaDb["PostgreSQL 14"]
@@ -63,6 +65,11 @@ flowchart LR
         archivebox["ArchiveBox"] -->|"WARC files"| pywb["pywb replay"]
         kuma["Uptime Kuma"] -->|"write-only token"| ntfy["ntfy"]
         dozzle["Dozzle"] -->|"local socket / TLS agents :7007"| dockerHosts["Docker engines"]
+        diun["DIUN on each conventional host"] -->|"local Docker API"| dockerHosts
+        diun -->|"local inventory + local file rules"| registries
+        diun -->|"per-host write-only tokens"| ntfy
+        haosDiun["HAOS DIUN<br/>Homebridge + PairDrop"] -->|"local file rules"| registries
+        haosDiun -->|"rpihass write-only token"| ntfy
         scrutiny["Scrutiny"] --> scrutinyDb["InfluxDB 2.8"]
     end
 
@@ -91,6 +98,8 @@ flowchart LR
 
 Compose networks keep both PostgreSQL containers, Redis, Tika, and Gotenberg off host ports. qBittorrent is different: it joins Gluetun's network namespace, so Gluetun publishes the qBittorrent web and torrent ports. The media-automation stack is intentionally disconnected from qBittorrent and gives Radarr, Sonarr, and Bazarr read-only media binds. Seerr is not connected to the Arr services in this safety mode.
 
+DIUN has no central controller in this lab. Each of the seven conventional hosts runs one process with a local Docker provider and its own file-provider rules. The Docker provider discovers that host's container image references; the file provider fills fixed-tag, local-build, and major-version gaps. The HAOS app is also local but uses only a two-entry file provider for Homebridge and PairDrop, so it does not inspect Home Assistant infrastructure. Instances share only the ntfy destination and cannot query or command one another.
+
 ## State and storage
 
 State falls into four recovery classes.
@@ -113,6 +122,7 @@ The OptiPlex media trees couple Plex, qBittorrent, File Browser, Reelname, and t
 | NPM is the shared public ingress | A proxy, certificate, or `rpiproxy` failure affects every public route, even when backends still work on the LAN. |
 | Cloudflare client headers are trusted selectively | Accepting forwarded client addresses from arbitrary peers would let a client forge the address evaluated by logs and bans. |
 | Homarr, Dozzle, and the GitHub runner mount the Docker socket | Docker-socket access is effectively host-level control. Treat their credentials and web access accordingly. |
+| Conventional-host DIUN mounts the local Docker socket | The bind is marked read-only, but Docker API access remains a host-level trust boundary. DIUN is pinned, has no published port, and cannot update images through its configured workflow. The HAOS instance uses no Docker API. |
 | Fail2ban uses host networking plus `NET_ADMIN`/`NET_RAW` | A bad rule can affect host and container traffic. Its Cloudflare cleanup is limited by an ownership journal. |
 | Plex, Pi-hole, and the Homebridge HAOS app use host networking | Port collisions and host firewall rules apply directly to these containers. |
 | Gluetun, Firezone, and WG-Easy receive network capabilities | Their private keys and state are security-sensitive. Firezone and WG-Easy both default to UDP 51820 on `vpn-edge`, so they cannot bind that port at the same time. |
@@ -127,7 +137,7 @@ The OptiPlex media trees couple Plex, qBittorrent, File Browser, Reelname, and t
 | --- | --- | --- |
 | `rpiproxy` or NPM unavailable | All public HTTPS routes | Test one backend directly on its LAN port |
 | `rpiblog` unavailable | Apex site plus Anki, boards, homepage, bookmarks, and password-vault routes | Check SSH/host power, then the affected Compose projects |
-| `rpimon` unavailable | Status page, ntfy delivery, logs UI, archives, and document services | Do not rely on Uptime Kuma or ntfy alone; test the host and direct ports |
+| `rpimon` unavailable | Status page, ntfy delivery, logs UI, archives, and document services | DIUN on other hosts can still check registries but cannot deliver to ntfy; test the host and direct ports |
 | `optiplex` or a media mount unavailable | Plex, downloads, both File Browser instances, and media rename work | Verify `/mnt/media2` and `/mnt/media3` before restarting applications |
 | `rpihole` unavailable | DNS failures for clients that use it | Query another resolver or access a known service by address |
 | `vpn-edge` unavailable | Firezone/WireGuard remote access | Check local access before changing proxy or DNS configuration |

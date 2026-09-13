@@ -18,6 +18,26 @@ HACS is downloaded on Home Assistant OS through the official HACS app repository
 
 Google Calendar and Google Nest use separate Google OAuth clients of type **Web application**. Both clients use `https://my.home-assistant.io/redirect/oauth`; client IDs and secrets remain private in Google Cloud and Home Assistant application credentials. [`google-integrations.json`](../../configs/homeassistant/google-integrations.json) records the non-secret OAuth, API, and Pub/Sub contract. Do not use the legacy **TV and Limited Input** client type for new Google Calendar credentials.
 
+
+## Supervisor apps and image monitoring
+
+On September 12, 2026, Supervisor reported ten installed apps. Homebridge and PairDrop are the only HAOS app families selected for DIUN release notifications. The local DIUN app uses a two-entry file provider instead of Docker discovery, so the remaining apps and Home Assistant internal images cannot generate alerts. [`apps.json`](../../configs/homeassistant/apps.json) records the non-secret inventory and this monitoring policy.
+
+| App | Installed state and version | DIUN notification |
+| --- | --- | --- |
+| Matter Server | Running, 9.2.0 | Not monitored |
+| Advanced SSH & Web Terminal | Running, 24.1.4 | Not monitored |
+| Glances | Running, 0.22.1 | Not monitored |
+| Dozzle Agent | Running, local package 10.10.0-2 | Not monitored as an HAOS app |
+| File editor | Running, 6.1.0 | Not monitored |
+| JupyterLab | Running, 0.18.1 | Not monitored |
+| Get HACS | Stopped, 1.3.1 | Not monitored |
+| Homebridge | Running, 2026-09-02 | `homebridge/homebridge:latest` |
+| DIUN Agent | Running, local package 4.33.0-5 | Its file provider checks Homebridge and PairDrop |
+| PairDrop | Running, version-v1.11.2 | `lscr.io/linuxserver/pairdrop:latest` |
+
+The HAOS DIUN app checks the stable ARM64 `latest` channels for Homebridge and PairDrop every six hours. It does not inspect the HAOS Docker host or update either app. Supervisor remains responsible for installation and upgrades.
+
 ## Configuration files
 
 `configs/homeassistant/configuration.yaml` loads separate files for automations, scripts, scenes, and customization, plus a directory of themes.

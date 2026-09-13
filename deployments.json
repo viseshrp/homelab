@@ -42,6 +42,29 @@
     "compose": "docker-compose.yml",
     "assets": {}
   },
+  "diun-agent": {
+    "hosts": [
+      "optiplex",
+      "rpiblog",
+      "rpihole",
+      "rpimon",
+      "rpinfs",
+      "rpiproxy",
+      "vpn-edge"
+    ],
+    "directory": "/opt/diun-agent",
+    "compose": "docker-compose.yml",
+    "assets": {},
+    "host_assets": {
+      "optiplex": {"docker-compose/diun-agent/rules/optiplex.yml": "custom-images.yml"},
+      "rpiblog": {"docker-compose/diun-agent/rules/rpiblog.yml": "custom-images.yml"},
+      "rpihole": {"docker-compose/diun-agent/rules/rpihole.yml": "custom-images.yml"},
+      "rpimon": {"docker-compose/diun-agent/rules/rpimon.yml": "custom-images.yml"},
+      "rpinfs": {"docker-compose/diun-agent/rules/rpinfs.yml": "custom-images.yml"},
+      "rpiproxy": {"docker-compose/diun-agent/rules/rpiproxy.yml": "custom-images.yml"},
+      "vpn-edge": {"docker-compose/diun-agent/rules/vpn-edge.yml": "custom-images.yml"}
+    }
+  },
   "fail2ban": {
     "host": "rpiproxy",
     "directory": "/opt/fail2ban",
@@ -128,6 +151,7 @@
     "directory": "/opt/ntfy",
     "compose": "docker-compose.yml",
     "assets": {
+      "configs/ntfy/add-diun-publishers.py": "add-diun-publishers.py",
       "configs/ntfy/add-scrutiny-publisher.py": "add-scrutiny-publisher.py",
       "configs/ntfy/generate-private.py": "generate-private.py"
     }

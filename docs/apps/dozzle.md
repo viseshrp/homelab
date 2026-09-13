@@ -32,6 +32,8 @@ The September 9, 2026 cutover showed eight hosts and 49 containers in Dozzle. Th
 
 A September 10 follow-up verified `gh-runner-worker-1` on `rpiblog` and `app_a0d7b954_ssh` on `rpihass` as running in Dozzle after their configuration repairs.
 
+On September 12, 2026, a stopped-container-inclusive dashboard audit covered the same eight hosts. DIUN was subsequently simplified to one self-contained watcher per host: the temporary extra `diun-release-watch` container on `rpimon` was removed, and the HAOS DIUN app was started with only Homebridge and PairDrop file rules. The final per-host totals and application-container continuity are recorded in the DIUN rollout verification.
+
 On September 10, 2026, the Raspberry Pi memory cgroup was enabled on `rpinfs` and `rpimon` through their recorded host-specific boot parameters. After sequential reboots, Docker reported `MemoryLimit=true` and nonzero memory statistics on both hosts. Dozzle then showed memory usage on both host cards and container rows while retaining all eight hosts and 49 containers. The single `rpinfs` agent and all four `rpimon` containers returned under their existing restart policies; Dozzle, Uptime Kuma, ArchiveBox, and pywb answered their direct HTTP checks.
 
 All seven remote agents accepted TLS connections on port 7007, and every former port-2375 endpoint refused connections. A log stream was opened from a container on every host, including Firezone and Home Assistant Supervisor.

@@ -43,6 +43,10 @@ Private addresses are intentionally omitted here. The aliases `rpiblog`, `rpihas
 
 The replicated [`dozzle-agent`](apps/dozzle.md) project runs from `/opt/dozzle-agent` on every normal Docker host except `rpimon`, where the central server uses the local socket. `rpihass` uses the equivalent Home Assistant OS app.
 
+The replicated [`diun-agent`](apps/diun.md) project runs from `/opt/diun-agent` on `optiplex`, `rpiblog`, `rpihole`, `rpimon`, `rpinfs`, `rpiproxy`, and `vpn-edge`. Each self-contained instance combines its local Docker inventory with a host-specific `custom-images.yml`, stores one local history database, publishes through a unique write-only ntfy identity, and has no listening port. The HAOS instance is also local but uses only a two-entry file provider for Homebridge and PairDrop. No DIUN process controls another host.
+
+The September 12, 2026 rollout inventory classified every conventional-host container image as public registry-backed or local-build, and recorded public bases for the local builds. No conventional container had an explicit DIUN exclusion. See the dated verification in [the DIUN application page](apps/diun.md) for the post-rollout provider counts and results.
+
 ## HTTPS ingress
 
 The domain is shown as `<domain>` to keep the checked-in documentation reusable. NPM displayed a Let's Encrypt certificate, Public access, and Online status for every row.

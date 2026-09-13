@@ -1,0 +1,4 @@
+[
+  {"name": "docker.io/homebridge/homebridge:latest", "notify_on": ["update"]},
+  {"name": "lscr.io/linuxserver/pairdrop:latest", "notify_on": ["update"]}
+]

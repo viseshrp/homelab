@@ -1,0 +1,57 @@
+services:
+  diun:
+    image: "${DIUN_IMAGE:?Set DIUN_IMAGE to the reviewed DIUN image tag and digest}"
+    container_name: diun
+    hostname: "${DIUN_HOSTNAME:?Set DIUN_HOSTNAME to this deployment host alias}"
+    command:
+      - serve
+    environment:
+      TZ: "${TZ:?Set TZ}"
+      LOG_LEVEL: "${DIUN_LOG_LEVEL:-info}"
+      LOG_JSON: "false"
+      DIUN_WATCH_WORKERS: "${DIUN_WATCH_WORKERS:-10}"
+      DIUN_WATCH_SCHEDULE: "${DIUN_WATCH_SCHEDULE:-0 */6 * * *}"
+      DIUN_WATCH_JITTER: "${DIUN_WATCH_JITTER:-45m}"
+      DIUN_WATCH_FIRSTCHECKNOTIF: "false"
+      DIUN_WATCH_RUNONSTARTUP: "true"
+      DIUN_WATCH_COMPAREDIGEST: "true"
+      DIUN_DEFAULTS_NOTIFYON: "update"
+      DIUN_PROVIDERS_DOCKER: "true"
+      DIUN_PROVIDERS_DOCKER_WATCHBYDEFAULT: "true"
+      DIUN_PROVIDERS_DOCKER_WATCHSTOPPED: "${DIUN_WATCH_STOPPED:-true}"
+      DIUN_PROVIDERS_FILE_FILENAME: "/etc/diun/custom-images.yml"
+      DIUN_NOTIF_NTFY_ENDPOINT: "${DIUN_NTFY_ENDPOINT:?Set the private ntfy endpoint}"
+      DIUN_NOTIF_NTFY_TOKENFILE: "/run/secrets/ntfy-token"
+      DIUN_NOTIF_NTFY_TOPIC: "${DIUN_NTFY_TOPIC:?Set the private ntfy topic}"
+      DIUN_NOTIF_NTFY_PRIORITY: "${DIUN_NTFY_PRIORITY:-3}"
+      DIUN_NOTIF_NTFY_TAGS: "package"
+      DIUN_NOTIF_NTFY_TIMEOUT: "10s"
+      DIUN_NOTIF_NTFY_TEMPLATETITLE: >-
+        [${DIUN_HOSTNAME:?Set DIUN_HOSTNAME}] {{ .Entry.Image }} {{ if eq .Entry.Status "new" }}is available{{ else }}has been updated{{ end }}
+    volumes:
+      - ./data:/data
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./custom-images.yml:/etc/diun/custom-images.yml:ro
+      - ./ntfy-token:/run/secrets/ntfy-token:ro
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=16m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test:
+        - CMD
+        - diun
+        - healthcheck
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: json-file
+      options:
+        max-size: "${DOCKER_LOG_MAX_SIZE:-10m}"
+        max-file: "${DOCKER_LOG_MAX_FILES:-3}"
+    restart: unless-stopped

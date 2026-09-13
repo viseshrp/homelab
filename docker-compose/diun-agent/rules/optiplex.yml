@@ -1,0 +1,9 @@
+[
+  {"name": "docker.io/crazymax/diun:latest", "notify_on": ["update"]},
+  {"name": "docker.io/amir20/dozzle:latest", "notify_on": ["update"]},
+  {"name": "lscr.io/linuxserver/bazarr:latest", "notify_on": ["update"]},
+  {"name": "lscr.io/linuxserver/sonarr:latest", "notify_on": ["update"]},
+  {"name": "lscr.io/linuxserver/radarr:latest", "notify_on": ["update"]},
+  {"name": "ghcr.io/seerr-team/seerr:latest", "notify_on": ["update"]},
+  {"name": "ghcr.io/analogj/scrutiny:latest-collector", "notify_on": ["update"]}
+]

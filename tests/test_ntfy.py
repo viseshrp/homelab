@@ -90,6 +90,7 @@ class NtfyTests(unittest.TestCase):
             'directory': '/opt/ntfy',
             'compose': 'docker-compose.yml',
             'assets': {
+                'configs/ntfy/add-diun-publishers.py': 'add-diun-publishers.py',
                 'configs/ntfy/add-scrutiny-publisher.py': 'add-scrutiny-publisher.py',
                 'configs/ntfy/generate-private.py': 'generate-private.py',
             },

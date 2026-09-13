@@ -35,6 +35,14 @@ def validate_manifest(manifest, projects):
             assert all(isinstance(host, str) and host for host in hosts), \
                 f'{name} hosts must contain non-empty strings'
             assert len(hosts) == len(set(hosts)), f'{name} hosts must be unique'
+        hosts = {deployment['host']} if has_host else set(deployment['hosts'])
+        host_assets = deployment.get('host_assets', {})
+        assert isinstance(host_assets, dict), f'{name} host_assets must be an object'
+        assert set(host_assets).issubset(hosts), \
+            f'{name} host_assets contains an undeclared host'
+        for host, assets in host_assets.items():
+            assert isinstance(assets, dict) and assets, \
+                f'{name} host_assets for {host} must be a non-empty object'
 
 
 def main():
@@ -46,30 +54,15 @@ def main():
         raise RuntimeError('Docker Compose CLI is required; a running daemon is not needed')
     with tempfile.TemporaryDirectory(prefix='homelab-check-') as tmp:
         for name in sorted(projects):
-            target = prepare(name, Path(tmp) / name)
-            values = {}
-            for line in (target / '.env.example').read_text().splitlines():
-                if line and not line.startswith('#'):
-                    key, value = line.split('=', 1)
-                    values[key] = value or 'validation-only'
-            # Stub paths are used only for Compose's static configuration parser.
-            source = Path(tmp) / 'source'
-            source.mkdir(exist_ok=True)
-            (source / 'Dockerfile').write_text('FROM scratch\n')
-            auth = Path(tmp) / 'auth.json'
-            auth.write_text('{}\n')
-            values.update(FBN_SOURCE_DIR=str(source), FBN_AUTH_FILE=str(auth),
-                          HOMEBRIDGE_DATA_DIR=str(source))
-            content = ''.join(f'{key}={value}\n' for key, value in values.items())
-            (target / '.env').write_text(content)
-            if (target / 'docker-compose.env.example').exists():
-                shutil.copy2(target / 'docker-compose.env.example', target / 'docker-compose.env')
-            # Do not inherit a user's Compose substitutions or their private env files.
-            clean_env = {k: os.environ[k] for k in ('PATH', 'HOME', 'DOCKER_CONFIG') if k in os.environ}
-            run([docker, 'compose', '--project-directory', str(target), '--env-file',
-                 str(target / '.env'), '-f', str(target / 'docker-compose.yml'),
-                 'config', '--quiet'], env=clean_env)
-            print(f'Compose: {name}')
+            deployment = manifest[name]
+            hosts = ([deployment['host']] if 'host' in deployment
+                     else deployment['hosts'])
+            variants = hosts if deployment.get('host_assets') else [None]
+            for host in variants:
+                suffix = f'-{host}' if host else ''
+                target = prepare(name, Path(tmp) / f'{name}{suffix}', host=host)
+                validate_project(name, target, tmp, docker)
+                print(f'Compose: {name}' + (f' ({host})' if host else ''))
     tracked = run(['git', 'ls-files', '-c', '-o', '--exclude-standard'], cwd=ROOT).splitlines()
     for relative in sorted(set(tracked)):
         path = ROOT / relative
@@ -90,6 +83,31 @@ def main():
                 dest = link.split('#')[0]
                 assert (path.parent / dest).exists(), f'Broken link: {relative} -> {link}'
     print('Shell syntax, Python syntax, JSON, YAML, and Markdown links: passed')
+
+
+def validate_project(name, target, tmp, docker):
+    values = {}
+    for line in (target / '.env.example').read_text().splitlines():
+        if line and not line.startswith('#'):
+            key, value = line.split('=', 1)
+            values[key] = value or 'validation-only'
+    # Stub paths are used only for Compose's static configuration parser.
+    source = Path(tmp) / 'source'
+    source.mkdir(exist_ok=True)
+    (source / 'Dockerfile').write_text('FROM scratch\n')
+    auth = Path(tmp) / 'auth.json'
+    auth.write_text('{}\n')
+    values.update(FBN_SOURCE_DIR=str(source), FBN_AUTH_FILE=str(auth),
+                  HOMEBRIDGE_DATA_DIR=str(source))
+    content = ''.join(f'{key}={value}\n' for key, value in values.items())
+    (target / '.env').write_text(content)
+    if (target / 'docker-compose.env.example').exists():
+        shutil.copy2(target / 'docker-compose.env.example', target / 'docker-compose.env')
+    # Do not inherit a user's Compose substitutions or their private env files.
+    clean_env = {k: os.environ[k] for k in ('PATH', 'HOME', 'DOCKER_CONFIG') if k in os.environ}
+    run([docker, 'compose', '--project-directory', str(target), '--env-file',
+         str(target / '.env'), '-f', str(target / 'docker-compose.yml'),
+         'config', '--quiet'], env=clean_env)
 
 
 if __name__ == '__main__':

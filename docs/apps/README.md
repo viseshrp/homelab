@@ -38,6 +38,7 @@ The pages in this directory document how each service fits this lab: deployment 
 
 | Component | Parent stack | Job |
 | --- | --- | --- |
+| [DIUN Agent](diun.md) | One self-contained watcher per Docker host | Checks each host's deployed image references and tailored upstream channels, then sends notification-only results through ntfy |
 | [Dozzle Agent](dozzle.md) | Docker hosts | Sends container metadata and logs to the central Dozzle server over TLS |
 | [Scrutiny collector](scrutiny.md) | OptiPlex storage host | Reads declared SMART devices and reports collection liveness to Kuma |
 | [GitHub Actions runner](github-runner.md) | Blog | Builds Hugo and writes generated output to `/opt/blog` |

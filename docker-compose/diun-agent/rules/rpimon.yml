@@ -1,0 +1,20 @@
+[
+  {"name": "docker.io/crazymax/diun:latest", "notify_on": ["update"]},
+  {"name": "docker.io/amir20/dozzle:latest", "notify_on": ["update"]},
+  {"name": "docker.io/archivebox/archivebox:dev", "notify_on": ["update"]},
+  {"name": "docker.io/webrecorder/pywb:latest", "notify_on": ["update"]},
+  {"name": "ghcr.io/analogj/scrutiny:latest-web", "notify_on": ["update"]},
+  {"name": "docker.io/library/influxdb:2", "notify_on": ["update"]},
+  {
+    "name": "docker.io/louislam/uptime-kuma:2",
+    "watch_repo": true,
+    "notify_on": ["new"],
+    "include_tags": ["^([3-9]|[1-9][0-9]+)$"]
+  },
+  {
+    "name": "docker.io/library/influxdb:2",
+    "watch_repo": true,
+    "notify_on": ["new"],
+    "include_tags": ["^([3-9]|[1-9][0-9]+)-core$"]
+  }
+]

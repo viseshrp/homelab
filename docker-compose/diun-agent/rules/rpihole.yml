@@ -1,0 +1,4 @@
+[
+  {"name": "docker.io/crazymax/diun:latest", "notify_on": ["update"]},
+  {"name": "docker.io/amir20/dozzle:latest", "notify_on": ["update"]}
+]
