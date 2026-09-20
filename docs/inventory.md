@@ -10,9 +10,10 @@ This page answers four operational questions: which host owns a project, where i
 | [`configs/nginx/routes.json`](../configs/nginx/routes.json) | Sanitized reference for proxy destinations | Current checkout |
 | Mac `/etc/hosts` | Local aliases used from the operator Mac | Read-only observation on September 9, 2026 |
 | Nginx Proxy Manager proxy-host page | Live hostname, backend, certificate, access-list, and enabled status | Read-only observation on September 9, 2026 |
-| Cloudflare API | Home Assistant tunnel, connector state, and DNS target | Live verification on September 10, 2026 |
+| Cloudflare API | Home Assistant tunnel, connector state, DNS target, and Access policy | Live verification on September 15, 2026 |
 | Direct host/port probe | SSH and service reachability | Live verification on September 10, 2026 for `rpiproxy` to Home Assistant; other rows remain earlier snapshots |
-| Dozzle post-migration audit | Eight-host inventory, agent TLS, log streaming, and retired Docker API ports | Live verification on September 9, 2026 |
+| Dozzle post-migration audit | Eight-host inventory, agent TLS, log streaming, and retired Docker API ports | Inventory rechecked on September 12, 2026; transport checks remain from September 9, 2026 |
+| DIUN policy audit | Per-host public/local image classification, explicit DIUN labels, local tailored rules, and ntfy delivery | Live verification on September 12, 2026 |
 | Scrutiny storage preflight | Block devices, mounts, SMART passthrough, health counters, and temperature | Live verification on September 12, 2026 |
 
 The NPM status below is not an application health check. “Online” is the state NPM displayed for an enabled proxy entry. Direct-port results are also snapshots, not continuous monitoring.
@@ -37,7 +38,7 @@ Private addresses are intentionally omitted here. The aliases `rpiblog`, `rpihas
 | `rpimon` | Monitoring, notifications, documents, and archives | [`uptime-kuma`](apps/uptime-kuma.md) → `/opt/kuma`; [`ntfy`](apps/ntfy.md) → `/opt/ntfy`; [`dozzle`](apps/dozzle.md) → `/opt/dozzle`; [`scrutiny`](apps/scrutiny.md) → `/opt/scrutiny`; [`archivebox`](apps/archivebox.md) → `/opt/archivebox`; [`paperless`](apps/paperless.md) → `/opt/paperless` |
 | `optiplex` | Media and downloads | [`plex`](apps/plex.md) → `/opt/plex`; [`qbit`](apps/qbittorrent.md) → `/opt/qbit`; [`media-automation`](apps/media-automation.md) → `/opt/media-automation`; [`filebrowser`](apps/filebrowser.md) → `/opt/filebrowser`; [`scrutiny-collector`](apps/scrutiny.md) → `/opt/scrutiny-collector`; [Reelname](apps/reelname.md) is a host-installed CLI under `/opt/reelname` |
 | `rpihole` | DNS | [`pihole`](apps/pihole.md) → `/opt/pihole-docker` |
-| `rpihass` | Home automation | [Home Assistant](apps/home-assistant.md); [Homebridge](apps/homebridge.md) as a Supervisor-managed HAOS app, plus a retained standalone Compose fallback with no live project directory |
+| `rpihass` | Home automation and local file transfer | [Home Assistant](apps/home-assistant.md) plus ten installed Supervisor apps, including [Homebridge](apps/homebridge.md), [PairDrop](apps/pairdrop.md), Dozzle, and DIUN; retained standalone Homebridge Compose fallback has no live project directory |
 | `rpinfs` | File transfer | [`ftp`](apps/ftp.md) → `/opt/ftp` |
 | `vpn-edge` | Remote access | [`firezone`](apps/firezone.md) → `/opt/firezone`; [`wg-easy`](apps/wg-easy.md) → `/opt/wg-easy` |
 
@@ -64,7 +65,7 @@ The domain is shown as `<domain>` to keep the checked-in documentation reusable.
 | `status.<domain>` | `rpimon:3001` | Uptime Kuma | Online |
 | `<domain>`, `www.<domain>` | `rpiblog:80` | Hugo site | Online |
 
-Cloudflare Tunnel publishes `hass.<domain>` directly to `rpihass:8123` through the connector on `rpiproxy`; it does not use an NPM proxy entry. There is no observed NPM proxy entry for Home Assistant, Homebridge, Paperless, ArchiveBox, Dozzle, File Browser, qBittorrent, Radarr, Sonarr, Seerr, Bazarr, Pi-hole administration, pywb, or WG-Easy administration. The remaining interfaces use direct LAN access unless another layer not represented here publishes them.
+Cloudflare Tunnel publishes `hass.<domain>` directly to `rpihass:8123` through the connector on `rpiproxy`; it does not use an NPM proxy entry. Cloudflare Access protects the entire hostname with a one-owner email policy and has no path exceptions or bypass policies. Home Assistant keeps its own login behind Access. Cloudflare One Client authentication is not enabled. The native Companion apps use the direct internal URL on the LAN; remote access uses a browser. There is no observed NPM proxy entry for Home Assistant, Homebridge, PairDrop, Paperless, ArchiveBox, Dozzle, File Browser, qBittorrent, Radarr, Sonarr, Seerr, Bazarr, Pi-hole administration, pywb, or WG-Easy administration. The remaining interfaces use direct LAN access unless another layer not represented here publishes them.
 
 ## Direct LAN interfaces
 
@@ -89,6 +90,7 @@ Cloudflare Tunnel publishes `hass.<domain>` directly to `rpihass:8123` through t
 | `optiplex` loopback `:5055` / `:6767` / `:7878` / `:8989` | Seerr / Bazarr / Radarr / Sonarr | Local-only safety mode; no public route, download-client connection, or writable media mount |
 | `rpihole:80` | Pi-hole administration | DNS service uses port 53 |
 | `rpihass:8123` / `rpihass:8581` | Home Assistant / Homebridge | Homarr direct links |
+| `rpihass:3000` | PairDrop | Trusted-LAN browser access; authenticated access uses Home Assistant ingress |
 | `vpn-edge:13000` / `vpn-edge:51821` | Firezone / WG-Easy administration | The Firezone port is also behind NPM |
 | Docker hosts `:7007` | Dozzle agents | TLS agent protocol; trusted LAN only, with no public forwarding |
 
@@ -99,12 +101,14 @@ Cloudflare Tunnel publishes `hass.<domain>` directly to `rpihass:8123` through t
 | `rpihole:53` TCP/UDP | LAN DNS | Clients depend on this address through their DNS configuration |
 | `rpinfs:20-21`, `40000-40009` TCP | FTP control, data, and passive range | Host firewall and passive-mode routing must allow the full range |
 | `optiplex:6881` TCP/UDP | qBittorrent peer traffic | Published by Gluetun's network namespace |
-| `vpn-edge:51820` UDP | WireGuard | Firezone and WG-Easy both claim this default host port |
-| `rpiproxy:51820` UDP | Port published by the NPM Compose template | No corresponding NPM proxy-host row; verify the intended owner before relying on it |
+| `vpn-edge:51820` UDP | Firezone WireGuard | Receives NPM's UDP 51820 stream |
+| `vpn-edge:51822` UDP | WG-Easy WireGuard | Receives NPM's UDP 51822 stream |
+| `rpiproxy:51820` UDP | NPM stream for Firezone | Router forwards public UDP 51820 here; NPM forwards it to `vpn-edge:51820` |
+| `rpiproxy:51822` UDP | NPM stream for WG-Easy | Router forwards public UDP 51822 here; NPM forwards it to `vpn-edge:51822` |
 
 ## Reachability snapshot
 
-The September 9 direct probe produced these results, with the `rpihass` application ports rechecked on September 10 and ntfy rechecked on September 11. “Refused” means the host answered but nothing accepted the connection on that port; “timeout” means the check received no answer within its bound.
+The September 9 direct probe produced these results, with the `rpihass` application ports rechecked on September 10, ntfy rechecked on September 11, and both VPN administration ports rechecked on September 12. “Refused” means the host answered but nothing accepted the connection on that port; “timeout” means the check received no answer within its bound.
 
 | Host | SSH | Application result |
 | --- | --- | --- |
@@ -114,8 +118,8 @@ The September 9 direct probe produced these results, with the `rpihass` applicat
 | `optiplex` | Connected | Plex, both File Browser instances, and qBittorrent answered; media-automation status is documented in its application page |
 | `rpihole` | Connected | DNS TCP 53 and web port 80 answered |
 | `rpinfs` | Connected | FTP 21 refused |
-| `vpn-edge` | Connected | Firezone 13000 returned HTTP 200; WG-Easy 51821 refused |
-| `rpihass` | Connected | Home Assistant 8123 and Homebridge 8581 answered on 2026-09-10 |
+| `vpn-edge` | Connected | Firezone 13000 and WG-Easy 51821 returned HTTP 200 on 2026-09-12; their UDP ports were published on 51820 and 51822 respectively |
+| `rpihass` | Connected | Home Assistant 8123, Homebridge 8581, and PairDrop 3000 answered on 2026-09-12 |
 
 The [operations runbook](operations.md#diagnose-a-public-url) starts with the public route, then checks NPM, the backend port, the Compose project, and persistent storage in that order.
 

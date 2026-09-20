@@ -29,9 +29,10 @@ The pages in this directory document how each service fits this lab: deployment 
 | [qBittorrent](qbittorrent.md) through [Gluetun](gluetun.md) | `optiplex` | LAN port 8085 | Client config, VPN state, download trees |
 | [Radarr, Sonarr, Seerr, and Bazarr](media-automation.md) | `optiplex` | Loopback ports 7878/8989/5055/6767 | Separate app configs; media trees are read-only |
 | [Pi-hole](pihole.md) | `rpihole` | DNS 53 and LAN web UI | `etc-pihole`, `etc-dnsmasq.d` |
-| [Home Assistant](home-assistant.md) | `rpihass` | LAN port 8123 and `hass` tunnel route | Host-managed Home Assistant configuration/state |
+| [Home Assistant](home-assistant.md) | `rpihass` | LAN port 8123 and Access-protected `hass` tunnel route | Host-managed Home Assistant state plus ten Supervisor apps |
 | [Homebridge](homebridge.md) | `rpihass` | LAN port 8581 | Supervisor-managed app configuration mapped to `/homebridge` |
-| [WG-Easy](wg-easy.md) | `vpn-edge` | UDP 51820, LAN admin 51821 | WireGuard project directory |
+| [PairDrop](pairdrop.md) | `rpihass` | Authenticated HA ingress and LAN port 3000 | Browser-local pairing state; no server-side transfer store |
+| [WG-Easy](wg-easy.md) | `vpn-edge` | UDP 51822, LAN admin 51821 | WireGuard project directory |
 | [FTP server](ftp.md) | `rpinfs` | FTP and passive port range | External media directory plus private account settings |
 
 ## Workers and supporting components

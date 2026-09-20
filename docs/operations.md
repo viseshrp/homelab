@@ -120,9 +120,9 @@ To roll back a failed host, stop only that DIUN instance and request operator ap
 
 ## Reconcile Falling Rock app tiles
 
-The sanitized Homarr board policy is installed as `/opt/homarr/homarr/templates/vis.json`; the private live board remains `/opt/homarr/homarr/configs/vis.json`. Before changing it, stop only Homarr and copy `homarr/configs`, `homarr/icons`, `homarr/data`, and the installed project files as one recovery unit. Validate the copied JSON and run SQLite `quick_check` against the copied database.
+The sanitized Homarr board policy is installed as `/opt/homarr/homarr/templates/vis.json`; the LAN-link policy is `/opt/homarr/lan-links.json`; the private logical-host-to-RFC1918 map is `/opt/homarr/lan-addresses.json`; and the private live board remains `/opt/homarr/homarr/configs/vis.json`. Before changing it, stop only Homarr and copy `homarr/configs`, `homarr/icons`, `homarr/data`, the installed project files, and the private address map as one recovery unit. Validate the copied JSON and run SQLite `quick_check` against the copied database.
 
-While Homarr remains stopped, run `/opt/homarr/reconcile-board.py` with `--desired`, `--live`, and `--output` to create a candidate. The reconciler preserves existing URLs, integrations, widgets, and layout; compare those sections before atomically replacing the live board. Start Homarr, wait for a healthy container, and run the reconciler again with `--check`. Finally, load the public Falling Rock board and exercise every newly added public and LAN shortcut from inside the Homarr container.
+While Homarr remains stopped, run `/opt/homarr/reconcile-board.py` with `--desired`, `--live`, `--lan-links`, `--lan-addresses`, and `--output` to create a candidate. The reconciler preserves existing status URLs, integrations, widgets, and layout while changing click targets; compare those sections before atomically replacing the live board. Start Homarr, wait for a healthy container, and run the same inputs again with `--check`. Finally, load Falling Rock from a LAN or LAN-routed VPN client and exercise every direct-IP shortcut. A container-side probe verifies reachability but cannot prove browser-only behavior.
 
 ## Migrate Uptime Kuma v1 to v2
 
@@ -160,6 +160,18 @@ The installed `/opt/kuma/reconcile-notification.py` treats `/opt/kuma/notificati
 
 The provider test proves the complete Kuma-to-ntfy path. It does not prove delivery during an `rpimon`, NPM, Cloudflare, LAN, or power outage because both applications and the public route share those failure domains.
 
+## Give FBN an isolated ntfy destination
+
+FBN publishes through Apprise. Give it its own random topic and `fbn-publisher` token instead of sharing the monitoring topic or mobile password.
+
+1. Inspect both projects and record the ntfy and FBN image IDs, Compose project names, current private-input modes, persistent state, health, recent scan/delivery results, and the current destination type without printing either URL.
+2. Stop only ntfy long enough to archive `data/`, `.env`, `mobile-subscription.txt`, and existing private publisher files. Verify the archive, both copied SQLite databases, and a SHA-256 manifest before restarting the unchanged server. Stop FBN and create a verified archive of its external data volume, private inputs, Compose file, and source revision.
+3. Run `add-fbn-publisher.py` against ntfy's private `.env`. Install the updated file plus its restricted output directory, render the real ntfy configuration, and recreate only ntfy without pulling or rebuilding.
+4. Replace only `FBN_APPRISE_URL` in FBN's mode-0600 `.env`, render the live Compose model, and recreate only the `fbn` service with the existing image and project identity. Do not rerun bootstrap or replace the external data volume.
+5. Require direct and public ntfy health, preserved existing ACLs, anonymous denial, FBN write-only access to only the new topic, and mobile read-only access to both topics. Send one harmless message through FBN's installed Apprise library, read it as the mobile subscriber, confirm it is absent from the monitoring topic, and then check the monitor resumes without restart loops or new delivery errors.
+
+Restore the previous `.env` files and recreate the same images if delivery or an existing ACL regresses. Restore the stopped-state archives only if state/database validation fails; configuration rollback does not require replacing healthy application data.
+
 ## Monitor physical drives with Scrutiny
 
 Scrutiny is split between `/opt/scrutiny` on `rpimon` and `/opt/scrutiny-collector` on `optiplex`. The hub is private on port 8083. The collector has raw access only to the declared whole disks and reports one liveness heartbeat to Kuma after each successful collection.
@@ -167,14 +179,14 @@ Scrutiny is split between `/opt/scrutiny` on `rpimon` and `/opt/scrutiny-collect
 1. On the storage host, run `smartctl --scan-open` with the same container image, capabilities, and device mappings intended for the collector. Require every expected drive to appear and record only sanitized health, temperature, and critical-counter results.
 2. Prepare and validate both repository projects. Generate independent InfluxDB, ntfy, and Kuma values in private environments; map USB drives through stable `/dev/disk/by-id` paths rather than mutable `/dev/sdX` names.
 3. Start the hub first. Require healthy web and InfluxDB containers and a successful `/api/health` response before starting the collector.
-4. Start the collector and inspect its first scan. Require three registered OptiPlex drives, a recent `last-success` marker, healthy container state, and a fresh successful Kuma push heartbeat.
+4. Start the collector and inspect its first scan. Require three publish messages, three registered OptiPlex drives, a recent `last-success` marker, healthy container state, and a fresh successful Kuma push heartbeat. Retry wake-up probes are bounded; never accept the collector process exit code alone as proof of a complete scan.
 5. Trigger Scrutiny's notification test, read it through the mobile subscriber, and verify the publisher ACL matrix. Re-run both Kuma reconciliation audits and verify the public status page includes the hub and collector monitors.
 
 Scrutiny collection does not start SMART self-tests or scrub a filesystem. Schedule active tests only after checking drive temperature and supported test types. The current NTFS media volumes have no Linux online scrub equivalent; use completed long SMART tests and an appropriate offline filesystem check after thermal remediation. Raspberry Pi microSD media has no standard SMART interface.
 
 ## Change container log retention
 
-NPM and the standard Dozzle agents default to three 10 MB `json-file` logs per container. Optional `DOCKER_LOG_MAX_SIZE` and `DOCKER_LOG_MAX_FILES` inputs override those limits. Docker discards older rotated logs beyond the configured count; preserve needed history first. Application log files and backups have separate retention.
+NPM, Plex, and the standard Dozzle agents default to three 10 MB `json-file` logs per container. Optional `DOCKER_LOG_MAX_SIZE` and `DOCKER_LOG_MAX_FILES` inputs override those limits. Docker discards older rotated logs beyond the configured count; preserve needed history first. Application log files and backups have separate retention.
 
 1. Back up the installed Compose/input files and save the affected container's logs with `docker logs`. For NPM, also make the consistent recovery set described below. Record the running image ID, mounts, project name, and current logging settings.
 2. Validate and stage the repository change. Compare the effective configurations without printing private values; only the intended logging settings should change. Preserve host-specific input files and verify the current image tag still resolves to the running image ID.
@@ -198,6 +210,20 @@ For Raspberry Pi's 6.12 downstream kernel, `cgroup_enable=memory` must occur aft
 
 If a host does not return, use local console access to restore the timestamped boot-file backup. If the host returns but the controller remains disabled, restore the backup before attempting a different kernel or firmware change. Do not restart Docker separately during this procedure; the host reboot already restarts it.
 
+## Run Firezone and WG-Easy together
+
+Firezone owns host UDP 51820 on `vpn-edge`. WG-Easy listens on UDP 51820 inside its container but publishes host UDP 51822 through `WG_UDP_HOST_PORT`. The router sends public UDP 51820 and 51822 to matching ports on `rpiproxy`, where NPM forwards the streams to the matching `vpn-edge` ports. Each VPN endpoint uses a separate Cloudflare DNS-only hostname; their separate website hostnames are proxied through Cloudflare and NPM.
+
+1. Record Firezone's container/image IDs and UDP 51820 listener. Stop if Firezone is unhealthy or if another process owns UDP 51822.
+2. Stop WG-Easy if it is running, then create a restricted backup of its complete project directory, including the private environment, database, `wg0.conf`, and `wg0.json`. Verify the archive can be listed and its checksum matches the manifest; run SQLite `quick_check` when `wg-easy.db` exists.
+3. Set the private WG-Easy image, published ports, insecure-LAN mode, and Docker network values. Keep setup credentials out of the persistent environment. Validate the installed Compose project without printing rendered values.
+4. Confirm the VPN endpoint's Cloudflare A or AAAA record is DNS-only and resolves to the router's current public address. Set WG-Easy's database-managed endpoint port to 51822. Forward public UDP 51822 to `rpiproxy` UDP 51822 in the router, and configure NPM's UDP 51822 stream to forward to `vpn-edge:51822`. Configure a separate proxied website hostname to reach WG-Easy TCP 51821 through NPM.
+5. Start only WG-Easy without building. Require a healthy container, SQLite `quick_check=ok`, Firezone on `vpn-edge:51820`, WG-Easy on `vpn-edge:51822`, matching NPM streams on `rpiproxy`, both direct and proxied management endpoints, the expected peer count, and a real client handshake through the public endpoint. Update or regenerate any client whose endpoint still uses another hostname or port.
+
+For a pre-v15 migration, import the saved `wg0.json` through the v15 setup workflow, verify the server keys and peer count, then configure the new endpoint and DNS through the application API. If migration or verification fails, stop v15, preserve its failed database, restore the full pre-upgrade project directory and recorded image, and leave Firezone running. Never point the v7 image at `wg-easy.db` as a rollback substitute.
+
+Firezone and WG-Easy store client DNS in their databases as host-only values. Advertise only the private Pi-hole LAN address, keep each VPN's IPv4 and IPv6 default routes enabled, and remove any per-client DNS override that points elsewhere. Back up PostgreSQL before changing Firezone and checkpoint or back up SQLite before changing WG-Easy. Re-download each changed client configuration, then verify public-name resolution through Pi-hole from the refreshed VPN client; a database row or management-page response alone is insufficient.
+
 ## Diagnose a public URL
 
 Work from the client inward so each check rules out a layer.
@@ -206,7 +232,7 @@ Work from the client inward so each check rules out a layer.
 flowchart LR
     client["Client"] --> edge["DNS / Cloudflare edge"]
     edge -->|"Shared routes"| npm["NPM route"] --> backend["Backend host:port"] --> app["Container + dependencies"] --> state["Disk / database"]
-    edge -->|"Home Assistant tunnel"| tunnel["cloudflared on rpiproxy"] --> hass["Home Assistant :8123"]
+    edge -->|"Home Assistant Access gate"| access["Cloudflare Access"] -->|"Tunnel"| tunnel["cloudflared on rpiproxy"] --> hass["Home Assistant :8123"]
 ```
 
 ### 1. Check DNS and HTTPS
@@ -223,7 +249,7 @@ An HTTP 3xx or authentication response can still prove the route is reachable. R
 
 Confirm that the proxy row is enabled, has the intended domain, uses the expected certificate, and targets the host/port in [the route inventory](inventory.md#https-ingress). Then inspect NPM logs around the request time. A 502 or 504 usually moves the investigation to backend reachability; a certificate or DNS error stays at the ingress layer.
 
-For Home Assistant, verify the Cloudflare Tunnel and DNS record through the Cloudflare API, the `cloudflared` container health and logs on `rpiproxy`, and the remote hostname rule. Home Assistant 2026.8 and later also require the connector address under **Settings > System > Network > HTTP server > Reverse proxy**. Confirm any changed HTTP-server settings within five minutes after the automatic restart.
+For Home Assistant, verify the Cloudflare Tunnel, DNS record, hostname-wide Access application, attached owner policy, exact allowed-email selector, and absence of path exceptions or bypass policies through the Cloudflare API. Check the `cloudflared` container health and logs on `rpiproxy` and the remote hostname rule. Unauthenticated requests to the root, `/api/`, and Companion webhook paths must redirect to Access. After owner authentication in a browser, Home Assistant must still require its own valid session or a separate login. Home Assistant must advertise the public tunnel address as its Internet URL and retain the automatic local URL. Home Assistant 2026.8 and later also require the connector address under **Settings > System > Network > HTTP server > Reverse proxy**. Confirm any changed HTTP-server settings within five minutes after the automatic restart.
 
 ### 3. Check the backend directly
 
@@ -280,6 +306,8 @@ Application-level hardening is managed by `/opt/media-automation/manage_safety.p
 | Every public hostname fails, direct ports work | DNS, Cloudflare, NPM, or `rpiproxy` | NPM container/logs, ports 80/443, certificate state |
 | One public hostname returns 502/504 | Route destination or backend | NPM target, then direct backend port from `rpiproxy` |
 | Home Assistant returns Cloudflare 1033 | Tunnel connector | Tunnel status, `cloudflared` health/logs, connector token |
+| Home Assistant UI returns an Access login or denial unexpectedly | Cloudflare Access | Owner email selector, Access session, WARP enrollment, then application policy order |
+| Companion app cannot connect away from the LAN | Hostname-wide Cloudflare Access gate | Expected without Cloudflare One Client; use the authenticated web interface remotely and the app's internal URL on the LAN |
 | Home Assistant returns 400 through the tunnel | Home Assistant reverse-proxy trust | HTTP-server Trust X-Forwarded-For and the connector `/32` |
 | NPM says Online but page fails | Backend app, dependency, or state | Direct port, Compose logs, database/storage |
 | Paperless loads but jobs stall | Redis, Tika, Gotenberg, or worker path | All four services and webserver logs |
@@ -305,16 +333,18 @@ Application-level hardening is managed by `/opt/media-automation/manage_safety.p
 | Vaultwarden | `/opt/vw/vw-data` plus private SMTP/domain settings | Quiesce writes or use a supported SQLite/database backup path |
 | Homarr | `/opt/homarr/homarr/configs`, `homarr/icons`, `homarr/data`, and installed project inputs | Stop Homarr; preserve private board URLs, widgets, integrations, credentials, and SQLite state together |
 | Uptime Kuma | `/opt/kuma/uptime-kuma-data` | Quiesce or use a consistent SQLite copy; verify monitors and notification settings |
-| ntfy | `/opt/ntfy/data`, private `.env`, and `mobile-subscription.txt` | Stop ntfy for a consistent copy; verify both SQLite databases, ACLs, public subscriptions, and Kuma delivery |
+| ntfy | `/opt/ntfy/data`, private `.env`, `mobile-subscription.txt`, `fbn-private/`, and other restricted publisher files | Stop ntfy for a consistent copy; verify both SQLite databases, ACLs, public subscriptions, and application delivery |
+| DIUN | `/opt/diun-agent/data`, private `.env`, and `ntfy-token`; HAOS app configuration on `rpihass` | Stop only the agent for a consistent bbolt copy; loss of the database rebuilds a silent first-check baseline |
 | Scrutiny | `/opt/scrutiny/config`, `influxdb`, `influxdb-config`, and private `.env` | Quiesce web and InfluxDB together; collector state is replaceable, but its private device map and Kuma token must be preserved |
 | FBN | External `FBN_DATA_VOLUME`, source version, and private auth/config | Protect the browser profile and SQLite state; test that pending delivery state survives |
 | GitHub runner | `/opt/gh-runner/runner-config`, installed Compose/env, and labels | Protect the stored runner credentials; if they are unusable, register once with a new one-hour token and then remove it from the container configuration |
 | Home Assistant | Encrypted full backup containing configuration, apps, custom integrations, and Supervisor-managed state, plus the emergency kit stored separately | Use the built-in backup inventory to confirm completion; a backup on the same host does not protect against host or storage loss |
 | Homebridge | Home Assistant backup entry for the Homebridge app; standalone fallback uses `HOMEBRIDGE_DATA_DIR` | Preserve bridge pairing, UI account, plugin configuration, and credentials; `node_modules` is intentionally excluded and rebuilt from configuration |
+| PairDrop | Repository URL and pinned HAOS app/image version | Transfers are peer-to-peer and pairing/preferences are browser-local; reinstalling the app does not restore browser state |
 | Media | `/mnt/media2`, `/mnt/media3`, Plex config, qBittorrent config, Gluetun state | Bulk media and app metadata are separate backup units; verify mounts before restore |
 | Media automation | `/opt/media-automation/{radarr,sonarr,seerr,bazarr}/config` plus installed Compose/env | Stop the project for a consistent copy of SQLite state; media trees are read-only and are not part of this stack's writable state |
 | Pi-hole | `etc-pihole`, `etc-dnsmasq.d`, and private settings | Verify DNS resolution and custom records after restore |
-| WG-Easy | `/opt/wg-easy` project/state and private env | Contains WireGuard private keys and peer configuration; restrict backup access |
+| WG-Easy | `/opt/wg-easy` project/state and private env, plus the verified pre-v15 migration archive | Preserve `wg-easy.db`, generated configuration, keys, and peer state together; stop the app or checkpoint SQLite and restrict backup access |
 
 ### Restore test
 

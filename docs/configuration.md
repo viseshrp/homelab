@@ -56,9 +56,9 @@ Compose derives default named-volume names from the project name. Changing the d
 | --- | --- | --- |
 | Anki | `SYNC_USER1`; client-facing `BASE_URL` | `data/` |
 | Blog | Generated Hugo output from the separate source repository | `public/` is replaceable output; preserve local build files |
-| FBN | Source checkout, auth export, group, Apprise URL, external volume name | External `FBN_DATA_VOLUME`, including browser profile and SQLite state |
+| FBN | Source checkout, auth export, group, token-authenticated private ntfy Apprise URL, external volume name | External `FBN_DATA_VOLUME`, including browser profile and SQLite state; private FBN ntfy topic and token |
 | GitHub runner | Repository URL, one-time registration token, labels, work directory | `runner-config/` identity; protect runner credentials, Docker-socket access, and blog write access |
-| Homarr | Base URL, password, integration credentials, live board URLs and layout | `homarr/configs`, `homarr/icons`, `homarr/data`; the sanitized board policy is installed separately under `homarr/templates` |
+| Homarr | Base URL, password, integration credentials, private `lan-addresses.json`, status URLs, and layout | `homarr/configs`, `homarr/icons`, `homarr/data`; sanitized board and LAN-link policies are installed separately |
 | Linkding | Application settings in the private `.env` | Configured data directory |
 | Planka | `SECRET_KEY`, base URL, database URL | `data` and `db-data` volumes |
 | Vaultwarden | Domain, SMTP settings, installed image | `vw-data/` |
@@ -67,29 +67,31 @@ Compose derives default named-volume names from the project name. Changing the d
 
 | Project | Required private or external inputs | State to preserve |
 | --- | --- | --- |
-| ArchiveBox | DNS server and chosen image versions | Shared `data/` tree used by ArchiveBox and pywb |
+| ArchiveBox | DNS server, canonical base URL, security/access defaults, and chosen image versions | Shared `data/` tree used by ArchiveBox and pywb, including the database and `ArchiveBox.conf` |
+| DIUN Agent | Per-host name, private ntfy endpoint/topic/token, schedule, stopped-container policy, pinned image digest, and checked-in host-specific file rules | `data/diun.db`, private `.env`, token, Compose file, and `custom-images.yml` on every conventional host; Supervisor options and app `/data` on HAOS |
 | Dozzle | Remote agent endpoints and generated users file | `data/` and private authentication configuration |
 | Dozzle Agent | Per-host LAN bind address and display hostname | No application data; preserve installed Compose input for repeatable restarts |
 | Paperless | `docker-compose.env` with secret, URL, database/OCR/mail/consumer settings | `data`, `media`, `redisdata`, `consume`, and `export` |
 | Scrutiny hub | Private LAN bind, InfluxDB credentials, pinned images, and token-only ntfy URL | `config/`, `influxdb/`, `influxdb-config/` |
 | Scrutiny collector | Hub endpoint, stable whole-device paths, host label, schedule, and Kuma push token | No application data; preserve the private device map and token |
 | Uptime Kuma | Moving `:2` image tag; declarative monitor policy and reconciler in `configs/uptime-kuma/` | `uptime-kuma-data/`; private notification details, public domain, and live addresses |
-| ntfy | Moving `latest` image tag, public base URL, LAN bind address, UID/GID, cache duration, bcrypt user hashes, ACLs, and separate Kuma/Scrutiny tokens | `data/`; mobile password, topic, auth database, and message cache |
+| ntfy | Moving `latest` image tag, public base URL, LAN bind address, UID/GID, cache duration, bcrypt user hashes, ACLs, separate Kuma/Scrutiny/DIUN tokens, and isolated FBN topic/token | `data/`; mobile password, both topics, auth database, message cache, and restricted publisher files |
 
 ### Media, network, and home services
 
 | Project | Required private or external inputs | State to preserve |
 | --- | --- | --- |
 | File Browser | Authentication decision and both media roots | Separate database directories, settings files, and media trees |
-| Firezone | Complete legacy Firezone environment: database credentials, salts, admin settings, external URL | `firezone/`, `postgres-data`, private environment |
+| Firezone | Complete legacy Firezone environment: database credentials, salts, admin settings, external URL, and database-managed Pi-hole LAN address for default client DNS | `firezone/`, `postgres-data`, private environment |
 | FTP | User, password, media directory | External media tree and private account settings |
 | Homebridge | HAOS app settings; `HOMEBRIDGE_DATA_DIR` only for the retained standalone fallback | Supervisor-managed app configuration, including pairing, UI account, and plugin state |
+| PairDrop | HAOS app repository, pinned image identity, LAN port, and ingress policy | Browser-local pairing and preferences; no server-side transfer database |
 | Nginx Proxy Manager | Installed image and frame policy | `data/`, `letsencrypt/`, installed environment |
 | Pi-hole | Admin credential and installed image-compatible environment | `etc-pihole/`, `etc-dnsmasq.d/` |
-| Plex | Media roots and installed image; external media trees are read-only, deletion safeguards are enabled, analysis is scheduled, the redundant maintenance scan is disabled, and total Internet upload is 300 Mbps | `config/` and both external media trees; unused local TV/movie directories remain unmounted |
+| Plex | Media roots, installed image, and Docker log limits; external media trees are read-only, deletion safeguards are enabled, analysis is scheduled, the redundant maintenance scan is disabled, and total Internet upload is 300 Mbps | `config/` and both external media trees; unused local TV/movie directories remain unmounted |
 | qBittorrent/Gluetun | AirVPN WireGuard private key, preshared key, assigned addresses | qBittorrent config, Gluetun state, both download trees |
 | Radarr/Sonarr/Seerr/Bazarr | Bind IP, UID/GID, media roots, and pinned images; no downloader or provider credentials in read-only mode | Four application `config/` directories; both media trees stay read-only |
-| WG-Easy | Endpoint, admin password, client DNS | Project directory containing WireGuard keys and peer state |
+| WG-Easy | Image, published ports, Docker network, and database-managed endpoint, administrator, client DNS, and peer settings | Project directory containing `wg-easy.db`, generated WireGuard configuration, keys, and peer state, plus the verified pre-v15 migration backup |
 
 ## Cross-project constraints
 
@@ -99,7 +101,7 @@ The sanitized configuration uses names such as `rpiblog` and `vpn-edge`. The Mac
 
 ### Port ownership
 
-Firezone and WG-Easy both publish UDP 51820 on `vpn-edge`. They cannot use that host port simultaneously without changing one definition. The NPM template also publishes UDP 51820 on `rpiproxy`; there is no corresponding HTTP proxy row, so document the intended forwarding path before depending on that port.
+Firezone publishes UDP 51820 and WG-Easy publishes UDP 51822 on `vpn-edge`, so both can run simultaneously. The router forwards public UDP 51820 and 51822 to matching ports on `rpiproxy`; NPM forwards each UDP stream to the same port on `vpn-edge`. Each VPN uses a separate DNS-only service hostname. Their web interfaces use separate proxied Cloudflare hostnames and NPM HTTP proxy rows.
 
 ### Image changes
 
@@ -107,11 +109,15 @@ Most image defaults float on `latest` or another moving tag. Set image variables
 
 Uptime Kuma uses its recommended moving `:2` tag, while ntfy uses `:latest`. Resolve and record each tag's platform-specific digest and application version before pulling, then keep a verified backup that can be paired with the pre-update image. Uptime Kuma's deprecated `latest` tag remains on v1; a v1 installation must complete the [documented v1-to-v2 migration procedure](https://github.com/louislam/uptime-kuma/wiki/Migration-From-v1-To-v2) before using `:2`.
 
-Planka is pinned to 2.2.1 and an inspected digest. An older Planka database needs its supported migration sequence; do not point a newer image at it casually. Firezone and WG-Easy use legacy image families and need version-specific review before an upgrade.
+Planka is pinned to 2.2.1 and an inspected digest. An older Planka database needs its supported migration sequence; do not point a newer image at it casually. Firezone uses a legacy image family. WG-Easy intentionally follows the moving `15` tag because the registry's literal `latest` tag still points to incompatible v14; each pull is therefore an upgrade and requires the normal backup, migration review, and runtime verification.
+
+DIUN uses two complementary providers inside each conventional host's one local process. The Docker provider checks the configured channel for every running or stopped registry-backed container. The file provider reads that host's [`rules`](../docker-compose/diun-agent/rules) payload and covers fixed application tags, public bases hidden behind local builds, and version-family boundaries that cannot safely use `latest`. Exact channel rules notify on digest updates. Bounded repository rules notify when a new allowed major tag appears. First checks are silent and establish a baseline.
+
+The HAOS DIUN app is a separate self-contained instance with only the file provider and exactly two image channels: Homebridge and PairDrop. It does not request Docker access. The rules are deliberately explicit rather than a universal semantic-version guess. When a new fixed-tag, digest-pinned, or locally built image is added, decide its supported release family and add a bounded local rule if the deployed reference does not already represent that family. Review migrations and architecture support before acting on an alert; DIUN does not pull or deploy the reported image.
 
 ### Docker access
 
-Homarr, Dozzle, the Dozzle agents, and the GitHub runner mount the Docker socket. Remote agents replace unauthenticated Docker TCP listeners and expose only Dozzle's TLS agent protocol on LAN port 7007. Keep the central UI authenticated, do not enable actions or shell access, and do not forward agent ports outside the LAN.
+Homarr, Dozzle, the Dozzle agents, the conventional-host DIUN services, and the GitHub runner mount the Docker socket. Remote Dozzle agents replace unauthenticated Docker TCP listeners and expose only Dozzle's TLS agent protocol on LAN port 7007. Each conventional DIUN instance uses only its local socket and publishes no port. A `:ro` socket bind does not make Docker API operations read-only, so the pinned DIUN image remains trusted host-level code. The HAOS DIUN app uses only its local file provider and requests no Docker API.
 
 ### Docker memory metrics on Raspberry Pi
 
@@ -121,7 +127,7 @@ The parameters belong on the existing single line in `/boot/firmware/cmdline.txt
 
 ### Container log retention
 
-NPM and the standard Dozzle agents use `json-file` with `DOCKER_LOG_MAX_SIZE=10m` and `DOCKER_LOG_MAX_FILES=3` as configurable defaults. Both inputs are optional and belong in each project's private `.env` when an override is needed. Docker removes older rotated files beyond the count. These limits cover Docker stdout/stderr only, not application files or backups. Existing containers need recreation to apply a changed logging configuration; follow the [retention procedure](operations.md#change-container-log-retention).
+NPM, Plex, DIUN, and the standard Dozzle agents use `json-file` with `DOCKER_LOG_MAX_SIZE=10m` and `DOCKER_LOG_MAX_FILES=3` as configurable defaults. Both inputs are optional and belong in each project's private `.env` when an override is needed. Docker removes older rotated files beyond the count. These limits cover Docker stdout/stderr only, not application files or backups. Existing containers need recreation to apply a changed logging configuration; follow the [retention procedure](operations.md#change-container-log-retention).
 
 ## Fail2ban and Nginx
 
@@ -143,7 +149,7 @@ NPM's `nginx.conf` includes `data/nginx/custom/cloudflare-trusted.conf` and acce
 
 ## Home Assistant and kiosk
 
-`configs/homeassistant` contains retained YAML with private addresses replaced by `!secret` references. Copy `secrets.yaml.example` to `secrets.yaml`, fill the actual values, and preserve the existing automations, scripts, scenes, themes, and custom integrations. Home Assistant 2026.8 and later manage reverse-proxy trust under **Settings > System > Network > HTTP server**; [`http-server.json`](../configs/homeassistant/http-server.json) is the sanitized reference, and the live tunnel connector address stays host-only. Confirm an HTTP-server change within five minutes after its automatic restart or Home Assistant rolls it back. [`backup-policy.json`](../configs/homeassistant/backup-policy.json) records the daily encrypted full-backup policy without its private recovery key. [`hacs.json`](../configs/homeassistant/hacs.json) records the official HACS app repository and pinned Get HACS installer version. [`google-integrations.json`](../configs/homeassistant/google-integrations.json) records the sanitized Google Calendar and Google Nest OAuth contract; both use dedicated **Web application** clients and keep client credentials, account tokens, project IDs, and Pub/Sub names private. [`homebridge.json`](../configs/homeassistant/homebridge.json) records the Supervisor-managed Homebridge app, its installed plugin inventory, Ciao mDNS transport, native HomeKit Device connection, update policy, and backup boundary. The Home Assistant host runs Home Assistant OS with Supervisor. The Dozzle Agent is packaged as a custom app because normal host SSH and the Docker TCP API are unavailable. Validate retained Home Assistant configuration against its installed version before applying it.
+`configs/homeassistant` contains retained YAML with private addresses replaced by `!secret` references. Copy `secrets.yaml.example` to `secrets.yaml`, fill the actual values, and preserve the existing automations, scripts, scenes, themes, and custom integrations. Home Assistant 2026.8 and later manage the advertised Internet/local URLs and reverse-proxy trust under **Settings > System > Network**; [`http-server.json`](../configs/homeassistant/http-server.json) is the sanitized reference. The public tunnel address is the Internet URL, the local URL remains automatic, and the live trusted connector address stays host-only. Confirm an HTTP-server change within five minutes after its automatic restart or Home Assistant rolls it back. [`backup-policy.json`](../configs/homeassistant/backup-policy.json) records the daily encrypted full-backup policy without its private recovery key. [`hacs.json`](../configs/homeassistant/hacs.json) records the official HACS app repository and pinned Get HACS installer version. [`google-integrations.json`](../configs/homeassistant/google-integrations.json) records the sanitized Google Calendar and Google Nest OAuth contract; both use dedicated **Web application** clients and keep client credentials, account tokens, project IDs, and Pub/Sub names private. [`homebridge.json`](../configs/homeassistant/homebridge.json) records the Supervisor-managed Homebridge app, its installed plugin inventory, Ciao mDNS transport, native HomeKit Device connection, update policy, and backup boundary. [`pairdrop.json`](../configs/homeassistant/pairdrop.json) records the third-party PairDrop app repository, image identity, LAN port, ingress policy, and browser-local state boundary. [`apps.json`](../configs/homeassistant/apps.json) records all ten installed Supervisor apps, current non-secret switch state, installed image references, and the explicit DIUN choice to monitor only Homebridge and PairDrop release channels. [`configs/cloudflare/access.json`](../configs/cloudflare/access.json) records the sanitized hostname-wide Access gate with no bypass paths; the owner email and Cloudflare object IDs stay host-only. The Home Assistant host runs Home Assistant OS with Supervisor. The Dozzle Agent is packaged as a custom app because normal host SSH and the Docker TCP API are unavailable. Validate retained Home Assistant configuration against its installed version before applying it.
 
 The kiosk reads a private URL file based on [`kiosk.urls.example`](../configs/kiosk.urls.example). It needs a dedicated desktop browser session plus `xset` and `xdotool` for automatic rotation. See [the kiosk notes](apps/kiosk.md).
 

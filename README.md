@@ -15,16 +15,16 @@ flowchart LR
         web["rpiblog<br/>Hugo / Nginx · Homarr · Anki<br/>Vaultwarden · Linkding<br/>Planka + PostgreSQL (TCP)<br/>FBN · GitHub Actions runner (HTTPS)"]
         media["optiplex<br/>Plex · File Browser ×2<br/>qBittorrent + Gluetun<br/>Radarr · Sonarr · Seerr · Bazarr<br/>Reelname (CLI)"]
         monitor["rpimon<br/>Uptime Kuma · ntfy · Dozzle · Scrutiny<br/>ArchiveBox · pywb<br/>Paperless + Redis (TCP)<br/>Tika · Gotenberg (HTTP)"]
-        vpn["vpn-edge<br/>Firezone + PostgreSQL (TCP)<br/>WG-Easy<br/>WireGuard / UDP 51820"]
+        vpn["vpn-edge<br/>Firezone + PostgreSQL (TCP)<br/>WG-Easy<br/>WireGuard / UDP 51820 + 51822"]
     end
 
     subgraph lan["LAN services"]
         dns["rpihole<br/>Pi-hole"]
-        home["rpihass<br/>Home Assistant · Homebridge"]
+        home["rpihass<br/>Home Assistant · 10 Supervisor apps"]
         ftp["rpinfs<br/>FTP server"]
     end
 
-    cloudflare["Cloudflare<br/>DNS · Tunnel · Ban API"]
+    cloudflare["Cloudflare<br/>DNS · Access · Tunnel · Ban API"]
     tunnel["rpiproxy<br/>cloudflared"]
     airvpn["AirVPN"]
     tools["Kiosk display<br/>Monitoring pages / HTTP"]
@@ -35,12 +35,12 @@ flowchart LR
     proxy -->|"HTTP - Kuma 3001"| monitor
     proxy -->|"HTTP - Firezone 13000"| vpn
     proxy -->|"HTTPS API"| cloudflare
-    clients -->|"HTTPS tunnel"| cloudflare
+    clients -->|"HTTPS + Access"| cloudflare
     cloudflare -->|"Tunnel"| tunnel
     tunnel -->|"HTTP 8123"| home
     media -->|"WireGuard / UDP"| airvpn
     clients -->|"DNS / UDP + TCP 53"| dns
-    clients -->|"HTTP 8123 / 8581"| home
+    clients -->|"HTTP 8123 / 8581 / 3000"| home
     clients -->|"FTP / TCP 20-21, 40000-40009"| ftp
 ```
 
@@ -50,14 +50,14 @@ Nginx Proxy Manager currently lists ten enabled HTTPS proxy entries: nine subdom
 
 | Host | Responsibility | Projects and components |
 | --- | --- | --- |
-| `rpiproxy` | Public ingress and request blocking | Nginx Proxy Manager, cloudflared, Fail2ban, Cloudflare ban integration |
-| `rpiblog` | Public web apps and automation | Blog, Homarr, Anki, Planka/PostgreSQL, Linkding, Vaultwarden, FBN, GitHub runner |
-| `rpimon` | Monitoring, notifications, documents, and web archives | Uptime Kuma, ntfy, Dozzle, Scrutiny/InfluxDB, Paperless/Redis/Tika/Gotenberg, ArchiveBox/pywb |
-| `optiplex` | Media storage and download traffic | Plex, qBittorrent/Gluetun, Scrutiny collector, read-only Radarr/Sonarr/Seerr/Bazarr stack, two File Browser instances, Reelname |
-| `rpihole` | LAN DNS | Pi-hole |
-| `rpihass` | Home automation | Home Assistant, Homebridge |
-| `rpinfs` | File transfer | FTP service backed by a media mount |
-| `vpn-edge` | Logical repository name for the Firezone/WG-Easy host | Firezone/PostgreSQL, alternate WG-Easy definition |
+| `rpiproxy` | Public ingress and request blocking | Nginx Proxy Manager, cloudflared, Fail2ban, Cloudflare ban integration, DIUN agent |
+| `rpiblog` | Public web apps and automation | Blog, Homarr, Anki, Planka/PostgreSQL, Linkding, Vaultwarden, FBN, GitHub runner, DIUN agent |
+| `rpimon` | Monitoring, notifications, documents, and web archives | Uptime Kuma, ntfy, Dozzle, Scrutiny/InfluxDB, Paperless/Redis/Tika/Gotenberg, ArchiveBox/pywb, DIUN agent |
+| `optiplex` | Media storage and download traffic | Plex, qBittorrent/Gluetun, Scrutiny collector, read-only Radarr/Sonarr/Seerr/Bazarr stack, two File Browser instances, Reelname, DIUN agent |
+| `rpihole` | LAN DNS | Pi-hole, DIUN agent |
+| `rpihass` | Home automation and local file transfer | Home Assistant plus ten Supervisor apps, including Homebridge, PairDrop, and the DIUN HAOS app |
+| `rpinfs` | File transfer | FTP service backed by a media mount, DIUN agent |
+| `vpn-edge` | Logical repository name for the Firezone/WG-Easy host | Firezone/PostgreSQL, alternate WG-Easy definition, DIUN agent |
 
 The Mac resolves the listed `rpi*` aliases, `vpn-edge`, and `optiplex` through `/etc/hosts`. Both `rpivpn` and `vpn-edge` identify the current Firezone/WG-Easy host. The [inventory](docs/inventory.md#host-name-resolution) records the alias relationship without publishing private addresses.
 

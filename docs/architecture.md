@@ -8,7 +8,7 @@ The homelab is split by workload instead of running every service on one machine
 flowchart TB
     public["Public client"] --> cloudflare["Cloudflare DNS / edge"]
     cloudflare -->|"HTTP 80 / HTTPS 443"| npm["rpiproxy<br/>Nginx Proxy Manager"]
-    cloudflare -->|"Cloudflare Tunnel"| tunnel["rpiproxy<br/>cloudflared"]
+    cloudflare -->|"Access-authenticated<br/>Cloudflare Tunnel"| tunnel["rpiproxy<br/>cloudflared"]
     tunnel -->|"HTTP :8123"| rpihass["rpihass<br/>Home Assistant"]
     npm -->|"HTTP :80, :8080, :3001,<br/>:7575, :9090, :8089"| rpiblog
     npm -->|"HTTP :3001, :2586"| rpimon
@@ -19,7 +19,7 @@ flowchart TB
     lan -. "direct HTTP ports" .-> rpiblog
     lan -. "direct HTTP ports" .-> rpimon
     lan -. "direct HTTP ports" .-> optiplex
-    lan -. "HTTP :8123 / :8581" .-> rpihass
+    lan -. "HTTP :8123 / :8581 / :3000" .-> rpihass
     lan -. "FTP :20-21 + passive range" .-> rpinfs
     lan -. "NPM admin :81" .-> npm
 
@@ -34,13 +34,13 @@ Nginx Proxy Manager terminates HTTPS for the shared proxy routes. The dedicated 
 
 Nginx Proxy Manager publishes ports 80 and 443 and keeps its administration interface on port 81. Its persisted `data/` directory contains configuration and access logs; `letsencrypt/` contains certificate state. The ten observed entries use Let's Encrypt certificates and the Public access-list setting.
 
-The Home Assistant route bypasses NPM. Cloudflare stores the remotely managed public-hostname rule, while `/opt/cloudflared` on `rpiproxy` runs the connector with a host-only tunnel token. The checked-in reference uses example names and contains no account ID, tunnel ID, or token.
+The Home Assistant route bypasses NPM. Cloudflare stores the remotely managed public-hostname rule and a hostname-wide Access application limited to one host-only owner email. There are no path exceptions or bypass policies. Home Assistant retains its own login, and Cloudflare One Client authentication is not enabled. `/opt/cloudflared` on `rpiproxy` runs the connector with a host-only tunnel token. The checked-in references use example names and contain no account ID, object ID, tunnel ID, token, or personal email.
 
 Nginx accepts `CF-Connecting-IP` only when the connecting peer belongs to the checked-in Cloudflare ranges. Fail2ban reads NPM logs, blocks source addresses at the proxy host, and can create owned Cloudflare block rules. An NPM “Online” row means the proxy entry is enabled in NPM; it does not prove that the target application, its database, or its storage is healthy.
 
 ### LAN access
 
-Homarr mixes public HTTPS links with direct LAN links. Dozzle, File Browser, qBittorrent, ArchiveBox, Paperless, Pi-hole, Home Assistant, Homebridge, and the NPM administration page can bypass public ingress when accessed from the LAN. The media-automation interfaces remain loopback-only until their administrator accounts are configured. These direct paths are useful for diagnosis because they separate a backend failure from DNS, certificate, Cloudflare, or proxy failures.
+Every Homarr tile opens the application's direct RFC1918 address and published port. The private address map stays on `rpiblog`; the repository stores only logical host, port, and path policy. These links require a LAN or LAN-routed VPN client and bypass DNS, certificates, Cloudflare, and NPM. The media-automation interfaces remain loopback-only until their administrator accounts are configured.
 
 ## Application dependencies
 
@@ -55,7 +55,7 @@ flowchart LR
         anki["Anki"]
         linkding["Linkding"]
         vaultwarden["Vaultwarden"]
-        fbn["FBN"] -->|"notifications"| apprise["Apprise destination"]
+        fbn["FBN"] -->|"Apprise + write-only token"| ntfy
     end
 
     subgraph observability["rpimon"]
@@ -93,6 +93,7 @@ flowchart LR
     subgraph automation["rpihass"]
         ringPlugin["Homebridge Ring child bridge"] -->|"local HAP / mDNS"| homeAssistant["Home Assistant HomeKit Device"]
         homebridge["Homebridge main bridge"] -->|"local HAP / mDNS"| homeAssistant
+        haApps["Supervisor apps x10"]
     end
 ```
 
@@ -125,7 +126,7 @@ The OptiPlex media trees couple Plex, qBittorrent, File Browser, Reelname, and t
 | Conventional-host DIUN mounts the local Docker socket | The bind is marked read-only, but Docker API access remains a host-level trust boundary. DIUN is pinned, has no published port, and cannot update images through its configured workflow. The HAOS instance uses no Docker API. |
 | Fail2ban uses host networking plus `NET_ADMIN`/`NET_RAW` | A bad rule can affect host and container traffic. Its Cloudflare cleanup is limited by an ownership journal. |
 | Plex, Pi-hole, and the Homebridge HAOS app use host networking | Port collisions and host firewall rules apply directly to these containers. |
-| Gluetun, Firezone, and WG-Easy receive network capabilities | Their private keys and state are security-sensitive. Firezone and WG-Easy both default to UDP 51820 on `vpn-edge`, so they cannot bind that port at the same time. |
+| Gluetun, Firezone, and WG-Easy receive network capabilities | Their private keys and state are security-sensitive. Firezone uses UDP 51820 and WG-Easy v15 maps its internal listener to host UDP 51822 on `vpn-edge`, so they can run at the same time. The router sends both UDP ports to matching NPM streams on `rpiproxy`, which forward them to the matching `vpn-edge` ports. WG-Easy keeps its endpoint, administrator, and peer state in SQLite. |
 | Media automation can normally modify or delete content | This deployment denies media writes with Docker read-only binds and omits qBittorrent, indexer, provider, and Seerr-to-Arr connections. Preserve that boundary while media changes are prohibited. |
 | The Scrutiny collector can issue raw disk commands | It receives only the required raw-I/O and NVMe capabilities and three explicit device mappings. Keep its UI private and do not add the Docker socket or filesystem mounts. |
 | Kuma and ntfy share one host and ingress path | An `rpimon`, NPM, Cloudflare, LAN, or power failure can stop both detection and delivery. Use an independent dead-man check when that failure class must page someone. |

@@ -110,6 +110,8 @@
     "assets": {
       "configs/homarr/vis.json": "homarr/templates/vis.json",
       "configs/homarr/reconcile-board.py": "reconcile-board.py",
+      "configs/homarr/lan-links.json": "lan-links.json",
+      "configs/homarr/lan-addresses.json.example": "lan-addresses.json.example",
       "docker-compose/homarr/Dockerfile": "Dockerfile",
       "docker-compose/homarr/docker-compose.override.yml": "docker-compose.override.yml",
       "docker-compose/homarr/patch-qbittorrent-cookie.mjs": "patch-qbittorrent-cookie.mjs"
@@ -152,6 +154,7 @@
     "compose": "docker-compose.yml",
     "assets": {
       "configs/ntfy/add-diun-publishers.py": "add-diun-publishers.py",
+      "configs/ntfy/add-fbn-publisher.py": "add-fbn-publisher.py",
       "configs/ntfy/add-scrutiny-publisher.py": "add-scrutiny-publisher.py",
       "configs/ntfy/generate-private.py": "generate-private.py"
     }
