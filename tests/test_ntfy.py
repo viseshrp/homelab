@@ -21,6 +21,8 @@ def load_module(name, path):
 
 generator = load_module(
     'ntfy_generate_private', ROOT / 'configs/ntfy/generate-private.py')
+fbn_publisher = load_module(
+    'ntfy_add_fbn', ROOT / 'configs/ntfy/add-fbn-publisher.py')
 notification = load_module(
     'kuma_reconcile_notification',
     ROOT / 'configs/uptime-kuma/reconcile-notification.py')
@@ -36,6 +38,10 @@ class NtfyTests(unittest.TestCase):
         self.assertIn('NTFY_UPSTREAM_BASE_URL', compose)
         self.assertNotIn('NTFY_ATTACHMENT_CACHE_DIR', compose)
         self.assertIn('NTFY_IMAGE=binwiederhier/ntfy:latest', example)
+
+    def test_fbn_selects_the_homelab_managed_compose_file(self):
+        example = (ROOT / 'docker-compose/fbn/.env.example').read_text()
+        self.assertIn('COMPOSE_FILE=docker-compose.yml', example)
 
     def test_generator_separates_server_and_mobile_secrets(self):
         fake_hash = '$2y$12$' + ('a' * 53)
@@ -83,6 +89,58 @@ class NtfyTests(unittest.TestCase):
         self.assertTrue(re.fullmatch(
             r'tk_[a-z0-9]{29}', resolved['ntfyaccesstoken']))
 
+    def test_fbn_publisher_gets_a_separate_topic_and_write_only_token(self):
+        fake_hash = '$2y$12$' + ('a' * 53)
+        monitoring_topic = 'kuma-existing-topic'
+        fbn_topic = 'fbn-separate-topic'
+        fbn_token = 'tk_' + ('f' * 29)
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            env_path = root / '.env'
+            output_dir = root / 'fbn-private'
+            env_path.write_text(
+                'NTFY_BASE_URL=https://ntfy.example.test\n'
+                "NTFY_AUTH_USERS='kuma-publisher:$2y$12$kuma:user,"
+                "mobile-subscriber:$2y$12$mobile:user'\n"
+                f"NTFY_AUTH_ACCESS='kuma-publisher:{monitoring_topic}:wo,"
+                f"mobile-subscriber:{monitoring_topic}:ro'\n"
+                "NTFY_AUTH_TOKENS='kuma-publisher:tk_existing:kuma'\n")
+            result = fbn_publisher.extend(
+                env_path, output_dir,
+                password_hasher=lambda _password, _username: fake_hash,
+                topic=fbn_topic, token=fbn_token)
+
+            self.assertEqual(result['topic'], fbn_topic)
+            updated = env_path.read_text()
+            self.assertIn('fbn-publisher:' + fake_hash + ':user', updated)
+            self.assertIn(f'fbn-publisher:{fbn_topic}:wo', updated)
+            self.assertIn(f'mobile-subscriber:{fbn_topic}:ro', updated)
+            self.assertIn(f'kuma-publisher:{monitoring_topic}:wo', updated)
+            fbn_env = (output_dir / 'fbn-ntfy.env').read_text()
+            self.assertEqual(
+                fbn_env,
+                'FBN_APPRISE_URL=ntfys://' + fbn_token +
+                '@ntfy.example.test/' + fbn_topic + '?auth=token\n')
+            for path in (output_dir, output_dir / 'fbn-ntfy.env',
+                         output_dir / 'mobile-subscription.txt'):
+                expected = 0o700 if path.is_dir() else 0o600
+                self.assertEqual(stat.S_IMODE(path.stat().st_mode), expected)
+
+    def test_fbn_publisher_refuses_an_existing_topic(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            env_path = root / '.env'
+            env_path.write_text(
+                'NTFY_BASE_URL=https://ntfy.example.test\n'
+                "NTFY_AUTH_USERS='mobile-subscriber:$2y$12$mobile:user'\n"
+                "NTFY_AUTH_ACCESS='mobile-subscriber:shared-topic:ro'\n"
+                "NTFY_AUTH_TOKENS='kuma-publisher:tk_existing:kuma'\n")
+            with self.assertRaisesRegex(ValueError, 'different'):
+                fbn_publisher.extend(
+                    env_path, root / 'private',
+                    password_hasher=lambda _password, _username: '$2y$12$hash',
+                    topic='shared-topic', token='tk_' + ('f' * 29))
+
     def test_deployment_assets_cover_private_generation_and_kuma_cutover(self):
         manifest = json.loads((ROOT / 'deployments.json').read_text())
         self.assertEqual(manifest['ntfy'], {
@@ -91,6 +149,7 @@ class NtfyTests(unittest.TestCase):
             'compose': 'docker-compose.yml',
             'assets': {
                 'configs/ntfy/add-diun-publishers.py': 'add-diun-publishers.py',
+                'configs/ntfy/add-fbn-publisher.py': 'add-fbn-publisher.py',
                 'configs/ntfy/add-scrutiny-publisher.py': 'add-scrutiny-publisher.py',
                 'configs/ntfy/generate-private.py': 'generate-private.py',
             },
