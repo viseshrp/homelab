@@ -20,6 +20,9 @@ def load_reconciler():
 class HomarrPolicyTests(unittest.TestCase):
     def setUp(self):
         self.board = json.loads((ROOT / "configs/homarr/vis.json").read_text())
+        self.links = json.loads(
+            (ROOT / "configs/homarr/lan-links.json").read_text()
+        )
         self.kuma = json.loads(
             (ROOT / "configs/uptime-kuma/monitors.json").read_text()
         )
@@ -34,7 +37,7 @@ class HomarrPolicyTests(unittest.TestCase):
         kuma_apps.add("Pi-hole")
 
         board_apps = {app["name"] for app in self.board["apps"]}
-        self.assertEqual(board_apps - kuma_apps, {"Paperless"})
+        self.assertEqual(board_apps - kuma_apps, {"PairDrop", "Paperless", "WG-Easy"})
         self.assertEqual(kuma_apps - board_apps, set())
 
         by_name = {app["name"]: app for app in self.board["apps"]}
@@ -46,7 +49,7 @@ class HomarrPolicyTests(unittest.TestCase):
         apps = self.board["apps"]
         ids = [app["id"] for app in apps]
         self.assertEqual(len(ids), len(set(ids)))
-        self.assertEqual(len(apps), 22)
+        self.assertEqual(len(apps), 24)
 
         for breakpoint in ("md", "lg"):
             positions = [
@@ -68,7 +71,19 @@ class HomarrPolicyTests(unittest.TestCase):
         self.assertEqual(
             assets["configs/homarr/reconcile-board.py"], "reconcile-board.py"
         )
+        self.assertEqual(
+            assets["configs/homarr/lan-links.json"], "lan-links.json"
+        )
+        self.assertEqual(
+            assets["configs/homarr/lan-addresses.json.example"],
+            "lan-addresses.json.example",
+        )
         self.assertNotIn("homarr/configs/vis.json", assets.values())
+
+    def test_lan_link_policy_covers_every_tile(self):
+        self.assertEqual(
+            set(self.links["apps"]), {app["name"] for app in self.board["apps"]}
+        )
 
 
 class HomarrReconcilerTests(unittest.TestCase):
@@ -124,6 +139,67 @@ class HomarrReconcilerTests(unittest.TestCase):
         )
         self.assertEqual(by_name["Scrutiny"]["url"], "http://rpimon:8083")
         self.assertTrue(by_name["Homebridge"]["network"]["enabledStatusChecker"])
+
+    def test_lan_policy_rewrites_only_click_urls_and_adds_missing_app(self):
+        reconciler = load_reconciler()
+        full = json.loads((ROOT / "configs/homarr/vis.json").read_text())
+        desired = {
+            "apps": [
+                app for app in full["apps"] if app["name"] in {"Planka", "Homarr"}
+            ]
+        }
+        policy = {
+            "schemaVersion": 1,
+            "apps": {
+                "Planka": {"host": "web", "port": 3001, "path": "/"},
+                "Homarr": {"host": "web", "port": 7575, "path": "/board"},
+            },
+        }
+        addresses = {"schemaVersion": 1, "hosts": {"web": "192.168.1.20"}}
+        links = reconciler.compile_lan_links(desired, policy, addresses)
+        live = {
+            "apps": [
+                {
+                    "id": "private-planka-id",
+                    "name": "boards",
+                    "url": "https://boards.example.net/api/health",
+                    "behaviour": {"externalUrl": "https://boards.example.net"},
+                    "network": {"enabledStatusChecker": False},
+                    "integration": {"properties": [{"field": "private-value"}]},
+                }
+            ],
+            "widgets": [{"properties": {"credential": "private-widget-value"}}],
+        }
+
+        merged, summary = reconciler.merge_board(desired, live, lan_links=links)
+        by_name = {app["name"]: app for app in merged["apps"]}
+        self.assertEqual(by_name["Planka"]["url"], "https://boards.example.net/api/health")
+        self.assertEqual(
+            by_name["Planka"]["behaviour"]["externalUrl"],
+            "http://192.168.1.20:3001/",
+        )
+        self.assertEqual(by_name["Homarr"]["url"], "http://192.168.1.20:7575/board")
+        self.assertEqual(
+            by_name["Homarr"]["behaviour"]["externalUrl"],
+            "http://192.168.1.20:7575/board",
+        )
+        self.assertEqual(summary["added"], ["Homarr"])
+        self.assertEqual(summary["linksUpdated"], ["Planka"])
+        self.assertEqual(
+            merged["widgets"], [{"properties": {"credential": "private-widget-value"}}]
+        )
+        reconciler.audit(desired, merged, links)
+
+    def test_lan_policy_rejects_non_private_address(self):
+        reconciler = load_reconciler()
+        desired = {"apps": [{"name": "Homarr"}]}
+        policy = {
+            "schemaVersion": 1,
+            "apps": {"Homarr": {"host": "web", "port": 7575, "path": "/"}},
+        }
+        addresses = {"schemaVersion": 1, "hosts": {"web": "203.0.113.10"}}
+        with self.assertRaisesRegex(ValueError, "RFC1918"):
+            reconciler.compile_lan_links(desired, policy, addresses)
 
 
 if __name__ == "__main__":

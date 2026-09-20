@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "apps": {
+    "Plex": { "host": "optiplex", "scheme": "http", "port": 32400, "path": "/web/index.html" },
+    "Firezone": { "host": "vpn-edge", "scheme": "http", "port": 13000, "path": "/" },
+    "Nginx Proxy Manager": { "host": "rpiproxy", "scheme": "http", "port": 81, "path": "/nginx/proxy" },
+    "Planka": { "host": "rpiblog", "scheme": "http", "port": 3001, "path": "/" },
+    "Blog": { "host": "rpiblog", "scheme": "http", "port": 80, "path": "/" },
+    "Linkding": { "host": "rpiblog", "scheme": "http", "port": 9090, "path": "/" },
+    "File Browser - media3": { "host": "optiplex", "scheme": "http", "port": 8081, "path": "/" },
+    "qBittorrent": { "host": "optiplex", "scheme": "http", "port": 8085, "path": "/" },
+    "ArchiveBox": { "host": "rpimon", "scheme": "http", "port": 8002, "path": "/" },
+    "Pi-hole": { "host": "rpihole", "scheme": "http", "port": 80, "path": "/admin" },
+    "Uptime Kuma": { "host": "rpimon", "scheme": "http", "port": 3001, "path": "/" },
+    "Homebridge": { "host": "rpihass", "scheme": "http", "port": 8581, "path": "/" },
+    "Dozzle": { "host": "rpimon", "scheme": "http", "port": 8080, "path": "/" },
+    "Home Assistant": { "host": "rpihass", "scheme": "http", "port": 8123, "path": "/" },
+    "Vaultwarden": { "host": "rpiblog", "scheme": "http", "port": 8089, "path": "/" },
+    "Paperless": { "host": "rpimon", "scheme": "http", "port": 8000, "path": "/" },
+    "Anki": { "host": "rpiblog", "scheme": "http", "port": 8080, "path": "/health" },
+    "File Browser - media2": { "host": "optiplex", "scheme": "http", "port": 8080, "path": "/" },
+    "Homarr": { "host": "rpiblog", "scheme": "http", "port": 7575, "path": "/" },
+    "Ntfy": { "host": "rpimon", "scheme": "http", "port": 2586, "path": "/" },
+    "pywb": { "host": "rpimon", "scheme": "http", "port": 8082, "path": "/" },
+    "Scrutiny": { "host": "rpimon", "scheme": "http", "port": 8083, "path": "/" },
+    "WG-Easy": { "host": "vpn-edge", "scheme": "http", "port": 51821, "path": "/" },
+    "PairDrop": { "host": "rpihass", "scheme": "http", "port": 3000, "path": "/" }
+  }
+}

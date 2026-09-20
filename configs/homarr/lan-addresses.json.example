@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "hosts": {
+    "optiplex": "192.0.2.10",
+    "vpn-edge": "192.0.2.11",
+    "rpiproxy": "192.0.2.12",
+    "rpiblog": "192.0.2.13",
+    "rpimon": "192.0.2.14",
+    "rpihole": "192.0.2.15",
+    "rpihass": "192.0.2.16"
+  }
+}
