@@ -15,13 +15,13 @@ Nginx Proxy Manager is the shared HTTPS entry point for the public web applicati
 | Certificate state | `/opt/nginx/letsencrypt` |
 | Container health check | `/bin/check-health` every 10 seconds |
 
-The Compose template also publishes UDP 51820. That port is not an HTTP proxy-host entry; document and verify its forwarding purpose separately.
+The Compose template also publishes UDP 51820 and 51822. NPM forwards those public-router paths to Firezone on `vpn-edge:51820` and WG-Easy on `vpn-edge:51822`; these are UDP streams, not HTTP proxy-host entries.
 
 Docker stdout/stderr logs use `json-file` rotation, retaining three files of 10 MB each by default. Set `DOCKER_LOG_MAX_SIZE` and `DOCKER_LOG_MAX_FILES` in the installed `.env` to override those limits. These settings do not rotate Nginx access/error files under `data/logs`, which Fail2ban reads. Apply log-limit changes with the [log-retention procedure](../operations.md#change-container-log-retention).
 
 ## Observed proxy map
 
-The NPM UI displayed version 2.15.1 and these ten enabled rows after the ntfy route was added and checked on September 11, 2026. All used Let's Encrypt, the Public access-list setting, and an Online row status.
+The NPM UI displayed version 2.15.1 and these eleven enabled rows after the WG-Easy route was added and checked on September 12, 2026. All used Let's Encrypt, the Public access-list setting, and an Online row status.
 
 | Public name | Backend | Service |
 | --- | --- | --- |
@@ -34,9 +34,12 @@ The NPM UI displayed version 2.15.1 and these ten enabled rows after the ntfy ro
 | `pass.<domain>` | `rpiblog:8089` | Vaultwarden |
 | `plex.<domain>` | `optiplex:32400` | Plex |
 | `status.<domain>` | `rpimon:3001` | Uptime Kuma |
+| `wgeasy.<domain>` | `vpn-edge:51821` | WG-Easy administration |
 | `<domain>` and `www.<domain>` | `rpiblog:80` | Hugo site |
 
 The table uses sanitized domains and logical host names. Live NPM stores LAN addresses for the observed backends. The Mac's `/etc/hosts` maps the logical names to those addresses, including `rpivpn` and `vpn-edge` for the Firezone/WG-Easy host. See [host name resolution](../inventory.md#host-name-resolution).
+
+The non-HTTP stream map mirrors the VPN services: UDP 51820 forwards to `vpn-edge:51820` for Firezone, and UDP 51822 forwards to `vpn-edge:51822` for WG-Easy. The router sends both public ports to the same ports on `rpiproxy`. Each VPN advertises its own public port and uses a separate DNS-only hostname.
 
 An Online row and the container health check cover NPM state only. Verify the public URL, direct backend, application logs, dependencies, and persisted data before declaring a service healthy.
 
@@ -49,7 +52,7 @@ The mounted [`nginx.conf`](../../configs/nginx/nginx.conf) includes [`cloudflare
 ## Route-change checklist
 
 1. Confirm the backend works directly from `rpiproxy`.
-2. Create or edit the NPM row with the intended domain, HTTP destination, certificate, and access policy.
+2. Create or edit the NPM row with the intended domain, HTTP destination, certificate, and access policy. For a stream, compare incoming port, TCP/UDP selection, forwarding host, forwarding port, and enabled state instead.
 3. Test the public URL through normal DNS and TLS.
 4. Confirm the backend receives the expected client/proxy headers and that WebSocket-dependent features work.
 5. Update [`configs/nginx/routes.json`](../../configs/nginx/routes.json) as the sanitized reference.
@@ -60,7 +63,7 @@ Changing `routes.json` does not update NPM. Never paste a rendered production co
 
 Back up `data/`, `letsencrypt/`, the installed Compose file, and its private environment as one recovery set. This template uses NPM's SQLite database under `data/`; quiesce writes or copy it consistently. After a restore, verify:
 
-1. The administration login and all ten proxy rows.
+1. The administration login and all eleven proxy rows.
 2. Certificate presence and renewal state.
 3. A direct backend and its corresponding public URL.
 4. Real client-address logging through Cloudflare and from the LAN.

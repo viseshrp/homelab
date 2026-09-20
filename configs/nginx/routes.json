@@ -1,5 +1,21 @@
 {
   "description": "Reference for NPM proxy-host entries; not an NPM import file. Replace example domains and resolve host aliases on the proxy host.",
+  "streams": [
+    {
+      "incoming_port": 51820,
+      "protocol": "udp",
+      "host": "vpn-edge",
+      "port": 51820,
+      "service": "Firezone WireGuard"
+    },
+    {
+      "incoming_port": 51822,
+      "protocol": "udp",
+      "host": "vpn-edge",
+      "port": 51822,
+      "service": "WG-Easy WireGuard"
+    }
+  ],
   "routes": [
     {
       "domains": [
@@ -40,6 +56,20 @@
       "port": 7575,
       "certificate": "Lets Encrypt",
       "access_list": "Public"
+    },
+    {
+      "domains": [
+        "wgeasy.example.com"
+      ],
+      "scheme": "http",
+      "host": "vpn-edge",
+      "port": 51821,
+      "certificate": "Lets Encrypt",
+      "access_list": "Public",
+      "force_ssl": true,
+      "http2": true,
+      "websockets": true,
+      "block_exploits": true
     },
     {
       "domains": [

@@ -1,12 +1,17 @@
 services:
   wg-easy:
-    image: "${WG_EASY_IMAGE:-weejewel/wg-easy:latest}"
+    image: "${WG_EASY_IMAGE:-ghcr.io/wg-easy/wg-easy:15}"
     container_name: wg-easy
+    networks:
+      wg:
+        ipv4_address: "${WG_DOCKER_IPV4_ADDRESS:-10.42.42.42}"
+        ipv6_address: "${WG_DOCKER_IPV6_ADDRESS:-fdcc:ad94:bacf:61a3::2a}"
     ports:
-    - 51820:51820/udp
-    - 51821:51821/tcp
+    - "${WG_UDP_HOST_PORT:-51822}:51820/udp"
+    - "${WG_UI_HOST_PORT:-51821}:51821/tcp"
     volumes:
     - ".:/etc/wireguard"
+    - "/lib/modules:/lib/modules:ro"
     restart: unless-stopped
     cap_add:
     - NET_ADMIN
@@ -14,8 +19,17 @@ services:
     sysctls:
     - net.ipv4.ip_forward=1
     - net.ipv4.conf.all.src_valid_mark=1
+    - net.ipv6.conf.all.disable_ipv6=0
+    - net.ipv6.conf.all.forwarding=1
+    - net.ipv6.conf.default.forwarding=1
     environment:
-      WG_HOST: "${WG_HOST:-vpn.example.com}"
-      PASSWORD: "${PASSWORD:?Set PASSWORD}"
-      WG_PORT: '51820'
-      WG_DEFAULT_DNS: "${WG_DEFAULT_DNS:?Set WG_DEFAULT_DNS}"
+      INSECURE: "${WG_INSECURE:-true}"
+networks:
+  wg:
+    driver: bridge
+    enable_ipv6: true
+    ipam:
+      driver: default
+      config:
+      - subnet: "${WG_DOCKER_IPV4_SUBNET:-10.42.42.0/24}"
+      - subnet: "${WG_DOCKER_IPV6_SUBNET:-fdcc:ad94:bacf:61a3::/64}"
