@@ -13,7 +13,7 @@ The `webrecorder/pywb` container is part of `/opt/archivebox` on `rpimon`. Host 
 
 ## Startup
 
-The entrypoint creates a `default` collection, adds captures matching `/archivebox/archive/*/warc/*.warc.gz`, and starts `wayback`.
+The entrypoint creates a `default` collection, adds captures matching `/archivebox/archive/*/warc/*.warc.gz` only when that source basename is not already present, and starts `wayback`. This keeps restarts idempotent instead of copying the same immutable WARC again.
 
 ArchiveBox supplies the captures. The replay collection and its indexes persist in the shared data directory.
 

@@ -7,12 +7,15 @@ services:
     - "./data:/data"
     restart: always
     environment:
+      BASE_URL: "${BASE_URL:?Set BASE_URL}"
+      SERVER_SECURITY_MODE: "${SERVER_SECURITY_MODE:-auto}"
       MEDIA_MAX_SIZE: 1500m
       TIMEOUT: '120'
       CHECK_SSL_VALIDITY: 'True'
-      PUBLIC_INDEX: 'False'
-      PUBLIC_SNAPSHOTS: 'False'
-      PUBLIC_ADD_VIEW: 'False'
+      PUBLIC_INDEX: "${PUBLIC_INDEX:-False}"
+      PUBLIC_SNAPSHOTS: "${PUBLIC_SNAPSHOTS:-False}"
+      PUBLIC_ADD_VIEW: "${PUBLIC_ADD_VIEW:-False}"
+      PERMISSIONS: "${PERMISSIONS:-private}"
     command: server --quick-init 0.0.0.0:8000
     dns:
     - "${DNS_SERVER:?Set DNS_SERVER}"
@@ -24,7 +27,17 @@ services:
     - "./data:/archivebox"
     - "./data/wayback:/webarchive"
     restart: always
-    entrypoint: "/bin/sh -c '(wb-manager init default || test $$? -eq 2) && wb-manager
-      add default /archivebox/archive/*/warc/*.warc.gz; wayback;'"
+    entrypoint:
+    - /bin/sh
+    - -c
+    - |
+      set -eu
+      test -d /webarchive/collections/default || wb-manager init default
+      for warc in /archivebox/archive/*/warc/*.warc.gz; do
+        test -e "$$warc" || continue
+        imported="/webarchive/collections/default/archive/$$(basename "$$warc")"
+        test -e "$$imported" || wb-manager add default "$$warc"
+      done
+      exec wayback
     environment:
       INIT_COLLECTION: "${INIT_COLLECTION:-archivebox}"
