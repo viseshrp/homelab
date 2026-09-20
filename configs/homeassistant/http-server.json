@@ -1,5 +1,12 @@
 {
-  "managed_in": "Settings > System > Network > HTTP server",
+  "managed_in": [
+    "Settings > System > Network > Home Assistant URL",
+    "Settings > System > Network > HTTP server"
+  ],
+  "home_assistant_url": {
+    "internet": "https://hass.example.com",
+    "local_network": "automatic"
+  },
   "trust_x_forwarded_for": true,
   "trusted_proxies": [
     {

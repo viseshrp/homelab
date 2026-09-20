@@ -1,0 +1,33 @@
+{
+  "installation_type": "Home Assistant OS app",
+  "app_repository": "https://github.com/jdeath/homeassistant-addons",
+  "repository_slug": "2effc9b9",
+  "app": {
+    "name": "pairdrop",
+    "slug": "2effc9b9_pairdrop",
+    "source_image": "lscr.io/linuxserver/pairdrop",
+    "version": "version-v1.11.2",
+    "image_index_digest": "sha256:15b6792fcd486d8ebd1853dbfb0419188ca92035da2f29f75eb18b5390fa25d1",
+    "arm64_manifest_digest": "sha256:3d7043d519293ce579e5d3c62c2e333d120a989e6be8a4a261b7bb23ce5b8fb8",
+    "architecture": "aarch64",
+    "protected": true,
+    "signed": false,
+    "rating": 7,
+    "start_on_boot": true,
+    "auto_update": false,
+    "watchdog": false,
+    "observed_at": "2026-09-12"
+  },
+  "network": {
+    "home_assistant_ingress": true,
+    "ingress_panel": true,
+    "ingress_admin_only": false,
+    "lan_port": 3000,
+    "public_route": false
+  },
+  "storage": {
+    "home_assistant_share_access": "read-write",
+    "server_side_transfer_storage": false,
+    "browser_pairing_state": "client-side; not part of the Home Assistant backup"
+  }
+}

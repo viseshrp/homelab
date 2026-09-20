@@ -1,0 +1,39 @@
+{
+  "description": "Sanitized reference for the Cloudflare Access policy in front of the Home Assistant tunnel. Account IDs, application IDs, policy IDs, and the allowed email stay outside Git.",
+  "applications": [
+    {
+      "name": "Home Assistant",
+      "type": "self_hosted",
+      "domain": "hass.example.com",
+      "destinations": [
+        {
+          "type": "public",
+          "uri": "hass.example.com"
+        }
+      ],
+      "session_duration": "720h",
+      "allow_authenticate_via_warp": false,
+      "app_launcher_visible": false,
+      "policy": {
+        "name": "Home Assistant primary account",
+        "decision": "allow",
+        "precedence": 1,
+        "session_duration": "720h",
+        "include": [
+          {
+            "email": {
+              "email": "owner@example.com"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "path_exceptions": [],
+  "authentication": {
+    "cloudflare_identity_provider": "email one-time PIN",
+    "cloudflare_one_client_authentication": "not configured for this account",
+    "home_assistant_authentication_remains_required": true,
+    "path_bypasses": []
+  }
+}
