@@ -195,6 +195,13 @@ class ScrutinyConfigurationTests(unittest.TestCase):
         self.assertIn('SYS_ADMIN', compose)
         self.assertIn('/api/push/${KUMA_PUSH_TOKEN}', runner)
         self.assertNotIn('printf \'%s\\n\' "$push_path"', runner)
+        self.assertIn('SCRUTINY_EXPECTED_DEVICE_COUNT', compose)
+        self.assertIn('SCRUTINY_SMART_RETRIES', compose)
+        self.assertIn('start_interval: 30s', compose)
+        self.assertIn('smart_preflight=retry', runner)
+        self.assertIn("grep -c 'Publishing smartctl results for'", runner)
+        self.assertIn('push_status=down', runner)
+        self.assertIn('published_count', runner)
 
     def test_kuma_v2_push_monitor_uses_its_interval_and_required_defaults(self):
         reconciler = (ROOT / 'configs/uptime-kuma/reconcile.py').read_text()

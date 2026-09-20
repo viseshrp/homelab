@@ -15,6 +15,10 @@ services:
       COLLECTOR_HOST_ID: "${SCRUTINY_HOST_ID:?Set the collector host label}"
       COLLECTOR_CRON_SCHEDULE: "${SCRUTINY_COLLECTOR_CRON_SCHEDULE:-15 3 * * *}"
       COLLECTOR_RUN_STARTUP: "false"
+      SCRUTINY_DEVICE_SPECS: "${SCRUTINY_DEVICE_SPECS:-/dev/sda:sat,/dev/sdb:sat,/dev/nvme0:nvme}"
+      SCRUTINY_EXPECTED_DEVICE_COUNT: "${SCRUTINY_EXPECTED_DEVICE_COUNT:-3}"
+      SCRUTINY_SMART_RETRIES: "${SCRUTINY_SMART_RETRIES:-3}"
+      SCRUTINY_SMART_RETRY_DELAY_SECONDS: "${SCRUTINY_SMART_RETRY_DELAY_SECONDS:-5}"
       KUMA_PUSH_HOST: "${SCRUTINY_KUMA_PUSH_HOST:?Set the private Kuma host}"
       KUMA_PUSH_PORT: "${SCRUTINY_KUMA_PUSH_PORT:-3001}"
       KUMA_PUSH_TOKEN: "${SCRUTINY_KUMA_PUSH_TOKEN:?Set the private Kuma push token}"
@@ -44,6 +48,7 @@ services:
       timeout: 10s
       retries: 2
       start_period: 5m
+      start_interval: 30s
     init: true
     security_opt:
       - no-new-privileges:true

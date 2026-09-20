@@ -16,7 +16,7 @@ The collector sees only the three declared whole devices. Its private environmen
 
 ## Collection and alerts
 
-The collector runs once at startup and daily at 03:15. A successful scan updates its container health marker and calls a private Uptime Kuma push monitor. Kuma allows 25 hours between collection heartbeats, so a stopped container, failed cron job, or unreachable hub becomes an ntfy alert instead of leaving stale Scrutiny data looking current.
+The collector runs once at startup and daily at 03:15. It retries bounded SMART identity probes before collection because the USB bridges can reject the first command after standby. A scan counts as successful only when all three expected devices publish results. That full scan updates the container health marker and calls a private Uptime Kuma push monitor; a partial scan sends an immediate `down` result instead. Kuma allows 25 hours between collection heartbeats, so a stopped container, failed cron job, unreachable hub, or skipped drive becomes an ntfy alert instead of leaving stale Scrutiny data looking current.
 
 Scrutiny sends drive-health alerts through a separate `scrutiny-publisher` ntfy token. That identity has write-only access to the existing private monitoring topic. The mobile subscriber remains read-only. The private token URL stays in `/opt/scrutiny/.env` and `/opt/ntfy/scrutiny-ntfy.env`.
 
@@ -42,12 +42,14 @@ Raspberry Pi microSD boot media does not expose standard SMART telemetry and is 
 
 On September 12, 2026, the hub and collector were deployed from this repository. Both hub containers and the collector were healthy without restart loops; `/api/health` returned HTTP 200; the summary API contained exactly one host and three SMART-capable devices; and the initial collector run published all three results. A final direct SMART check reported 60°C and 57°C for the HDDs and 42°C for the NVMe, with all three passing and no critical ATA or NVMe media-error counters. The Kuma policy reconciled idempotently at 31 active monitors, all 31 had a latest up result, and the collector push monitor retained its 90,000-second interval. Scrutiny's notification test returned success and ntfy recorded use of the separate write-only publisher. Port 8083 listened only on the private address, and no repository route, live NPM proxy host, or public DNS record existed for Scrutiny.
 
+The first scheduled 03:15 run exposed a USB standby failure: both media drives rejected their first SMART identity command, Scrutiny skipped them, and its collector process still exited zero after publishing only the NVMe result. The wrapper now warms each declared device with bounded retries and requires exactly three publish messages before reporting `up` to Kuma. The post-fix startup scan published all three drives in three seconds, the hub summary returned three devices, all three direct SMART health checks passed, and Kuma stored the new successful heartbeat.
+
 ## Verify and recover
 
 1. Render both projects with their private environments and verify repository/host checksums for every non-secret file.
 2. Require both hub containers and the collector to be healthy without restart loops.
 3. Call `http://rpimon:8083/api/health`, then confirm the dashboard lists exactly the three OptiPlex drives under one host.
-4. Run one collector scan and require a fresh successful Kuma push heartbeat.
+4. Run one collector scan, require three publish messages, and require a fresh successful Kuma push heartbeat. A process exit code of zero without all three publish messages is a failed scan.
 5. Call Scrutiny's `/api/health/notify` endpoint and read the resulting message through the mobile subscriber. Confirm the Scrutiny token can publish but cannot read, and anonymous access remains denied.
 
 Back up `/opt/scrutiny/config`, `/opt/scrutiny/influxdb`, `/opt/scrutiny/influxdb-config`, and the private `.env` as one recovery set. Quiesce both hub containers before copying InfluxDB. The collector has no durable application data; preserve its Compose files, private device mapping, and Kuma token. Rollback of this new deployment stops only the Scrutiny projects and leaves their bind-mounted state in place.
