@@ -64,6 +64,14 @@ Before changing the total limit, save and verify a root-only copy of `Preference
 
 Plex documents the [Internet upload speed setting and its 80% streaming allowance](https://support.plex.tv/articles/227715247-server-settings-bandwidth-and-transcoding-limits/).
 
+## Container log retention
+
+Docker limits Plex's `json-file` stdout/stderr logs to three files of 10 MB each. `DOCKER_LOG_MAX_SIZE` and `DOCKER_LOG_MAX_FILES` can override those defaults through a private `.env`. This limit does not remove or alter Plex's application logs under `/opt/plex/config`, its metadata, or any media file.
+
+Changing the Docker logging options requires recreating only the `plex` container. Before recreation, save `docker logs plex` and the installed Compose/input files in a root-only backup directory. To restore unbounded Docker logging, restore the saved Compose and example-input files, validate them, and recreate only Plex with the recorded image. The saved pre-change container log remains available in the backup directory, but it cannot be reattached to Docker's live log stream.
+
+Docker documents the [`max-size` and `max-file` rotation options](https://docs.docker.com/engine/logging/drivers/json-file/).
+
 ## Verify and recover
 
 Confirm both media filesystems are mounted, then check the direct Plex interface, the `plex` route, library contents, metadata, and playback of a small known item. A loaded UI can hide a missing library mount or failed transcoder.
